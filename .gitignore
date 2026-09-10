@@ -1,0 +1,50 @@
+# Python environments and generated files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Packaging and build output
+build/
+dist/
+*.egg-info/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Local data and generated ML artifacts
+data/raw/
+data/interim/
+data/processed/
+artifacts/*
+!artifacts/.gitkeep
+
+# Logs, caches, and local databases
+*.log
+logs/
+.cache/
+*.db
+*.sqlite
+*.sqlite3
+
+# Frontend dependencies and generated output (frontend is added later)
+node_modules/
+.next/
+out/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
