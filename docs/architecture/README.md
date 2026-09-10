@@ -20,3 +20,9 @@ Major decisions will record the decision, alternatives, rationale, and
 trade-offs. Documentation should describe implemented behavior rather than
 speculative future complexity.
 
+## Current records
+
+- [Architectural decision register](decisions.md)
+- [Implementation roadmap](../roadmap.md)
+- [Project status](../project-status.md)
+- [Milestone B to C handoff](../handoffs/milestone-b-to-c.md)

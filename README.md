@@ -110,7 +110,12 @@ integrity details.
 ## Documentation
 
 Architecture decisions and component documentation will evolve with the
-implementation. See [the architecture index](docs/architecture/README.md).
+implementation. Start with:
+
+- [implementation roadmap](docs/roadmap.md)
+- [current project status](docs/project-status.md)
+- [architecture index and decisions](docs/architecture/README.md)
+- [Milestone B to C handoff](docs/handoffs/milestone-b-to-c.md)
 
 ## Development order
 
@@ -125,3 +130,7 @@ The planned order is:
 7. Prediction lifecycle and FastAPI
 8. Automation, deployment, and end-to-end backend validation
 9. Frontend architecture and implementation
+
+The exact next implementation step is **Step 2.1: define the versioned,
+point-in-time feature-row contract**. It deliberately defines and tests the data
+boundary before any rolling features are computed.
