@@ -10,7 +10,12 @@ readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [
     "pydantic-settings==2.15.0",
+    "tzdata==2026.3",
 ]
+
+[project.scripts]
+plp-download-historical = "pl_platform.ingestion.download:main"
+plp-materialize-historical = "pl_platform.ingestion.materialize:main"
 
 [dependency-groups]
 dev = [

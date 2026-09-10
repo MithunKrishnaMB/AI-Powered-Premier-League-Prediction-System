@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "source": {
+    "id": "football-data-uk",
+    "name": "Football-Data.co.uk",
+    "homepage_url": "https://www.football-data.co.uk/data.php",
+    "allowed_hosts": [
+      "football-data.co.uk",
+      "www.football-data.co.uk"
+    ],
+    "attribution": "Match data supplied by Football-Data.co.uk.",
+    "usage_notice": "Keep raw files out of Git and review the source terms before redistribution."
+  },
+  "files": [
+    {
+      "id": "epl-2025-2026",
+      "competition_code": "E0",
+      "competition_name": "English Premier League",
+      "country": "England",
+      "season_start": 2025,
+      "season_end": 2026,
+      "url": "https://www.football-data.co.uk/mmz4281/2526/E0.csv",
+      "destination": "raw/football-data/epl/2025-2026/E0.csv",
+      "sha256": "3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62",
+      "expected_bytes": 203438,
+      "expected_rows": 380,
+      "required_columns": [
+        "Div",
+        "Date",
+        "HomeTeam",
+        "AwayTeam",
+        "FTHG",
+        "FTAG",
+        "FTR"
+      ],
+      "encoding": "utf-8-sig",
+      "captured_at": "2026-09-10T11:19:37Z",
+      "immutable": true
+    }
+  ]
+}

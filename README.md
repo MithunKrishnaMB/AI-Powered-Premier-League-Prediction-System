@@ -34,9 +34,9 @@ working together and tested.
 ## Repository status
 
 The project has a minimal importable Python package, typed environment
-configuration, structured logging, foundational quality tooling, and continuous
-integration. Feature code, database migrations, datasets, model artifacts, and
-the frontend have not yet been created.
+configuration, structured logging, and foundational local quality tooling.
+Feature code, database migrations, datasets, model artifacts, and the frontend
+have not yet been created. CI/CD automation is intentionally not configured.
 
 The development environment uses 64-bit Python 3.14.
 
@@ -60,6 +60,38 @@ ruff format --check .
 mypy src tests
 pytest --cov
 ```
+
+## Historical data acquisition
+
+Historical source metadata is versioned in `data/manifests/`. Raw third-party
+files are checksum-verified, stored below the ignored `data/raw/` directory, and
+never overwritten by the downloader.
+
+Download the initial completed season with:
+
+```powershell
+plp-download-historical `
+  --manifest data/manifests/football-data.json `
+  --entry-id epl-2025-2026 `
+  --data-root data
+```
+
+Materialize its validated canonical fixture dataset with:
+
+```powershell
+plp-materialize-historical `
+  --manifest data/manifests/football-data.json `
+  --entry-id epl-2025-2026 `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+The generated JSON Lines dataset and its build manifest are written beneath
+`data/interim/` and remain outside Git.
+
+See [historical data provenance](docs/data/historical-data.md) for source and
+integrity details.
 
 ## Data and artifact policy
 

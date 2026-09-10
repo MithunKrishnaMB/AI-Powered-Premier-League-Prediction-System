@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "seasons": [
+    {
+      "id": "2025-2026",
+      "competition_id": "eng-premier-league",
+      "starts_on": "2025-08-15",
+      "ends_on": "2026-05-24",
+      "completed": true,
+      "memberships": [
+        {"team_id":"6f4ce9e1-6d36-5198-af34-7aca2aac351e","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"d30fa001-f095-5675-a73b-2e9bbaca89e6","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"83a9165c-94af-5edf-9d7a-b46d484f8823","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"43cf12ae-5583-537b-a01f-f7e9d5989372","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"cf3578ee-acd1-5eec-b1e6-d2c7aa64985a","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"f60bbb4e-0756-5751-8ae6-6ee4c80f1d53","entry_status":"promoted","previous_competition_id":"eng-championship"},
+        {"team_id":"cfde9ca5-a6d2-5ec5-acaf-3a739dcd9c5b","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"0195073c-17fe-5cd0-8ad0-c45e44d34867","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"431575c7-873f-5ce2-996d-2e11fb6d4607","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"b0ddbf7d-8b98-5b23-8a35-aa481ea50be0","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"10e42299-bbc2-59d2-bee2-20482c17cb75","entry_status":"promoted","previous_competition_id":"eng-championship"},
+        {"team_id":"366df642-3b48-5a5b-937f-f51c51ec3a69","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"9b6d7095-02c2-54fa-9338-e3729767d30a","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"59d74585-7cfe-573e-91fd-ee821879952a","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"3e19fe25-abe5-53c6-a955-6c2ee97cee6a","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"83f6b7ec-776c-5a17-a037-b9a41513f7de","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"27b2dd0a-4e25-5e01-9e5c-0ad9335259a8","entry_status":"promoted","previous_competition_id":"eng-championship"},
+        {"team_id":"534cb8f5-347f-58ef-8da0-072ccf92920f","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"9f1f657f-2343-5411-83b0-9db7b55d6a27","entry_status":"continued","previous_competition_id":null},
+        {"team_id":"bf9f980d-bb62-59f9-882f-294c01a37c84","entry_status":"continued","previous_competition_id":null}
+      ]
+    }
+  ]
+}
