@@ -21,7 +21,7 @@ from pl_platform.domain.teams import (
 def test_loads_all_current_teams_and_resolves_source_aliases() -> None:
     registry = load_team_registry(Path("data/reference/teams.json"))
 
-    assert len(registry.teams) == 20
+    assert len(registry.teams) == 34
     assert registry.resolve("football-data-uk", "Man United").name == (
         "Manchester United"
     )
@@ -31,6 +31,7 @@ def test_loads_all_current_teams_and_resolves_source_aliases() -> None:
     assert registry.resolve("football-data-uk", "Nott'm Forest").name == (
         "Nottingham Forest"
     )
+    assert registry.resolve("football-data-uk", "Leicester").name == ("Leicester City")
 
 
 def test_normalize_team_name_handles_unicode_and_whitespace() -> None:

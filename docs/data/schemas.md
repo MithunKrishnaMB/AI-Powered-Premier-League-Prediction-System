@@ -25,7 +25,7 @@ fixture is created.
 - stable canonical team UUIDs;
 - a deterministic fixture UUID;
 - a canonical competition and season identifier;
-- timezone-aware UTC kickoff timestamps;
+- timezone-aware UTC kickoff timestamps with explicit kickoff precision;
 - explicit status, score, outcome, statistics, and source references.
 
 The canonical model rejects inconsistent scores, outcomes, teams, kickoff
@@ -33,18 +33,18 @@ timestamps, and fixture states.
 
 ## Team identity
 
-`data/reference/teams.json` contains stable team records and explicit aliases per
-source. Resolution normalizes Unicode, capitalization, and redundant whitespace,
-but deliberately avoids fuzzy matching. A new or changed provider name must be
-reviewed and added to the registry rather than guessed.
+`data/reference/teams.json` contains 34 stable team records covering every club
+in the historical window, with explicit aliases per source. Resolution
+normalizes Unicode, capitalization, and redundant whitespace, but deliberately
+avoids fuzzy matching. A new or changed provider name must be reviewed and added
+to the registry rather than guessed.
 
 ## Season membership and transitions
 
-`data/reference/seasons.json` records the 20 canonical teams participating in a
-season and marks the three promoted clubs with their previous competition. This
-keeps promotion status point-in-time correct instead of inferring it later from a
-final league table. The 2025–26 promoted clubs are Burnley, Leeds United, and
-Sunderland.
+`data/reference/seasons.json` records the 20 canonical teams participating in
+each season from 2015–16 through 2025–26 and marks the three promoted clubs with
+their previous competition. This keeps promotion status point-in-time correct
+instead of inferring it later from a final league table.
 
 ## Canonical interim dataset
 
@@ -65,8 +65,12 @@ with unchanged inputs produces the same bytes and returns `already_current`.
 
 - Date, teams, full-time score, and result are mandatory for completed historical
   rows; malformed values fail parsing.
-- Kickoff time, half-time values, referee, and match statistics are nullable so
-  older schemas can be represented without fabricated values.
+- Half-time values, referee, and match statistics are nullable so older schemas
+  can be represented without fabricated values.
+- When only a date is available, canonicalization sets `kickoff_precision` to
+  `date_only` and anchors the UTC timestamp at noon Europe/London. Later
+  point-in-time processing must treat all date-only matches on the same date as
+  a batch, not infer an ordering from the anchor.
 - Unavailable optional statistics generate quality warnings, not invented zeros.
 - A postponed fixture retains its stable identity based on competition, season,
   home team, and away team. Its status and kickoff can be revised when a provider

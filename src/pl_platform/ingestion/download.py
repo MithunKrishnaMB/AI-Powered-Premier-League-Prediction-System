@@ -214,10 +214,16 @@ def download_manifest_entry(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Download one checksum-pinned historical football CSV."
+        description="Download checksum-pinned historical football CSV data."
     )
     parser.add_argument("--manifest", type=Path, required=True)
-    parser.add_argument("--entry-id", required=True)
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument("--entry-id")
+    selection.add_argument(
+        "--all",
+        action="store_true",
+        help="download or verify every manifest entry in manifest order",
+    )
     parser.add_argument("--data-root", type=Path, default=Path("data"))
     parser.add_argument("--timeout", type=float, default=30.0)
     return parser
@@ -230,18 +236,32 @@ def main(argv: Sequence[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
     try:
         manifest = load_manifest(arguments.manifest)
-        result = download_manifest_entry(
-            manifest,
-            arguments.entry_id,
-            arguments.data_root,
-            timeout=arguments.timeout,
+        entry_ids = (
+            tuple(entry.id for entry in manifest.files)
+            if arguments.all
+            else (arguments.entry_id,)
+        )
+        results = tuple(
+            download_manifest_entry(
+                manifest,
+                entry_id,
+                arguments.data_root,
+                timeout=arguments.timeout,
+            )
+            for entry_id in entry_ids
         )
     except (DownloadError, KeyError, OSError, ValueError) as exc:
         parser.error(str(exc))
 
-    output = asdict(result)
-    output["path"] = str(result.path)
-    print(json.dumps(output, sort_keys=True))
+    serialized_results = []
+    for result in results:
+        serialized = asdict(result)
+        serialized["path"] = str(result.path)
+        serialized_results.append(serialized)
+    final_output: object = (
+        serialized_results if arguments.all else serialized_results[0]
+    )
+    print(json.dumps(final_output, sort_keys=True))
     return 0
 
 

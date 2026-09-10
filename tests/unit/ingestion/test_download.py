@@ -254,3 +254,37 @@ def test_cli_prints_machine_readable_result(
     assert exit_code == 0
     assert output["status"] == "downloaded"
     assert output["row_count"] == 1
+
+
+def test_cli_can_process_all_manifest_entries(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    payload = _manifest().model_dump(mode="json")
+    files = payload["files"]
+    assert isinstance(files, list)
+    second = files[0].copy()
+    second["id"] = "epl-2024-2025"
+    second["destination"] = "raw/test/second.csv"
+    files.append(second)
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(download_module, "_fetch_url", _fetch())
+
+    exit_code = main(
+        [
+            "--manifest",
+            str(manifest_path),
+            "--all",
+            "--data-root",
+            str(tmp_path / "data"),
+        ]
+    )
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert [result["entry_id"] for result in output] == [
+        "epl-2025-2026",
+        "epl-2024-2025",
+    ]

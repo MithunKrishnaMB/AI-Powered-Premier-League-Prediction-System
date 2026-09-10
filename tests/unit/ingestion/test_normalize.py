@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from pl_platform.domain.fixtures import MatchOutcome
+from pl_platform.domain.fixtures import KickoffPrecision, MatchOutcome
 from pl_platform.domain.teams import (
     TeamRegistry,
     UnknownTeamAliasError,
@@ -70,6 +70,7 @@ def test_canonicalizes_aliases_time_and_statistics() -> None:
     assert fixture.season_id == "2025-2026"
     assert fixture.kickoff_at.tzinfo is UTC
     assert fixture.kickoff_at.hour == 19
+    assert fixture.kickoff_precision == KickoffPrecision.EXACT
     assert fixture.outcome == MatchOutcome.HOME_WIN
     assert fixture.statistics is not None
     assert fixture.statistics.home.shots == 10
@@ -89,6 +90,11 @@ def test_rejects_unsupported_division() -> None:
         canonicalize_football_data_match(_match(division="E1"), _teams())
 
 
-def test_rejects_missing_kickoff_time() -> None:
-    with pytest.raises(CanonicalizationError, match="no kickoff time"):
-        canonicalize_football_data_match(_match(kickoff_time=None), _teams())
+def test_preserves_date_only_kickoff_precision() -> None:
+    fixture = canonicalize_football_data_match(
+        _match(kickoff_time=None),
+        _teams(),
+    )
+
+    assert fixture.kickoff_precision == KickoffPrecision.DATE_ONLY
+    assert fixture.kickoff_at.hour == 11

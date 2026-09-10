@@ -1,6 +1,6 @@
 # Historical Data Provenance
 
-## Initial source
+## Historical source window
 
 The initial source is [Football-Data.co.uk](https://www.football-data.co.uk/data.php).
 It publishes downloadable CSV files containing football results, match
@@ -8,7 +8,12 @@ statistics, and betting odds. The provider states that the data is free and
 intended for league-match prediction, while warning that it cannot guarantee
 accuracy.
 
-The first captured file is the completed 2025–26 English Premier League season:
+The tracked source window contains eleven completed English Premier League
+seasons from 2015–16 through 2025–26, totaling 4,180 matches. Every season has
+its own immutable URL, capture timestamp, byte count, row count, encoding, and
+SHA-256 digest in `data/manifests/football-data.json`.
+
+The newest captured file is the completed 2025–26 season:
 
 - provider competition code: `E0`
 - source URL: `https://www.football-data.co.uk/mmz4281/2526/E0.csv`
@@ -28,15 +33,23 @@ availability must be assessed separately to prevent leakage.
 attribution, the allowed download hosts, season identity, destination, expected
 shape, encoding, capture time, and checksum.
 
-The raw CSV itself is ignored by Git. A fresh environment can reproduce the
-capture with:
+The raw CSV files are ignored by Git. A fresh environment can reproduce or
+verify the complete capture with:
 
 ```powershell
 plp-download-historical `
   --manifest data/manifests/football-data.json `
-  --entry-id epl-2025-2026 `
+  --all `
   --data-root data
 ```
+
+Use `--entry-id epl-2025-2026` in place of `--all` when only one season is
+needed.
+
+The first four seasons do not include a `Time` column. Their canonical records
+therefore retain `kickoff_precision: date_only`; noon Europe/London is used only
+as a deterministic timestamp anchor and must not be treated as an observed
+kickoff time.
 
 ## Immutability rules
 

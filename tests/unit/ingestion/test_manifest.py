@@ -48,6 +48,8 @@ def test_loads_repository_manifest() -> None:
     entry = manifest.get_file("epl-2025-2026")
 
     assert manifest.schema_version == 1
+    assert len(manifest.files) == 11
+    assert manifest.files[0].id == "epl-2015-2016"
     assert entry.expected_rows == 380
     assert entry.sha256.endswith("07e62")
 
@@ -108,3 +110,16 @@ def test_missing_entry_has_descriptive_error() -> None:
 
     with pytest.raises(KeyError, match="missing"):
         manifest.get_file("missing")
+
+
+def test_repository_manifest_matches_season_registry_window() -> None:
+    manifest = load_manifest(Path("data/manifests/football-data.json"))
+    season_payload = json.loads(
+        Path("data/reference/seasons.json").read_text(encoding="utf-8")
+    )
+    manifest_seasons = {
+        f"{entry.season_start:04d}-{entry.season_end:04d}" for entry in manifest.files
+    }
+    registry_seasons = {season["id"] for season in season_payload["seasons"]}
+
+    assert manifest_seasons == registry_seasons

@@ -66,6 +66,7 @@ def test_writes_deterministic_dataset_and_manifest(tmp_path: Path) -> None:
     assert first.fixture_count == 380
     assert first.fixtures_sha256 == hashlib.sha256(original_bytes).hexdigest()
     assert manifest["source"]["sha256"] == source.sha256
+    assert manifest["dataset_schema_version"] == 2
 
 
 def test_replaces_stale_generated_output(tmp_path: Path) -> None:
@@ -138,3 +139,39 @@ def test_cli_prints_materialization_result(
     assert exit_code == 0
     assert output["fixture_count"] == 380
     assert output["status"] == "written"
+
+
+def test_cli_can_materialize_all_manifest_entries(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    expected = MaterializationResult(
+        fixtures_path=tmp_path / "fixtures.jsonl",
+        manifest_path=tmp_path / "dataset-manifest.json",
+        fixture_count=380,
+        fixtures_sha256="a" * 64,
+        status="written",
+    )
+    monkeypatch.setattr(
+        materialize_module,
+        "materialize_historical_entry",
+        lambda *args: expected,
+    )
+
+    exit_code = main(
+        [
+            "--manifest",
+            "data/manifests/football-data.json",
+            "--all",
+            "--teams",
+            "teams.json",
+            "--seasons",
+            "seasons.json",
+        ]
+    )
+    output = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert len(output) == 11
+    assert all(result["fixture_count"] == 380 for result in output)

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from uuid import UUID
 
-from pl_platform.domain.fixtures import Fixture, FixtureStatus
+from pl_platform.domain.fixtures import Fixture, FixtureStatus, KickoffPrecision
 from pl_platform.domain.seasons import PremierLeagueSeason
 
 
@@ -142,6 +142,15 @@ def validate_premier_league_fixtures(
                 "unfinished_completed_season",
                 f"completed season contains status {fixture.status}",
                 fixture.id,
+            )
+
+        if fixture.kickoff_precision == KickoffPrecision.DATE_ONLY:
+            _issue(
+                issues,
+                "date_only_kickoff",
+                "source provides a match date but no exact kickoff time",
+                fixture.id,
+                severity=QualitySeverity.WARNING,
             )
 
         if fixture.statistics is None:

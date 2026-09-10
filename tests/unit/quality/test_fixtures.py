@@ -11,6 +11,7 @@ from pl_platform.domain.fixtures import (
     FixtureScore,
     FixtureStatistics,
     FixtureStatus,
+    KickoffPrecision,
     MatchOutcome,
     SourceFixtureReference,
     TeamMatchStatistics,
@@ -137,6 +138,18 @@ def test_missing_optional_statistics_is_warning_only() -> None:
     assert report.is_valid
     assert len(report.warnings) == 1
     assert report.warnings[0].severity == QualitySeverity.WARNING
+
+
+def test_date_only_kickoff_is_warning_only() -> None:
+    fixtures = list(complete_fixtures())
+    fixtures[0] = fixtures[0].model_copy(
+        update={"kickoff_precision": KickoffPrecision.DATE_ONLY}
+    )
+
+    report = validate_premier_league_fixtures(tuple(fixtures), _season())
+
+    assert report.is_valid
+    assert [issue.code for issue in report.warnings] == ["date_only_kickoff"]
 
 
 def test_data_quality_error_exposes_report() -> None:

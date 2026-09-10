@@ -24,6 +24,13 @@ class FixtureStatus(StrEnum):
     FINISHED = "finished"
 
 
+class KickoffPrecision(StrEnum):
+    """How precisely the upstream source identifies a fixture kickoff."""
+
+    EXACT = "exact"
+    DATE_ONLY = "date_only"
+
+
 class FixtureScore(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -73,6 +80,7 @@ class Fixture(BaseModel):
     competition_id: str = Field(min_length=1)
     season_id: str = Field(pattern=r"^\d{4}-\d{4}$")
     kickoff_at: datetime
+    kickoff_precision: KickoffPrecision = KickoffPrecision.EXACT
     home_team_id: UUID
     away_team_id: UUID
     status: FixtureStatus

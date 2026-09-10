@@ -40,20 +40,32 @@ def test_loads_season_and_promoted_memberships() -> None:
     assert len(season.team_ids) == 20
     assert promoted_names == {"Burnley", "Leeds United", "Sunderland"}
     assert season.completed is True
+    assert len(registry.seasons) == 11
+
+
+def test_oldest_season_has_reviewed_promotions() -> None:
+    teams = load_team_registry(TEAMS_PATH)
+    registry = load_season_registry(SEASONS_PATH, teams)
+    season = registry.get("2015-2016")
+    promoted_names = {
+        team.name for team in teams.teams if team.id in season.promoted_team_ids
+    }
+
+    assert promoted_names == {"AFC Bournemouth", "Norwich City", "Watford"}
 
 
 def test_missing_season_has_descriptive_error() -> None:
     teams = load_team_registry(TEAMS_PATH)
     registry = load_season_registry(SEASONS_PATH, teams)
 
-    with pytest.raises(KeyError, match="2024-2025"):
-        registry.get("2024-2025")
+    with pytest.raises(KeyError, match="2014-2015"):
+        registry.get("2014-2015")
 
 
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [
-        (lambda season: season.update({"ends_on": "2025-01-01"}), "end must follow"),
+        (lambda season: season.update({"ends_on": "2015-01-01"}), "end must follow"),
         (lambda season: season.update({"id": "2024-2025"}), "ID must match"),
         (lambda season: season["memberships"].pop(), "exactly 20"),
         (

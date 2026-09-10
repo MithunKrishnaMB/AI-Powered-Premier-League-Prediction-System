@@ -10,6 +10,7 @@ from pl_platform.domain.fixtures import (
     Fixture,
     FixtureScore,
     FixtureStatus,
+    KickoffPrecision,
     MatchOutcome,
     SourceFixtureReference,
 )
@@ -53,6 +54,7 @@ def test_accepts_consistent_finished_fixture() -> None:
     fixture = Fixture.model_validate(_fixture_payload())
 
     assert fixture.status == FixtureStatus.FINISHED
+    assert fixture.kickoff_precision == KickoffPrecision.EXACT
 
 
 @pytest.mark.parametrize(

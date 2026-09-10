@@ -23,7 +23,7 @@ from pl_platform.quality.fixtures import (
     validate_premier_league_fixtures,
 )
 
-DATASET_SCHEMA_VERSION = 1
+DATASET_SCHEMA_VERSION = 2
 MaterializationStatus = Literal["written", "already_current"]
 
 
@@ -183,10 +183,16 @@ def materialize_historical_entry(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Materialize one canonical historical fixture dataset."
+        description="Materialize canonical historical fixture datasets."
     )
     parser.add_argument("--manifest", type=Path, required=True)
-    parser.add_argument("--entry-id", required=True)
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument("--entry-id")
+    selection.add_argument(
+        "--all",
+        action="store_true",
+        help="materialize every manifest entry in manifest order",
+    )
     parser.add_argument("--teams", type=Path, required=True)
     parser.add_argument("--seasons", type=Path, required=True)
     parser.add_argument("--data-root", type=Path, default=Path("data"))
@@ -197,20 +203,34 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     arguments = parser.parse_args(argv)
     try:
-        result = materialize_historical_entry(
-            arguments.manifest,
-            arguments.entry_id,
-            arguments.teams,
-            arguments.seasons,
-            arguments.data_root,
+        entry_ids = (
+            tuple(entry.id for entry in load_manifest(arguments.manifest).files)
+            if arguments.all
+            else (arguments.entry_id,)
+        )
+        results = tuple(
+            materialize_historical_entry(
+                arguments.manifest,
+                entry_id,
+                arguments.teams,
+                arguments.seasons,
+                arguments.data_root,
+            )
+            for entry_id in entry_ids
         )
     except (DataQualityError, KeyError, OSError, ValueError) as exc:
         parser.error(str(exc))
 
-    output = asdict(result)
-    output["fixtures_path"] = str(result.fixtures_path)
-    output["manifest_path"] = str(result.manifest_path)
-    print(json.dumps(output, sort_keys=True))
+    serialized_results = []
+    for result in results:
+        serialized = asdict(result)
+        serialized["fixtures_path"] = str(result.fixtures_path)
+        serialized["manifest_path"] = str(result.manifest_path)
+        serialized_results.append(serialized)
+    final_output: object = (
+        serialized_results if arguments.all else serialized_results[0]
+    )
+    print(json.dumps(final_output, sort_keys=True))
     return 0
 
 

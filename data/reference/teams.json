@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "teams": [
     {"id":"6f4ce9e1-6d36-5198-af34-7aca2aac351e","slug":"arsenal","name":"Arsenal","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Arsenal"}]},
     {"id":"d30fa001-f095-5675-a73b-2e9bbaca89e6","slug":"aston-villa","name":"Aston Villa","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Aston Villa"}]},
@@ -20,6 +20,20 @@
     {"id":"27b2dd0a-4e25-5e01-9e5c-0ad9335259a8","slug":"sunderland","name":"Sunderland","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Sunderland"}]},
     {"id":"534cb8f5-347f-58ef-8da0-072ccf92920f","slug":"tottenham-hotspur","name":"Tottenham Hotspur","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Tottenham"}]},
     {"id":"9f1f657f-2343-5411-83b0-9db7b55d6a27","slug":"west-ham-united","name":"West Ham United","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"West Ham"}]},
-    {"id":"bf9f980d-bb62-59f9-882f-294c01a37c84","slug":"wolverhampton-wanderers","name":"Wolverhampton Wanderers","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Wolves"}]}
+    {"id":"bf9f980d-bb62-59f9-882f-294c01a37c84","slug":"wolverhampton-wanderers","name":"Wolverhampton Wanderers","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Wolves"}]},
+    {"id":"e53c8009-bc30-5492-99b6-0df2d72ed109","slug":"leicester-city","name":"Leicester City","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Leicester"}]},
+    {"id":"00137d70-38af-5f5c-a7c4-1bfbfd7099c9","slug":"norwich-city","name":"Norwich City","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Norwich"}]},
+    {"id":"3e498134-8656-50a2-8f1c-1487bab7d19f","slug":"southampton","name":"Southampton","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Southampton"}]},
+    {"id":"d9459007-868e-5356-8f6c-2d5838754a60","slug":"stoke-city","name":"Stoke City","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Stoke"}]},
+    {"id":"2172a2c9-82a6-50fc-b9a4-8cc8d1d79509","slug":"swansea-city","name":"Swansea City","country_code":"WAL","aliases":[{"source_id":"football-data-uk","external_name":"Swansea"}]},
+    {"id":"6d8f4e96-36c7-51d9-8e05-cc4a64b001c4","slug":"watford","name":"Watford","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Watford"}]},
+    {"id":"c7a594b4-2c6b-501f-b63f-765435c021c9","slug":"west-bromwich-albion","name":"West Bromwich Albion","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"West Brom"}]},
+    {"id":"fa9a27e7-2263-5e5d-865d-ad6e3bf6d31b","slug":"hull-city","name":"Hull City","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Hull"}]},
+    {"id":"e73ce289-dbfa-5381-9a3c-f562bf62a0e5","slug":"middlesbrough","name":"Middlesbrough","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Middlesbrough"}]},
+    {"id":"14329108-d0e9-56ab-b995-f53c8eb258da","slug":"huddersfield-town","name":"Huddersfield Town","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Huddersfield"}]},
+    {"id":"aa3501dd-04a6-5245-ba69-c7e72557cea0","slug":"cardiff-city","name":"Cardiff City","country_code":"WAL","aliases":[{"source_id":"football-data-uk","external_name":"Cardiff"}]},
+    {"id":"03591812-edc6-5087-8243-232ba66efd11","slug":"sheffield-united","name":"Sheffield United","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Sheffield United"}]},
+    {"id":"b80fde37-a089-5bc0-b7da-da40f7d3aea7","slug":"luton-town","name":"Luton Town","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Luton"}]},
+    {"id":"75724d43-9ec2-58cb-8452-c6ca7d026a4d","slug":"ipswich-town","name":"Ipswich Town","country_code":"ENG","aliases":[{"source_id":"football-data-uk","external_name":"Ipswich"}]}
   ]
 }
