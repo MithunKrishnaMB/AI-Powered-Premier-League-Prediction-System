@@ -7,15 +7,18 @@
 **Completed milestones:** A — Repository Foundation; B — Historical Data System;
 C — Point-in-Time Features and Elo
 
-**Current milestone:** D — Probabilistic Models
+**Current milestone:** D — Probabilistic Models; implementation complete and
+awaiting the user-owned milestone commit
 
 **Completed Milestone D steps:** 3.1 — naive and Elo benchmarks; 3.2 —
 multinomial logistic regression; 3.3 — expanding walk-forward validation; 3.4
 — untouched test freeze; 3.5 — development-only CatBoost tuning; 3.6 —
 chronological calibration assessment; 3.7 — independent-Poisson score baseline;
-3.8 — Dixon–Coles adjustment
+3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
+— deterministic model-appropriate global explanations
 
-**Exact next step:** 3.9 — compare models against predefined acceptance gates
+**Exact next implementation step:** 4.1 — define artifact layout and manifest
+schema, after Milestone D closeout
 
 ## Implemented capabilities
 
@@ -85,6 +88,16 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
   0–0, 0–1, 1–0 and 1–1 without time weighting or test access.
 - Atomic advanced-evaluation artifacts containing 5,320 target-free development
   predictions and strict training, CatBoost and untouched-test provenance.
+- Frozen five-fold acceptance gates requiring identical complete coverage, at
+  least 2% log-loss improvement over naive, no Brier or RPS regression and at
+  least three fold-level log-loss wins.
+- Deterministic accepted-champion selection by log loss, Brier, RPS and method
+  ID; CatBoost is the development champion and identity calibration remains the
+  selected policy.
+- Global development-fit explanation data for naive frequencies, the Elo signal
+  bridge, standardized multinomial coefficients, CatBoost
+  `PredictionValuesChange`, canonical-team Poisson rate terms and Dixon–Coles
+  rho and low-score scope.
 
 ## Historical dataset status
 
@@ -134,15 +147,22 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
   `786fab5892ec91feea5a19522d22b2cfb2027da608a770989d7387f60d9c8445`.
 - Advanced manifest SHA-256:
   `2cb53b4925ef717c4a526e2b5f8960eac66f12bcd496e69ca37d8c618f55a4ab`.
+- Model assessment location:
+  `data/processed/evaluation/epl/model-assessment-2015-2016_to_2024-2025/`.
+- Accepted development methods: Elo, multinomial logistic, CatBoost,
+  independent Poisson and Dixon–Coles.
+- Development champion: CatBoost with identity calibration.
+- Model assessment manifest SHA-256:
+  `15b86d54ba84f1df9737efafa9553d39022772a9cb9080cc2b30161bfcf2c7bc`.
 - Raw, interim and processed files are reproducible local artifacts and are
   ignored by Git.
 
 ## Last verified quality result
 
-The Steps 3.6 through 3.8 implementation passed the complete local suite:
+The completed Milestone D implementation passed the complete local suite:
 
-- pytest: 247 passed.
-- branch-aware coverage: 90.91% (minimum required: 90%).
+- pytest: 265 passed.
+- branch-aware coverage: 91.28% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
 - strict mypy: passed.
@@ -177,6 +197,14 @@ The Steps 3.6 through 3.8 implementation passed the complete local suite:
   prediction rows and retains all three explicit outcome probabilities.
 - a second advanced-evaluation run returned `already_current` with unchanged
   prediction and manifest checksums.
+- acceptance validation confirmed that every candidate uses the same five fold
+  identities and 1,900 rows as naive before applying any threshold.
+- all five candidates passed the frozen gates; CatBoost was selected by the
+  declared proper-score ordering with identity calibration.
+- explanation-only fits used all 3,800 development rows and emitted no fixture
+  targets, test predictions, model binaries or registry state.
+- a second model-assessment run returned `already_current` with manifest SHA-256
+  `15b86d54ba84f1df9737efafa9553d39022772a9cb9080cc2b30161bfcf2c7bc`.
 
 ## Important project constraints
 
@@ -201,7 +229,6 @@ The Steps 3.6 through 3.8 implementation passed the complete local suite:
 ## Not implemented yet
 
 - Final one-time untouched-test evaluation.
-- Model acceptance gates.
 - Model serialization or registry behavior.
 - Season simulation.
 - PostgreSQL persistence or migrations.
@@ -225,7 +252,8 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 3.9 may define acceptance gates using only the completed development
-evidence. Gate thresholds and comparison rules must be fixed before any
-one-time final-test access. The frozen 2025–26 target remains prohibited for
-gate design, calibration choice, tuning or feature selection.
+Step 4.1 may define registry artifact layout and manifest schema around the
+selected development champion. It must not serialize or promote a model yet,
+open the one-time 2025–26 test target or weaken the immutable source and
+evaluation lineage. Registry state transitions and promotion rules remain Step
+4.3 work.

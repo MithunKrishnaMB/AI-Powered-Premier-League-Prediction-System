@@ -2,12 +2,13 @@
 
 ## Scope
 
-Steps 3.1 through 3.8 implement deterministic naive and Elo benchmarks, an
+Steps 3.1 through 3.10 implement deterministic naive and Elo benchmarks, an
 L2-regularized multinomial logistic baseline, expanding-season walk-forward
 validation, a formal untouched-test freeze, bounded CatBoost tuning,
-chronological calibration assessment and Poisson and Dixon–Coles score models.
-They do not implement acceptance gates, a final untouched-test evaluation, a
-model registry or serving.
+chronological calibration assessment, Poisson and Dixon–Coles score models,
+frozen development acceptance gates and global model-appropriate explanations.
+They do not implement a final untouched-test evaluation, model registry or
+serving.
 
 Every production evaluation begins by invoking the existing training
 materializer. Raw files are therefore rechecked against the tracked historical
@@ -163,6 +164,38 @@ final development diagnostic rho was -0.027104. Across the five folds, the
 adjusted projection produced log loss 1.011675, Brier score 0.603583 and RPS
 0.214514, so it did not improve this independent-Poisson baseline.
 
+## Frozen development acceptance
+
+Step 3.9 compares Elo, multinomial logistic, the selected CatBoost identity
+policy, independent Poisson and Dixon–Coles against naive on the identical five
+complete folds and 1,900 predictions. A candidate is accepted only when it:
+
+- covers the same folds, fixtures and outcome counts as naive;
+- improves aggregate natural-log loss by at least 2%;
+- has aggregate Brier score and RPS no worse than naive; and
+- beats naive log loss in at least three of five folds.
+
+The champion is the accepted candidate with minimum aggregate log loss, then
+Brier, RPS and method ID. All five candidates pass. CatBoost has the best
+development log loss at 0.990106 and is selected. Temperature scaling is not a
+separate candidate because its paired assessment covers only four folds; the
+selected identity policy supplies CatBoost's complete five-fold result.
+
+This is a frozen development decision, not a final-test result. The 2025–26
+target was not read and cannot be used to revise these gates.
+
+## Global explanation data
+
+Step 3.10 refits explanation-only models on all 3,800 development examples. It
+reports the naive outcome prior and explains Elo as a relative non-draw signal,
+not a calibrated three-way model. Logistic explanations contain class-specific
+coefficients on standardized, training-imputed predictors and an L2 magnitude.
+CatBoost uses normalized target-free `PredictionValuesChange` structural
+importance. Poisson reports its global log-rate terms and canonical-team UUID
+attack and defence coefficients. Dixon–Coles reports rho and the exact four
+adjusted low-score cells. These global summaries do not claim causality or
+fixture-level attribution.
+
 ## Metrics and artifacts
 
 The evaluator reports mean natural-log multiclass log loss, mean sum-of-three
@@ -212,3 +245,17 @@ plp-evaluate-advanced-models `
 This command re-runs raw-verifying training materialization and strictly loads
 the CatBoost and freeze artifacts before producing the advanced development
 dataset. It neither predicts nor scores 2025–26.
+
+Apply Steps 3.9 and 3.10 with:
+
+```powershell
+plp-assess-models `
+  --manifest data/manifests/football-data.json `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+The command strictly loads every preceding artifact, revalidates the sealed
+test identity and writes one deterministic assessment manifest. A repeated
+unchanged invocation returns `already_current`.

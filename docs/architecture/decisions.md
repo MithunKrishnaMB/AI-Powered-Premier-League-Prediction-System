@@ -386,3 +386,32 @@ without odds, fuzzy identities, within-season random splits or test access.
 The fitted development rho is negative, but the adjusted model did not improve
 the base Poisson log loss. Model acceptance remains a separate Step 3.9 policy
 decision fixed before final-test access.
+
+## ADR-020 — Frozen development acceptance and global explanations
+
+**Status:** Accepted
+
+**Context:** Development comparison needs a pre-test pass/fail policy and a
+single champion without rewarding incomplete populations. Explanation outputs
+must respect each model's structure and must not be mistaken for calibrated Elo
+probabilities, fixture-level causality or registered model artifacts.
+
+**Decision:** Compare every candidate against naive on the same five complete
+expanding folds and 1,900 rows. Require exact population coverage, at least 2%
+aggregate log-loss improvement, no aggregate Brier or RPS regression and at
+least three fold-level log-loss wins. Select among accepted methods by minimum
+log loss, then Brier, RPS and method ID. Use the selected identity calibration
+policy for CatBoost; exclude the four-fold temperature diagnostic as a separate
+candidate. All five methods pass and CatBoost is champion.
+
+Refit explanation-only models on all 3,800 development rows. Persist naive
+frequencies, the Elo bridge contract, standardized multinomial coefficients,
+normalized CatBoost `PredictionValuesChange`, canonical-UUID Poisson attack and
+defence log-rate terms and Dixon–Coles rho and adjustment scope. Reverify raw
+lineage and all evaluation checksums first. Persist one canonical assessment
+manifest, not model weights, registry state or test output.
+
+**Consequences:** Acceptance is reproducible, population-matched and fixed
+before final-test access. Explanations are auditable global summaries appropriate
+to each model family. The 2025–26 target remains sealed; final-test evaluation,
+serialization, promotion, simulation and deployment remain out of scope.

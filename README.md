@@ -46,10 +46,13 @@ expanding-season validation now cover the 2015–16 through 2024–25 developmen
 window. The 2025–26 season is formally frozen as the untouched test boundary,
 and deterministic CatBoost candidate tuning is restricted to the development
 folds. Expanding out-of-fold calibration assessment, an independent-Poisson
-score baseline and a Dixon–Coles low-score adjustment now complete Steps 3.6
-through 3.8. No final test metric has been calculated. Model acceptance gates,
-model registries, database migrations and the frontend have not been created.
-CI/CD automation is intentionally not configured.
+score baseline and a Dixon–Coles low-score adjustment are included. Frozen
+development-only acceptance gates select CatBoost as champion and deterministic
+global explanation data covers every evaluated model family. Milestone D's
+implementation is complete and awaits the user-owned milestone commit. No final
+test metric has been calculated. Model registries, database migrations and the
+frontend have not been created. CI/CD automation is intentionally not
+configured.
 
 The development environment uses 64-bit Python 3.14.
 
@@ -182,6 +185,22 @@ Temperature scaling is fitted on preceding out-of-fold seasons before each next
 season. Poisson and Dixon–Coles use the established five expanding folds. The
 2025–26 test target remains unopened.
 
+Apply the frozen acceptance gates and reproduce global explanation data with:
+
+```powershell
+plp-assess-models `
+  --manifest data/manifests/football-data.json `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+The command re-verifies raw and training lineage, strictly reloads all prior
+evaluation artifacts and the untouched-test freeze, compares only the five
+complete development folds and refits explanation-only models on the 3,800
+development rows. It neither predicts nor scores 2025–26 and does not serialize
+a model.
+
 See [historical data provenance](docs/data/historical-data.md) for source and
 integrity details.
 
@@ -206,6 +225,7 @@ implementation. Start with:
 - [architecture index and decisions](docs/architecture/README.md)
 - [Milestone B to C handoff](docs/handoffs/milestone-b-to-c.md)
 - [Milestone C to D handoff](docs/handoffs/milestone-c-to-d.md)
+- [Milestone D to E handoff](docs/handoffs/milestone-d-to-e.md)
 
 ## Development order
 
@@ -221,9 +241,9 @@ The planned order is:
 8. Automation, deployment and end-to-end backend validation
 9. Frontend architecture and implementation
 
-Milestone D is in progress. Steps 3.1 through 3.8 provide naive and Elo
-benchmarks, multinomial logistic regression, expanding walk-forward validation,
-an untouched 2025–26 test freeze, development-only CatBoost tuning, calibration
-assessment and independent-Poisson and Dixon–Coles score models. The next step
-is **Step 3.9: compare models against predefined acceptance gates**; 2025–26
-remains sealed and has not contributed a fit, tuning decision or metric.
+Milestone D's implementation is complete. It provides chronological three-way
+benchmarks and models, an untouched 2025–26 test freeze, deterministic tuning
+and calibration assessment, score models, frozen acceptance gates and global
+model-appropriate explanations. The next step is **Step 4.1: define artifact
+layout and manifest schema**. The test season remains sealed and has not
+contributed a fit, tuning decision, acceptance decision or metric.

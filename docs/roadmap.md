@@ -72,7 +72,7 @@ Each numbered step should remain small enough to review and test in isolation.
   dataset using predictor schema version 2, structurally separate targets,
   deterministic bytes and the complete historical checksum chain.
 
-## Milestone D — Probabilistic Models — current
+## Milestone D — Probabilistic Models — implementation complete; commit pending
 
 - **Step 3.1 — complete:** Implement deterministic three-way naive and Elo
   benchmarks against a fixed chronological holdout.
@@ -97,12 +97,16 @@ Each numbered step should remain small enough to review and test in isolation.
 - **Step 3.8 — complete:** Fit and test a training-window-only Dixon–Coles rho
   correction for the four low-score cells and compare its three-way projection
   over the same folds.
-- **Step 3.9 — next:** Compare models against predefined acceptance gates.
-- **Step 3.10:** Add explanation data appropriate to each model.
+- **Step 3.9 — complete:** Apply frozen coverage, proper-score improvement and
+  fold-stability gates to identical five-fold development populations, then
+  select the accepted champion deterministically.
+- **Step 3.10 — complete:** Add deterministic global explanation data using
+  standardized logistic coefficients, CatBoost structural importance,
+  canonical-team Poisson rate components and Dixon–Coles correction scope.
 
-## Milestone E — Registry and Simulation — planned
+## Milestone E — Registry and Simulation — planned next
 
-- **Step 4.1:** Define artifact layout and manifest schema.
+- **Step 4.1 — next:** Define artifact layout and manifest schema.
 - **Step 4.2:** Serialize, checksum and reload models.
 - **Step 4.3:** Implement model registry states and promotion rules.
 - **Step 4.4:** Define simulator domain structures.

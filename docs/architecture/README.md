@@ -29,3 +29,4 @@ speculative future complexity.
 - [Project status](../project-status.md)
 - [Milestone B to C handoff](../handoffs/milestone-b-to-c.md)
 - [Milestone C to D handoff](../handoffs/milestone-c-to-d.md)
+- [Milestone D to E handoff](../handoffs/milestone-d-to-e.md)

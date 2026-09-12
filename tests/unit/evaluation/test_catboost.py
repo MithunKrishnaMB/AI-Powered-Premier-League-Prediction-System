@@ -6,8 +6,10 @@ from pydantic import ValidationError
 
 from pl_platform.domain.fixtures import MatchOutcome
 from pl_platform.evaluation.catboost_model import (
+    CatBoostFitDiagnostics,
     CatBoostModelError,
     CatBoostParameters,
+    FittedCatBoostClassifier,
     fit_catboost_classifier,
 )
 from pl_platform.evaluation.catboost_tuning import (
@@ -69,6 +71,28 @@ def test_catboost_fit_is_three_way_deterministic_and_handles_missing_values() ->
     ) == pytest.approx(1.0)
     assert first.diagnostics.tree_count == 5
     assert np.array_equal(first.model.classes_, np.asarray((0, 1, 2)))
+    assert sum(first.normalized_feature_importances()) == pytest.approx(1.0)
+
+
+def test_catboost_rejects_invalid_structural_importances() -> None:
+    class InvalidImportanceModel:
+        def get_feature_importance(self, *, type: str) -> object:
+            assert type == "PredictionValuesChange"
+            return (0.0, -1.0, 1.0)
+
+    fitted = FittedCatBoostClassifier(
+        predictor_names=PREDICTOR_NAMES,
+        model=InvalidImportanceModel(),  # type: ignore[arg-type]
+        diagnostics=CatBoostFitDiagnostics(
+            candidate_id="catboost-test",
+            tree_count=1,
+            predictor_count=3,
+            training_row_count=3,
+        ),
+    )
+
+    with pytest.raises(CatBoostModelError, match="structural feature importances"):
+        fitted.normalized_feature_importances()
 
 
 def test_catboost_contracts_fail_closed() -> None:

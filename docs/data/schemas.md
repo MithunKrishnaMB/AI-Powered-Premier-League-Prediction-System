@@ -205,6 +205,29 @@ duplicate identities, unknown methods or folds, wrong method populations,
 changed training lineage and any 2025–26 prediction. Artifacts are written to
 `data/processed/evaluation/epl/advanced-development-2015-2016_to_2024-2025/`.
 
+### Model assessment manifest
+
+`ModelAssessmentManifest` schema version 1 is a single canonical JSON report for
+Steps 3.9 and 3.10. It pins the complete training manifest and the checksums of
+the base evaluation, selected CatBoost, advanced evaluation and untouched-test
+freeze artifacts. It contains no model binary, registry state, test prediction
+or test metric.
+
+The acceptance section fixes the five evaluation seasons from 2020–21 through
+2024–25, the naive baseline, all candidate aggregate and fold metrics, every
+derived gate decision and the deterministic champion. Validation recomputes
+coverage, relative log-loss improvement, Brier and RPS non-inferiority,
+fold-level wins and champion selection rather than trusting serialized flags.
+
+The explanation section contains a final 3,800-row development naive prior;
+the documented Elo bridge signals; standardized three-class logistic
+coefficients; normalized CatBoost `PredictionValuesChange` importances; global
+Poisson intercept and home advantage plus attack and defence coefficients keyed
+only by canonical team UUID; and final Dixon–Coles rho with its four adjusted
+score cells. These are global model-structure summaries, not fixture-level or
+causal explanations. The canonical path is
+`data/processed/evaluation/epl/model-assessment-2015-2016_to_2024-2025/assessment-manifest.json`.
+
 ## Team identity
 
 `data/reference/teams.json` contains 34 stable team records covering every club

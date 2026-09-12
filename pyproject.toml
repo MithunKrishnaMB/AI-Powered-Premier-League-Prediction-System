@@ -23,6 +23,7 @@ plp-materialize-training = "pl_platform.training.materialize:main"
 plp-evaluate-models = "pl_platform.evaluation.materialize:main"
 plp-tune-catboost = "pl_platform.evaluation.catboost_materialize:main"
 plp-evaluate-advanced-models = "pl_platform.evaluation.advanced_materialize:main"
+plp-assess-models = "pl_platform.evaluation.assessment_materialize:main"
 
 [dependency-groups]
 dev = [

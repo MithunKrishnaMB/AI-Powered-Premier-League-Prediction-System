@@ -82,6 +82,8 @@ class _CatBoostModel(Protocol):
         features: npt.NDArray[np.float64],
     ) -> object: ...
 
+    def get_feature_importance(self, *, type: str) -> object: ...
+
 
 @dataclass(frozen=True, slots=True)
 class CatBoostFitDiagnostics:
@@ -98,6 +100,24 @@ class FittedCatBoostClassifier:
     predictor_names: tuple[str, ...]
     model: _CatBoostModel
     diagnostics: CatBoostFitDiagnostics
+
+    def normalized_feature_importances(self) -> tuple[float, ...]:
+        """Return deterministic structural importances without target access."""
+
+        raw = np.asarray(
+            self.model.get_feature_importance(type="PredictionValuesChange"),
+            dtype=np.float64,
+        )
+        if (
+            raw.shape != (len(self.predictor_names),)
+            or not np.isfinite(raw).all()
+            or np.any(raw < 0.0)
+            or float(raw.sum()) <= 0.0
+        ):
+            msg = "CatBoost returned invalid structural feature importances"
+            raise CatBoostModelError(msg)
+        normalized = raw / float(raw.sum())
+        return tuple(float(value) for value in normalized)
 
     def predict_probabilities(self, predictors: PredictorSet) -> OutcomeProbabilities:
         matrix = predictor_matrix((predictors,), self.predictor_names)
