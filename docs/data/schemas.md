@@ -133,12 +133,13 @@ checksum validator and select only explicit chronological windows.
 
 ## Probabilistic development evaluation
 
-Steps 3.1 through 3.3 materialize target-free `ProbabilisticPrediction` schema
+Steps 3.1 through 3.5 materialize target-free `ProbabilisticPrediction` schema
 version 1 rows beneath `data/processed/evaluation/epl/`. Each row contains the
 deterministic prediction ID, method and partition identity, source training
 dataset and example identity, canonical fixture and season identity, kickoff and
 feature cutoff and three explicit probabilities in the fixed order `home_win`,
-`draw`, `away_win`. Scores and observed outcomes are deliberately absent.
+`draw`, `away_win`. A CatBoost prediction also carries its reviewed
+`configuration_id`. Scores and observed outcomes are deliberately absent.
 
 The adjacent evaluation dataset manifest pins the prediction bytes and count;
 the complete verified training manifest and its checksum; benchmark, metric,
@@ -147,6 +148,38 @@ five expanding walk-forward folds; per-fold fit diagnostics and metrics; and
 aggregate walk-forward metrics. The embedded training manifest preserves the
 raw, canonical, feature, registry and recursive historical-context provenance.
 Equivalent inputs produce identical prediction and manifest bytes.
+
+### Untouched test freeze
+
+`UntouchedTestFreeze` schema version 1 designates only 2025–26. Its deterministic
+manifest contains the 380-row count, stable competition and season identity,
+source training dataset and manifest checksums, a checksum of ordered target-free
+example identities and explicit policies prohibiting target access before the
+one-time final evaluation and prohibiting all development use. Each identity
+hash input includes the immutable example, feature-row and fixture IDs, cutoff,
+kickoff, season, source feature dataset and a checksum of the complete predictor
+payload. It never includes an outcome, score or aggregate target statistic.
+
+The canonical artifact is
+`data/processed/evaluation/epl/test-2025-2026/freeze-manifest.json`. Strict typed
+loading rejects extra fields, unsupported season boundaries and non-canonical
+bytes.
+
+### CatBoost tuning dataset
+
+`CatBoostTuningDatasetManifest` schema version 1 records the pinned CatBoost
+runtime and determinism settings, the exact ordered candidate set, all five
+chronological fold definitions, fit diagnostics and probabilistic metrics,
+the deterministic selection rule, the selected candidate, the final
+development-only fit diagnostics, the complete embedded training manifest and
+the embedded untouched-test freeze with both manifest checksums.
+
+Only the selected candidate's 1,900 target-free fold predictions are written to
+`data/processed/evaluation/epl/catboost-tuning-2015-2016_to_2024-2025/`.
+Prediction ordering is partition, feature cutoff, kickoff and training-example
+ID. Validation rejects candidate drift, an incorrect winner, incomplete fold or
+prediction populations, cross-candidate predictions, checksum changes and test
+season rows. Model weights and test predictions are not part of this schema.
 
 ## Team identity
 

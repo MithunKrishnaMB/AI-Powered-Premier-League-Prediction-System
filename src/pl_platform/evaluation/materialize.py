@@ -253,7 +253,7 @@ def _stable_prediction_bytes(
     )
     lines = (
         json.dumps(
-            prediction.model_dump(mode="json"),
+            prediction.model_dump(mode="json", exclude_none=True),
             ensure_ascii=False,
             separators=(",", ":"),
             sort_keys=True,

@@ -280,3 +280,55 @@ feature selection, hyperparameter tuning or model serialization occurs.
 probabilistic scores. Preprocessing is fold-local and deterministic. The
 logistic result is an evaluated development baseline, not a tuned, calibrated or
 registered production model.
+
+## ADR-016 — Target-free untouched-test freeze
+
+**Status:** Accepted
+
+**Context:** Excluding 2025–26 from earlier development evaluation protects it
+in practice, but a durable test boundary also needs an explicit identity,
+policy and lineage contract. Persisting its outcomes, scores or aggregate label
+statistics in that contract would unnecessarily expose the test target.
+
+**Decision:** Designate the complete 380-fixture 2025–26 season as
+`untouched-test-2025-2026-v1`. Build its freeze only after the existing
+raw-verifying training materializer succeeds. Hash a deterministic sequence of
+training-example, feature-row, fixture, season, cutoff, kickoff,
+source-feature-dataset and predictor-payload identities; never read or serialize
+the target. Pin the source training dataset and manifest checksums. State that
+target access is prohibited until an explicit one-time final-test evaluation
+and that the season is excluded from development training, tuning, selection,
+calibration and acceptance. Publish a canonical, atomically replaced JSON
+manifest whose unchanged rerun is byte-identical.
+
+**Consequences:** Test membership and predictor provenance can be audited now
+without seeing the answers. A target change cannot change the freeze, while a
+changed predictor, cutoff, identity or upstream training artifact does. Step
+3.4 does not consume the test or produce a final performance claim.
+
+## ADR-017 — Deterministic development-only CatBoost tuning
+
+**Status:** Accepted
+
+**Context:** A nonlinear tabular benchmark is useful only if its search space,
+temporal evaluation and runtime behavior are fixed before the untouched test is
+opened. Broad or stochastic search would weaken reproducibility and invite
+development overfitting.
+
+**Decision:** Pin CatBoost 1.2.10 and evaluate exactly three reviewed candidates:
+200 depth-4 trees at learning rate 0.03 and L2 3; 300 depth-5 trees at learning
+rate 0.03 and L2 5; and 200 depth-6 trees at learning rate 0.05 and L2 10. Use
+all 175 approved predictors and CatBoost's native missing-value handling. Every
+fit is CPU-only and single-threaded with seed 20260912, no bootstrap, zero
+random strength, symmetric trees, `Min` NaN handling and no file writes. Score
+each candidate on the existing five expanding folds through 2024–25. Select by
+minimum aggregate natural-log loss, then Brier score, normalized ranked
+probability score and candidate ID. Persist only the selected candidate's 1,900
+target-free fold predictions and a typed report for every candidate; fit the
+winner once on all 3,800 development rows in memory. Do not serialize a model or
+read, predict or score 2025–26.
+
+**Consequences:** Candidate comparison is chronological, bounded and
+reproducible and CatBoost preserves the three explicit Premier League outcome
+probabilities. The selected development configuration is evidence for later
+calibration work, not a registered production model or final-test result.

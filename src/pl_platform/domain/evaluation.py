@@ -23,7 +23,7 @@ NonNegativeFloat = Annotated[float, Field(strict=True, ge=0.0, allow_inf_nan=Fal
 PositiveInt = Annotated[int, Field(strict=True, ge=1)]
 SeasonId = Annotated[str, Field(pattern=r"^\d{4}-\d{4}$")]
 Sha256 = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-EvaluationMethod = Literal["naive", "elo", "multinomial_logistic"]
+EvaluationMethod = Literal["naive", "elo", "multinomial_logistic", "catboost"]
 
 
 class EvaluationContractError(ValueError):
@@ -105,19 +105,21 @@ def deterministic_prediction_id(
     partition_id: str,
     method: EvaluationMethod,
     method_version: int,
+    configuration_id: str | None = None,
 ) -> UUID:
     """Return a stable prediction identity bound to input data and method."""
 
-    identity = "|".join(
-        (
-            str(EVALUATION_SCHEMA_VERSION),
-            source_training_sha256,
-            str(source_training_example_id),
-            partition_id,
-            method,
-            str(method_version),
-        )
-    )
+    identity_parts = [
+        str(EVALUATION_SCHEMA_VERSION),
+        source_training_sha256,
+        str(source_training_example_id),
+        partition_id,
+        method,
+        str(method_version),
+    ]
+    if configuration_id is not None:
+        identity_parts.append(configuration_id)
+    identity = "|".join(identity_parts)
     return uuid5(NAMESPACE_URL, f"pl-platform:evaluation-prediction:{identity}")
 
 
@@ -130,6 +132,7 @@ class ProbabilisticPrediction(BaseModel):
     id: UUID
     method: EvaluationMethod
     method_version: Literal[1]
+    configuration_id: str | None = Field(default=None, min_length=1)
     partition_id: str = Field(min_length=1)
     source_training_dataset_id: str = Field(min_length=1)
     source_training_sha256: Sha256
@@ -156,6 +159,7 @@ class ProbabilisticPrediction(BaseModel):
             partition_id=self.partition_id,
             method=self.method,
             method_version=self.method_version,
+            configuration_id=self.configuration_id,
         )
         if self.id != expected:
             msg = "prediction ID does not match its deterministic identity"

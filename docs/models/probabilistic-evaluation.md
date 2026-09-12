@@ -2,10 +2,11 @@
 
 ## Scope
 
-Steps 3.1 through 3.3 implement deterministic naive and Elo benchmarks, an
-L2-regularized multinomial logistic baseline and expanding-season walk-forward
-validation. They do not implement tuning, calibration, an untouched test report,
-CatBoost, score models, a model registry or serving.
+Steps 3.1 through 3.5 implement deterministic naive and Elo benchmarks, an
+L2-regularized multinomial logistic baseline, expanding-season walk-forward
+validation, a formal untouched-test freeze and bounded CatBoost tuning. They do
+not implement calibration, a final untouched-test evaluation, score models, a
+model registry or serving.
 
 Every production evaluation begins by invoking the existing training
 materializer. Raw files are therefore rechecked against the tracked historical
@@ -17,7 +18,7 @@ The fixed holdout trains on 2015–16 through 2022–23 (3,040 matches) and eval
 2023–24 plus 2024–25 (760 matches). Five expanding folds train on every complete
 prior development season and evaluate, respectively, 2020–21, 2021–22, 2022–23,
 2023–24 and 2024–25. Every fold contains 380 evaluation fixtures. The 2025–26
-season is excluded from every fit, prediction and metric pending Step 3.4.
+season is frozen and excluded from every development fit, prediction and metric.
 
 Season-level boundaries preserve point-in-time ordering and cannot split a
 date-only simultaneous fixture batch. Within each partition, rows retain their
@@ -61,6 +62,46 @@ random state.
 Weights are intentionally kept in memory. Model serialization and registry
 semantics belong to later milestones.
 
+## Untouched test contract
+
+The 2025–26 season is frozen as `untouched-test-2025-2026-v1`. Its manifest pins
+the complete verified 380-example membership and upstream training lineage by
+hashing only target-free identity, time boundary, source and predictor data. It
+does not read or serialize outcomes, scores or test-label aggregates.
+
+The contract prohibits target access until an explicit one-time final-test
+evaluation. It also prohibits the season from influencing training, tuning,
+selection, calibration or acceptance design. This is a freeze, not a test run;
+there is currently no 2025–26 performance result.
+
+## CatBoost tuning contract
+
+CatBoost 1.2.10 consumes the same 175 approved predictors in manifest order.
+Three candidates are fixed in code before evaluation:
+
+| Candidate | Trees | Depth | Learning rate | L2 leaf regularization |
+| --- | ---: | ---: | ---: | ---: |
+| `catboost-depth4-conservative` | 200 | 4 | 0.03 | 3 |
+| `catboost-depth5-conservative` | 300 | 5 | 0.03 | 5 |
+| `catboost-depth6-regularized` | 200 | 6 | 0.05 | 10 |
+
+Every candidate is scored on the same five expanding folds. Selection minimizes
+aggregate natural-log loss, then Brier score, normalized ranked probability
+score and candidate ID. Fits use CPU, one thread, seed 20260912, no bootstrap,
+zero random strength, symmetric trees, `Min` NaN handling and no CatBoost file
+writes. The selected depth-6 candidate is finally fit in memory on all 3,800
+development examples. No model binary is persisted.
+
+The aggregate development results are:
+
+| Candidate | Log loss | Brier | RPS |
+| --- | ---: | ---: | ---: |
+| depth 4 | 0.991213 | 0.589204 | 0.205971 |
+| depth 5 | 0.995511 | 0.591666 | 0.206621 |
+| depth 6 (selected) | 0.990106 | 0.588451 | 0.205650 |
+
+These are walk-forward development results, not final test performance.
+
 ## Metrics and artifacts
 
 The evaluator reports mean natural-log multiclass log loss, mean sum-of-three
@@ -82,3 +123,17 @@ plp-evaluate-models `
   --seasons data/reference/seasons.json `
   --data-root data
 ```
+
+Freeze the test identity and reproduce CatBoost tuning with:
+
+```powershell
+plp-tune-catboost `
+  --manifest data/manifests/football-data.json `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+The second command writes the freeze manifest and selected development-fold
+predictions only after re-running the raw-verifying training materializer. A
+second unchanged invocation returns `already_current` with identical bytes.

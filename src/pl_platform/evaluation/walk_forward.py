@@ -85,7 +85,7 @@ class CompleteEvaluationResult:
         )
 
 
-def _examples_for_seasons(
+def examples_for_seasons(
     examples: Sequence[TrainingExample],
     season_ids: tuple[str, ...],
 ) -> tuple[TrainingExample, ...]:
@@ -149,8 +149,8 @@ def evaluate_partition(
 ) -> EvaluationPartitionResult:
     """Fit on reference seasons and evaluate all methods on later seasons."""
 
-    reference = _examples_for_seasons(examples, window.reference_season_ids)
-    evaluation = _examples_for_seasons(examples, window.evaluation_season_ids)
+    reference = examples_for_seasons(examples, window.reference_season_ids)
+    evaluation = examples_for_seasons(examples, window.evaluation_season_ids)
     if max(item.kickoff_at for item in reference) >= min(
         item.feature_cutoff_at for item in evaluation
     ):
@@ -280,7 +280,7 @@ def evaluate_holdout_and_walk_forward(
         for window in walk_forward_windows()
     )
     aggregate_metrics: list[ProbabilisticMetricSummary] = []
-    evaluation_examples = _examples_for_seasons(
+    evaluation_examples = examples_for_seasons(
         examples,
         tuple(window.evaluation_season_ids[0] for window in walk_forward_windows()),
     )

@@ -64,7 +64,7 @@ class FittedMultinomialLogisticRegression:
     diagnostics: LogisticFitDiagnostics
 
     def predict_probabilities(self, predictors: PredictorSet) -> OutcomeProbabilities:
-        raw = _raw_predictor_matrix((predictors,), self.predictor_names)
+        raw = predictor_matrix((predictors,), self.predictor_names)
         imputed = np.where(np.isnan(raw), self.imputation_means, raw)
         standardized = (imputed - self.scaling_means) / self.scaling_scales
         logits = standardized @ self.coefficients + self.intercepts
@@ -79,7 +79,7 @@ class FittedMultinomialLogisticRegression:
         )
 
 
-def _raw_predictor_matrix(
+def predictor_matrix(
     predictor_sets: Sequence[PredictorSet],
     predictor_names: tuple[str, ...],
 ) -> npt.NDArray[np.float64]:
@@ -171,7 +171,7 @@ def fit_multinomial_logistic_regression(
     ordered_examples = tuple(
         sorted(examples, key=lambda item: (item.kickoff_at, item.id))
     )
-    raw = _raw_predictor_matrix(
+    raw = predictor_matrix(
         tuple(example.predictors for example in ordered_examples),
         predictor_names,
     )

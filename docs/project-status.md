@@ -10,9 +10,10 @@ C — Point-in-Time Features and Elo
 **Current milestone:** D — Probabilistic Models
 
 **Completed Milestone D steps:** 3.1 — naive and Elo benchmarks; 3.2 —
-multinomial logistic regression; 3.3 — expanding walk-forward validation
+multinomial logistic regression; 3.3 — expanding walk-forward validation; 3.4
+— untouched test freeze; 3.5 — development-only CatBoost tuning
 
-**Exact next step:** 3.4 — freeze an untouched test season
+**Exact next step:** 3.6 — assess and apply probability calibration
 
 ## Implemented capabilities
 
@@ -63,6 +64,14 @@ multinomial logistic regression; 3.3 — expanding walk-forward validation
 - Multiclass log loss, Brier score and normalized ranked probability score.
 - Atomic target-free prediction artifacts and a typed manifest retaining the
   complete checksum and historical provenance chain.
+- Formal target-free freeze of all 380 verified 2025–26 example identities,
+  cutoffs and predictor checksums, with explicit test-access and development-use
+  policies and no serialized outcomes or scores.
+- Three predefined CatBoost candidates evaluated only in the five existing
+  expanding development folds using deterministic, single-threaded CPU fits.
+- Deterministic candidate selection by aggregate walk-forward log loss, then
+  Brier score, ranked probability score and candidate ID; a final in-memory fit
+  on all 3,800 development rows does not create a model artifact.
 
 ## Historical dataset status
 
@@ -94,15 +103,26 @@ multinomial logistic regression; 3.3 — expanding walk-forward validation
   `793a75459ab0789a0001d29ab5d40526c9416da38572b482e19f60777a066ad0`.
 - Evaluation manifest SHA-256:
   `8fb62a9306a4500a87f42bc0d4baacc9ba882231093014969f19d2fe151da08a`.
+- Untouched test freeze rows: 380 from 2025–26.
+- Untouched test identities SHA-256:
+  `40f16d9067e96dc99db21703402ff5897043d4c59613b914eda71e3e8c5ab733`.
+- Untouched test freeze manifest SHA-256:
+  `56d2f74ae36b63b3cfdc22b54b771a386fff0ead614a40a03c47c449366eacba`.
+- Selected CatBoost configuration: `catboost-depth6-regularized`.
+- Selected CatBoost walk-forward predictions: 1,900 target-free rows.
+- Selected CatBoost predictions SHA-256:
+  `b9f878bdaf689082ce1216030fa9698378041d74cf6bd9a74435822345f39f46`.
+- CatBoost tuning manifest SHA-256:
+  `324039af347357582af5dc4d1c20c88b1e6dfbd0933402f30038d3902a08b7e3`.
 - Raw, interim and processed files are reproducible local artifacts and are
   ignored by Git.
 
 ## Last verified quality result
 
-The Steps 3.1 through 3.3 implementation passed the complete local suite:
+The Steps 3.4 and 3.5 implementation passed the complete local suite:
 
-- pytest: 194 passed.
-- branch-aware coverage: 91.24% (minimum required: 90%).
+- pytest: 211 passed.
+- branch-aware coverage: 90.44% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
 - strict mypy: passed.
@@ -123,6 +143,12 @@ The Steps 3.1 through 3.3 implementation passed the complete local suite:
 - all six logistic fits converged under the frozen optimizer contract.
 - an unchanged second model-evaluation run returned `already_current` with
   identical prediction and manifest checksums.
+- the 2025–26 freeze contains only target-free identity, cutoff, predictor-hash
+  and lineage data and is invariant to target changes.
+- all 15 CatBoost fold fits used only seasons through 2024–25; the selected
+  candidate was then fit in memory on all 3,800 development examples.
+- a second freeze-and-tuning run returned `already_current` with identical
+  prediction, tuning-manifest and freeze-manifest checksums.
 
 ## Important project constraints
 
@@ -146,9 +172,9 @@ The Steps 3.1 through 3.3 implementation passed the complete local suite:
 
 ## Not implemented yet
 
-- Formal untouched-test designation and evaluation.
-- Model tuning, calibration or score modelling.
-- CatBoost or model acceptance gates.
+- Final one-time untouched-test evaluation.
+- Probability calibration or score modelling.
+- Model acceptance gates.
 - Model serialization or registry behavior.
 - Season simulation.
 - PostgreSQL persistence or migrations.
@@ -161,11 +187,15 @@ The Steps 3.1 through 3.3 implementation passed the complete local suite:
 The fixed 2023–24 through 2024–25 holdout produced log loss of 1.067476 for the
 naive benchmark, 0.987353 for Elo and 1.002758 for multinomial logistic
 regression. Across five expanding folds covering 1,900 validation matches, log
-loss was 1.068916, 0.996658 and 1.033894 respectively. These are development
-comparisons, not final test performance.
+loss was 1.068916, 0.996658 and 1.033894 respectively. CatBoost candidate log
+losses were 0.991213 (depth 4), 0.995511 (depth 5) and 0.990106 (selected depth
+6). The selected candidate's aggregate Brier score was 0.588451 and normalized
+ranked probability score was 0.205650. These are development comparisons, not
+final test performance.
 
 ## Next step boundary
 
-Step 3.4 may formally freeze the already excluded 2025–26 season and define the
-one-time untouched-test protocol. It must not use that season for tuning,
-calibration, feature selection or development acceptance decisions.
+Step 3.6 may assess calibration using only target-bearing predictions generated
+inside the development walk-forward boundary. The frozen 2025–26 target remains
+prohibited until an explicit one-time final-test evaluation step and cannot be
+used for calibration choice, tuning, feature selection or acceptance design.

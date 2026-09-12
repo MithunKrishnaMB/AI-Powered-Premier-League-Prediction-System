@@ -1,5 +1,7 @@
 """Small deterministic training examples for model-evaluation tests."""
 
+import hashlib
+import json
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -8,6 +10,13 @@ from pl_platform.domain.fixtures import KickoffPrecision, MatchOutcome
 from pl_platform.domain.training import (
     TrainingExample,
     deterministic_training_example_id,
+)
+from pl_platform.features.materialize import FeaturePredictorSchema
+from pl_platform.training.materialize import (
+    TrainingDatasetManifest,
+    TrainingFeatureSource,
+    TrainingInputChecksums,
+    TrainingTargetSchema,
 )
 
 PREDICTOR_NAMES = (
@@ -83,3 +92,64 @@ def complete_corpus() -> tuple[TrainingExample, ...]:
             )
             index += 1
     return tuple(rows)
+
+
+def make_training_manifest() -> TrainingDatasetManifest:
+    names_payload = json.dumps(
+        PREDICTOR_NAMES,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode()
+    seasons = tuple(f"{year:04d}-{year + 1:04d}" for year in range(2015, 2026))
+    sources = tuple(
+        TrainingFeatureSource(
+            dataset_id=f"features-{season}",
+            season_id=season,
+            feature_row_count=3,
+            features_sha256=f"{index:x}".rjust(64, "0"),
+            feature_manifest_sha256=f"{index + 20:x}".rjust(64, "0"),
+            canonical_dataset_id=f"canonical-{season}",
+            canonical_fixtures_sha256=f"{index + 40:x}".rjust(64, "0"),
+            historical_context_sha256=f"{index + 60:x}".rjust(64, "0"),
+            raw_source_id="verified-source",
+            raw_artifact_id=f"epl-{season}",
+            raw_sha256=f"{index + 80:x}".rjust(64, "0"),
+            raw_captured_at=datetime(2026, 6, 1, tzinfo=UTC),
+        )
+        for index, season in enumerate(seasons, start=1)
+    )
+    return TrainingDatasetManifest(
+        dataset_schema_version=1,
+        dataset_id="test-training-dataset",
+        competition_id="eng-premier-league",
+        season_ids=seasons,
+        training_row_count=33,
+        training_sha256=SOURCE_TRAINING_SHA256,
+        training_row_schema_version=1,
+        predictor_schema=FeaturePredictorSchema(
+            id="epl-pre-match",
+            version=2,
+            predictor_count=3,
+            predictor_names=PREDICTOR_NAMES,
+            predictor_names_sha256=hashlib.sha256(names_payload).hexdigest(),
+        ),
+        target_schema=TrainingTargetSchema(
+            id="full-time-result-and-score",
+            version=1,
+            fields=("outcome", "home_goals", "away_goals"),
+            outcome_values=("home_win", "draw", "away_win"),
+        ),
+        ordered_by=("kickoff_at", "training_example_id"),
+        input_checksums=TrainingInputChecksums(
+            historical_manifest_sha256="b" * 64,
+            team_registry_sha256="c" * 64,
+            season_registry_sha256="d" * 64,
+        ),
+        source_feature_datasets=sources,
+    )
+
+
+def training_manifest_payload(manifest: TrainingDatasetManifest) -> bytes:
+    return (
+        json.dumps(manifest.model_dump(mode="json"), indent=2, sort_keys=True) + "\n"
+    ).encode()

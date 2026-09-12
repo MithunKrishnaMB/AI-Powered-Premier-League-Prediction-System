@@ -9,6 +9,7 @@ description = "Backend-first Premier League prediction, simulation and analytics
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [
+    "catboost==1.2.10",
     "numpy==2.5.3",
     "pydantic-settings==2.15.0",
     "tzdata==2026.3",
@@ -20,6 +21,7 @@ plp-materialize-historical = "pl_platform.ingestion.materialize:main"
 plp-materialize-features = "pl_platform.features.materialize:main"
 plp-materialize-training = "pl_platform.training.materialize:main"
 plp-evaluate-models = "pl_platform.evaluation.materialize:main"
+plp-tune-catboost = "pl_platform.evaluation.catboost_materialize:main"
 
 [dependency-groups]
 dev = [

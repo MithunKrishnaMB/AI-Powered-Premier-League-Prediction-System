@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -21,18 +20,15 @@ from pl_platform.evaluation.walk_forward import (
     CompleteEvaluationResult,
     evaluate_holdout_and_walk_forward,
 )
-from pl_platform.features.materialize import FeaturePredictorSchema
 from pl_platform.training.materialize import (
-    TrainingDatasetManifest,
-    TrainingFeatureSource,
-    TrainingInputChecksums,
     TrainingMaterializationResult,
-    TrainingTargetSchema,
 )
 from tests.unit.evaluation.helpers import (
     PREDICTOR_NAMES,
     SOURCE_TRAINING_SHA256,
     complete_corpus,
+    make_training_manifest,
+    training_manifest_payload,
 )
 
 FAST_PARAMETERS = LogisticRegressionParameters(
@@ -44,67 +40,6 @@ FAST_PARAMETERS = LogisticRegressionParameters(
 
 def _sha256(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
-
-
-def _training_manifest() -> TrainingDatasetManifest:
-    names_payload = json.dumps(
-        PREDICTOR_NAMES,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    ).encode()
-    seasons = tuple(f"{year:04d}-{year + 1:04d}" for year in range(2015, 2026))
-    sources = tuple(
-        TrainingFeatureSource(
-            dataset_id=f"features-{season}",
-            season_id=season,
-            feature_row_count=3,
-            features_sha256=f"{index:x}".rjust(64, "0"),
-            feature_manifest_sha256=f"{index + 20:x}".rjust(64, "0"),
-            canonical_dataset_id=f"canonical-{season}",
-            canonical_fixtures_sha256=f"{index + 40:x}".rjust(64, "0"),
-            historical_context_sha256=f"{index + 60:x}".rjust(64, "0"),
-            raw_source_id="verified-source",
-            raw_artifact_id=f"epl-{season}",
-            raw_sha256=f"{index + 80:x}".rjust(64, "0"),
-            raw_captured_at=datetime(2026, 6, 1, tzinfo=UTC),
-        )
-        for index, season in enumerate(seasons, start=1)
-    )
-    return TrainingDatasetManifest(
-        dataset_schema_version=1,
-        dataset_id="test-training-dataset",
-        competition_id="eng-premier-league",
-        season_ids=seasons,
-        training_row_count=33,
-        training_sha256=SOURCE_TRAINING_SHA256,
-        training_row_schema_version=1,
-        predictor_schema=FeaturePredictorSchema(
-            id="epl-pre-match",
-            version=2,
-            predictor_count=3,
-            predictor_names=PREDICTOR_NAMES,
-            predictor_names_sha256=_sha256(names_payload),
-        ),
-        target_schema=TrainingTargetSchema(
-            id="full-time-result-and-score",
-            version=1,
-            fields=("outcome", "home_goals", "away_goals"),
-            outcome_values=("home_win", "draw", "away_win"),
-        ),
-        ordered_by=("kickoff_at", "training_example_id"),
-        input_checksums=TrainingInputChecksums(
-            historical_manifest_sha256="b" * 64,
-            team_registry_sha256="c" * 64,
-            season_registry_sha256="d" * 64,
-        ),
-        source_feature_datasets=sources,
-    )
-
-
-def _training_manifest_payload(manifest: TrainingDatasetManifest) -> bytes:
-    return (
-        json.dumps(manifest.model_dump(mode="json"), indent=2, sort_keys=True) + "\n"
-    ).encode()
 
 
 def _complete_result() -> CompleteEvaluationResult:
@@ -120,8 +55,8 @@ def _complete_result() -> CompleteEvaluationResult:
 def test_writes_loads_and_reuses_deterministic_evaluation_bytes(tmp_path: Path) -> None:
     complete = _complete_result()
     output = tmp_path / "evaluation"
-    source_manifest = _training_manifest()
-    source_manifest_sha256 = _sha256(_training_manifest_payload(source_manifest))
+    source_manifest = make_training_manifest()
+    source_manifest_sha256 = _sha256(training_manifest_payload(source_manifest))
 
     first = write_evaluation_dataset(
         complete.predictions,
@@ -159,12 +94,12 @@ def test_writes_loads_and_reuses_deterministic_evaluation_bytes(tmp_path: Path) 
 
 def test_loader_rejects_checksum_and_order_corruption(tmp_path: Path) -> None:
     complete = _complete_result()
-    source_manifest = _training_manifest()
+    source_manifest = make_training_manifest()
     result = write_evaluation_dataset(
         complete.predictions,
         tmp_path,
         source_manifest,
-        _sha256(_training_manifest_payload(source_manifest)),
+        _sha256(training_manifest_payload(source_manifest)),
         complete.holdout,
         complete.walk_forward_folds,
         complete.walk_forward_aggregate_metrics,
@@ -190,11 +125,11 @@ def test_loader_rejects_checksum_and_order_corruption(tmp_path: Path) -> None:
 
 def test_rejects_empty_or_duplicate_predictions(tmp_path: Path) -> None:
     complete = _complete_result()
-    source_manifest = _training_manifest()
+    source_manifest = make_training_manifest()
     arguments = (
         tmp_path,
         source_manifest,
-        _sha256(_training_manifest_payload(source_manifest)),
+        _sha256(training_manifest_payload(source_manifest)),
         complete.holdout,
         complete.walk_forward_folds,
         complete.walk_forward_aggregate_metrics,
@@ -211,10 +146,10 @@ def test_orchestrator_reverifies_training_before_evaluation(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    source_manifest = _training_manifest()
+    source_manifest = make_training_manifest()
     complete = _complete_result()
     training_manifest_path = tmp_path / "training-manifest.json"
-    training_manifest_path.write_bytes(_training_manifest_payload(source_manifest))
+    training_manifest_path.write_bytes(training_manifest_payload(source_manifest))
     training_result = TrainingMaterializationResult(
         training_rows_path=tmp_path / "training.jsonl",
         manifest_path=training_manifest_path,

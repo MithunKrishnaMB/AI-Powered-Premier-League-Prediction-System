@@ -80,11 +80,15 @@ Each numbered step should remain small enough to review and test in isolation.
   logistic regression using training-window-only preprocessing.
 - **Step 3.3 — complete:** Implement five expanding-season walk-forward folds
   through 2024–25 and aggregate probabilistic metrics.
-- **Step 3.4 — next:** Freeze an untouched test season. The 2025–26 season is
-  currently excluded from all development fitting and evaluation but is not yet
-  designated or consumed as the formal test artifact.
-- **Step 3.5:** Train and tune CatBoost within temporal folds.
-- **Step 3.6:** Assess and apply probability calibration.
+- **Step 3.4 — complete:** Freeze 2025–26 as a target-free, checksum-pinned
+  untouched test identity and policy artifact. It remains unconsumed by model
+  fitting, tuning, selection, calibration, acceptance and metrics.
+- **Step 3.5 — complete:** Evaluate three predefined deterministic CatBoost
+  candidates within the five expanding development folds, select by proper
+  probabilistic scores and fit the winner on all development seasons without
+  serializing it or opening the untouched test target.
+- **Step 3.6 — next:** Assess and apply probability calibration using only
+  development predictions and chronological boundaries.
 - **Step 3.7:** Implement a Poisson score baseline.
 - **Step 3.8:** Implement and test the Dixon–Coles adjustment.
 - **Step 3.9:** Compare models against predefined acceptance gates.
