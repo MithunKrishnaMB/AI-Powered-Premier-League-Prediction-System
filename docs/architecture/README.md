@@ -23,6 +23,8 @@ speculative future complexity.
 ## Current records
 
 - [Architectural decision register](decisions.md)
+- [Point-in-time feature processing](../features/point-in-time.md)
 - [Implementation roadmap](../roadmap.md)
 - [Project status](../project-status.md)
 - [Milestone B to C handoff](../handoffs/milestone-b-to-c.md)
+- [Milestone C to D handoff](../handoffs/milestone-c-to-d.md)

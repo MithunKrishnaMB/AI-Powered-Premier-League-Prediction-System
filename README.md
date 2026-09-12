@@ -34,11 +34,14 @@ working together and tested.
 ## Repository status
 
 The project has an importable Python package, typed configuration, structured
-logging, local quality tooling, and a checksum-pinned historical ingestion
-pipeline. Eleven completed Premier League seasons (2015–16 through 2025–26)
-can be downloaded, canonicalized, and validated locally. Feature engineering,
-database migrations, model artifacts, and the frontend have not yet been
-created. CI/CD automation is intentionally not configured.
+logging, local quality tooling, a checksum-pinned historical ingestion pipeline,
+and a versioned point-in-time feature system. Eleven completed Premier League
+seasons (2015–16 through 2025–26) can be downloaded, canonicalized, validated,
+and transformed into leakage-safe rolling predictors. Per-season feature
+datasets and the first combined 4,180-row training dataset are reproducibly
+materialized with checksum-pinned lineage. Elo ratings, trained model artifacts,
+database migrations, and the frontend have not yet been created. CI/CD
+automation is intentionally not configured.
 
 The development environment uses 64-bit Python 3.14.
 
@@ -93,6 +96,36 @@ The 4,180 generated fixture records and their per-season build manifests are
 written beneath `data/interim/` and remain outside Git. Pass `--entry-id`
 instead of `--all` to process one season.
 
+Materialize deterministic point-in-time feature datasets with:
+
+```powershell
+plp-materialize-features `
+  --manifest data/manifests/football-data.json `
+  --all `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+This command re-verifies raw inputs and canonical materialization before writing
+4,180 feature rows and companion lineage manifests beneath
+`data/processed/features/`. A second unchanged run returns `already_current`.
+
+Produce the first reproducible training dataset with:
+
+```powershell
+plp-materialize-training `
+  --manifest data/manifests/football-data.json `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+This command re-verifies every raw, canonical, and feature input before writing
+the combined model-ready JSON Lines dataset and its lineage manifest beneath
+`data/processed/training/`. Predictors and post-match targets remain separate;
+the command does not fit a model or define a temporal train/test split.
+
 See [historical data provenance](docs/data/historical-data.md) for source and
 integrity details.
 
@@ -116,6 +149,7 @@ implementation. Start with:
 - [current project status](docs/project-status.md)
 - [architecture index and decisions](docs/architecture/README.md)
 - [Milestone B to C handoff](docs/handoffs/milestone-b-to-c.md)
+- [Milestone C to D handoff](docs/handoffs/milestone-c-to-d.md)
 
 ## Development order
 
@@ -131,6 +165,6 @@ The planned order is:
 8. Automation, deployment, and end-to-end backend validation
 9. Frontend architecture and implementation
 
-The exact next implementation step is **Step 2.1: define the versioned,
-point-in-time feature-row contract**. It deliberately defines and tests the data
-boundary before any rolling features are computed.
+The next milestone is **Milestone D — Elo Engine**: define and implement
+point-in-time ratings, home advantage, season transitions, and reproducible
+rating history without changing the completed feature datasets.

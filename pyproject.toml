@@ -16,6 +16,8 @@ dependencies = [
 [project.scripts]
 plp-download-historical = "pl_platform.ingestion.download:main"
 plp-materialize-historical = "pl_platform.ingestion.materialize:main"
+plp-materialize-features = "pl_platform.features.materialize:main"
+plp-materialize-training = "pl_platform.training.materialize:main"
 
 [dependency-groups]
 dev = [

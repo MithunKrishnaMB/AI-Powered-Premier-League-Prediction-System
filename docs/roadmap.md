@@ -33,28 +33,32 @@ isolation.
 - **Step 1.10:** Expand the reproducible window to 2015–16 through 2025–26 and
   add all-season download and materialization commands.
 
-## Milestone C — Point-in-Time Feature System — next
+## Milestone C — Point-in-Time Feature System — complete
 
-- **Step 2.1 — exact next step:** Define the versioned, provider-independent
+- **Step 2.1 — complete:** Define the versioned, provider-independent
   point-in-time feature-row contract, including fixture identity, team identity,
   feature cutoff, kickoff precision, predictor/label separation, and provenance.
   Add contract validation, unit tests, and schema documentation. Do not compute
   rolling features yet.
-- **Step 2.2:** Define chronological processing and same-date batch semantics for
-  date-only historical fixtures.
-- **Step 2.3:** Implement leakage-safe rolling team form and result features.
-- **Step 2.4:** Implement goals, shots, and discipline rolling features using
-  prior matches only.
-- **Step 2.5:** Add rest, schedule congestion, venue, promoted-team, and season
-  context features.
-- **Step 2.6:** Materialize deterministic feature datasets with source and schema
-  lineage.
-- **Step 2.7:** Add explicit leakage, determinism, missing-data, and temporal
-  boundary tests.
+- **Step 2.2 — complete:** Define chronological processing and same-date batch
+  semantics for date-only historical fixtures.
+- **Step 2.3 — complete:** Implement leakage-safe rolling team form and result
+  features.
+- **Step 2.4 — complete:** Implement goals, shots, and discipline rolling
+  features using prior matches only.
+- **Step 2.5 — complete:** Add rest, schedule congestion, venue, promoted-team,
+  and season context features.
+- **Step 2.6 — complete:** Materialize deterministic feature datasets with
+  source and schema lineage.
+- **Step 2.7 — complete:** Add explicit leakage, determinism, missing-data, and
+  temporal boundary tests.
+- **Step 2.8 — complete:** Produce the first reproducible training dataset from
+  every verified feature season, with a versioned row contract, structurally
+  separate target, deterministic bytes, and complete checksum provenance.
 
 ## Later milestones — planned
 
-1. **Milestone D — Elo Engine:** Point-in-time ratings, home advantage, season
+1. **Milestone D — Elo Engine — next:** Point-in-time ratings, home advantage, season
    transitions, and reproducible rating history.
 2. **Milestone E — Baseline Model and Temporal Validation:** Multinomial logistic
    regression, chronological splits, probabilistic metrics, and baselines.

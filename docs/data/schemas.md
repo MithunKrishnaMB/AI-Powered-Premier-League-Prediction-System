@@ -1,6 +1,6 @@
-# Historical Data Schemas
+# Data Schemas
 
-The historical pipeline uses three deliberately separate representations.
+The data pipeline uses five deliberately separate representations.
 
 ## Raw source file
 
@@ -30,6 +30,101 @@ fixture is created.
 
 The canonical model rejects inconsistent scores, outcomes, teams, kickoff
 timestamps, and fixture states.
+
+## Point-in-time feature-row model
+
+`PointInTimeFeatureRow` schema version 1 is the provider-independent boundary
+between canonical fixtures and point-in-time feature processing. It is an
+immutable, strictly validated envelope with these sections:
+
+- `id`: deterministic UUIDv5 identity for the fixture, feature cutoff,
+  predictor schema, feature-row schema, and canonical input dataset;
+- `fixture_id`, `competition_id`, `season_id`, `home_team_id`, and
+  `away_team_id`: canonical domain identity, never provider aliases;
+- `kickoff_at` and `kickoff_precision`: the canonical UTC kickoff boundary and
+  whether the source supplied an exact time or only a date;
+- `feature_cutoff_at`: the latest instant from which predictors may obtain
+  information;
+- `predictors`: an explicitly versioned, deterministically ordered collection
+  of named pre-match scalar values;
+- `training_label`: an optional, structurally separate post-match outcome and
+  full-time score; and
+- `provenance`: the canonical dataset identity and schema version, canonical
+  fixture checksum, verified raw artifact identity and checksum, source capture
+  time, and team and season registry schema versions.
+
+Predictor values may be strict booleans, integers, finite floating-point values,
+or explicit nulls. Names use canonical snake case, must be unique and sorted,
+and cannot use reserved label or post-match names. The predictor container has
+its own schema ID and version so later feature definitions can evolve without
+silently changing a training matrix.
+
+Representability is not feature approval. In particular, bookmaker columns
+retained at the Football-Data source boundary are not approved predictors and
+must not be copied into this contract. A future feature producer must populate
+only predictors declared by its reviewed predictor-schema version.
+
+The optional training label is nested outside `predictors`. Its outcome must
+agree with its non-negative full-time score. An unlabeled row is therefore
+representable without using sentinel target values, and downstream training
+code can select labels without exposing them as predictors.
+
+All contract timestamps are timezone-aware UTC. For an exact kickoff, the
+feature cutoff may equal but cannot follow kickoff. For `date_only` fixtures,
+the cutoff must precede midnight at the start of the source-local fixture date
+in `Europe/London`, converted to UTC. This deliberately conservative boundary
+prevents the noon anchor from implying an observed within-day order and remains
+correct across daylight saving transitions. Chronological processing treats
+every fixture on a local date containing a date-only record as one simultaneous
+batch, calculates all rows from pre-batch state, and updates state only after
+the full batch.
+
+The feature-row contract and calculator do not read raw provider files. Feature
+materialization must start from canonical datasets produced only after raw
+manifest verification and must carry their recorded checksums into provenance.
+
+The predictor schema and calculation semantics are documented in
+[Point-in-Time Feature Processing](../features/point-in-time.md).
+
+## Processed feature dataset
+
+Each completed season materializes as deterministic JSON Lines at
+`data/processed/features/epl/<season>/features.jsonl` with an adjacent
+`dataset-manifest.json`. The manifest pins the feature dataset, row, predictor,
+and chronology versions; the ordered 134-name predictor schema and checksum;
+the feature-file count and checksum; processing-window semantics; canonical
+fixture lineage; registry versions; and the verified raw artifact lineage.
+
+The materializer invokes checksum-verifying canonical materialization before
+reading canonical inputs, validates the canonical file against its own manifest,
+and publishes generated outputs atomically. Equivalent inputs produce identical
+bytes and checksums. Processed feature files remain ignored generated artifacts.
+
+## Reproducible training dataset
+
+`TrainingExample` schema version 1 is the model-ready projection of a verified
+feature row. It retains fixture, competition, season, and canonical team
+identity; kickoff, kickoff precision, and feature cutoff; the complete versioned
+predictor set; a required, structurally separate `target`; the source feature-row
+ID; and the source feature-dataset ID. Its deterministic UUIDv5 binds the
+example to the feature row and source feature dataset.
+
+`plp-materialize-training` verifies and rebuilds every manifest-listed feature
+season before combining them. It writes deterministic JSON Lines to
+`data/processed/training/epl/2015-2016_to_2025-2026/training.jsonl` with an
+adjacent versioned manifest. The manifest pins:
+
+- the training row count and file SHA-256;
+- the ordered season window and serialization order;
+- the full predictor schema and the separate result/score target schema;
+- the historical manifest, team registry, and season registry checksums; and
+- every source feature dataset and manifest checksum plus its canonical and raw
+  lineage.
+
+The loader rejects modified bytes, wrong row counts, predictor-schema drift,
+unknown or cross-season feature references, and incomplete season coverage.
+The artifact contains all 4,180 completed fixtures; temporal splitting and model
+fitting remain later work.
 
 ## Team identity
 

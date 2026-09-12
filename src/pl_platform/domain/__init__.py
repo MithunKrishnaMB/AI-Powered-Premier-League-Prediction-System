@@ -1,5 +1,15 @@
 """Provider-independent football domain models."""
 
+from pl_platform.domain.features import (
+    FEATURE_ROW_SCHEMA_VERSION,
+    CanonicalDatasetProvenance,
+    PointInTimeFeatureRow,
+    PredictorSet,
+    PredictorValue,
+    SourceArtifactProvenance,
+    TrainingLabel,
+    deterministic_feature_row_id,
+)
 from pl_platform.domain.fixtures import (
     Fixture,
     FixtureScore,
@@ -22,22 +32,38 @@ from pl_platform.domain.teams import (
     UnknownTeamAliasError,
     load_team_registry,
 )
+from pl_platform.domain.training import (
+    TRAINING_ROW_SCHEMA_VERSION,
+    TrainingExample,
+    deterministic_training_example_id,
+)
 
 __all__ = [
+    "FEATURE_ROW_SCHEMA_VERSION",
+    "TRAINING_ROW_SCHEMA_VERSION",
+    "CanonicalDatasetProvenance",
     "CanonicalTeam",
     "Fixture",
     "FixtureScore",
     "FixtureStatistics",
     "FixtureStatus",
     "MatchOutcome",
+    "PointInTimeFeatureRow",
+    "PredictorSet",
+    "PredictorValue",
     "PremierLeagueSeason",
     "SeasonEntryStatus",
     "SeasonRegistry",
     "SeasonTeamMembership",
+    "SourceArtifactProvenance",
     "SourceFixtureReference",
     "TeamMatchStatistics",
     "TeamRegistry",
+    "TrainingExample",
+    "TrainingLabel",
     "UnknownTeamAliasError",
+    "deterministic_feature_row_id",
+    "deterministic_training_example_id",
     "load_season_registry",
     "load_team_registry",
 ]

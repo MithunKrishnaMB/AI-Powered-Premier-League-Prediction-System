@@ -1,8 +1,8 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior and constraints as of the
-Milestones A and B closeout. A later milestone may supersede a decision only by
-recording the replacement and its migration impact.
+These decisions describe implemented behavior and constraints through Milestone
+C Step 2.8. A later milestone may supersede a decision only by recording the
+replacement and its migration impact.
 
 ## ADR-001 — Backend-first typed Python package
 
@@ -86,3 +86,99 @@ per-season dataset manifest under ignored `data/interim/`.
 **Consequences:** Canonical records are easy to inspect and reproduce. JSON Lines
 is not the most compact analytical format; a later feature milestone may add a
 columnar processed format without replacing the canonical source of truth.
+
+## ADR-008 — Versioned point-in-time feature-row boundary
+
+**Status:** Accepted
+
+**Context:** Model inputs must remain traceable to verified canonical data, and
+post-match targets or falsely precise historical kickoff ordering must not enter
+pre-match predictors.
+
+**Decision:** Represent each feature example with an immutable, provider-neutral
+schema containing canonical fixture, season, and team identities; UTC kickoff
+and feature-cutoff boundaries; a separately versioned predictor collection; an
+optional nested training label; and checksum-pinned canonical and raw-source
+lineage. Derive a deterministic UUIDv5 row ID from the semantic row and input
+lineage. For date-only fixtures, require the cutoff to precede the fixture's
+`Europe/London` calendar date; chronological processing updates state only after
+the complete same-date batch. Predictor representability does not grant
+eligibility, and retained bookmaker columns remain unapproved.
+
+**Consequences:** Predictors and targets cannot be conflated accidentally by the
+wire structure, equivalent inputs have stable identities, and every row can be
+traced to a manifest-verified source artifact. Feature definitions and material
+calculations remain separate versioned responsibilities.
+
+## ADR-009 — Pre-batch within-season rolling state
+
+**Status:** Accepted
+
+**Context:** Historical sources may omit kickoff times, optional statistics may
+be missing, and early-season teams do not have comparable Premier League history
+in the current season.
+
+**Decision:** Reset version 1 feature state at each season boundary and use a
+five-match form window alongside season-to-date aggregates. Snapshot all team
+state before each chronological batch and commit fixture observations only after
+every row in that batch has been created. If any fixture on a Premier League
+calendar date in `Europe/London` is date-only, batch the whole local date. Retain
+missing optional statistics as null averages with explicit observation counts.
+Derive promoted status only from the
+reviewed season registry, rest and congestion from prior fixture dates, and
+season progress from prior processed fixtures and known membership size.
+
+**Consequences:** Current results cannot affect current predictors, unknown
+within-day ordering cannot leak, and missing statistics are distinguishable
+from observed zeros. Version 1 deliberately has no cross-season carryover;
+future carryover would require a new reviewed predictor-schema version.
+
+## ADR-010 — Deterministic processed feature artifacts
+
+**Status:** Accepted
+
+**Context:** In-memory feature rows are insufficient for reproducible training;
+the persisted bytes must remain tied to the exact verified raw and canonical
+inputs, feature schema, and temporal semantics.
+
+**Decision:** Materialize one compact, key-sorted JSON object per feature row
+under ignored `data/processed/`, ordered by cutoff, kickoff, and deterministic
+row UUID. Publish an adjacent deterministic manifest containing output checksum
+and count, all feature-related schema versions, the complete ordered predictor
+schema and checksum, processing parameters, canonical fixture checksum and
+registry versions, and raw source checksum and capture identity. Invoke the
+existing checksum-verifying canonical materializer before reading canonical
+data, validate canonical bytes against their manifest, and publish files through
+atomic replacement.
+
+**Consequences:** Training inputs are byte-identifiable, stale generated outputs
+are replaced without partial files, and unchanged builds return
+`already_current`. The JSON Lines representation is intentionally inspectable;
+a later columnar representation must retain the same lineage and deterministic
+semantics rather than silently replacing them.
+
+## ADR-011 — Reproducible model-ready training dataset
+
+**Status:** Accepted
+
+**Context:** Reproducible feature files still need a single validated,
+model-ready boundary. Combining seasons without pinning each input manifest or
+without keeping post-match outcomes separate would allow provenance drift or
+target leakage before model development begins.
+
+**Decision:** Project every labeled feature row into immutable `TrainingExample`
+schema version 1, retaining its point-in-time predictors and placing the result
+and score only in a separate required `target`. Combine all manifest-listed
+seasons in deterministic kickoff/UUID order. Bind each example to its source
+feature row and season-specific feature dataset. Publish JSON Lines with a
+versioned manifest that pins the training checksum, predictor and target
+schemas, tracked input-file checksums, and every feature, canonical, and raw
+source checksum. Re-run the raw-verifying canonical and feature materializers
+before every combined build. Do not select a temporal split or fit a model in
+this step.
+
+**Consequences:** The first model-ready corpus is byte-reproducible and rejects
+unknown or cross-season lineage, modified source artifacts, incomplete targets,
+and predictor drift. Later model milestones must choose chronological training
+and evaluation windows explicitly rather than treating this combined historical
+corpus as a randomly splittable dataset.
