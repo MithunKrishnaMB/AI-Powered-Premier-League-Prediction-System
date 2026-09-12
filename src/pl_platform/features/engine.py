@@ -1,6 +1,6 @@
 """In-memory construction of leakage-safe Premier League predictors."""
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date
 from typing import Final, Literal
@@ -20,15 +20,27 @@ from pl_platform.domain.fixtures import (
     FixtureStatus,
     TeamMatchStatistics,
 )
+from pl_platform.domain.ratings import EloParameters
 from pl_platform.domain.seasons import PremierLeagueSeason
 from pl_platform.features.chronology import (
     chronological_fixture_batches,
     fixture_competition_date,
 )
+from pl_platform.features.elo import (
+    DEFAULT_ELO_PARAMETERS,
+    initialize_season_ratings,
+    predict_elo_match,
+    update_elo_batch,
+)
+from pl_platform.features.priors import (
+    OpeningPriorSource,
+    SeasonOpeningPrior,
+    build_season_opening_priors,
+)
 
 FORM_WINDOW_MATCHES: Final = 5
 PREDICTOR_SCHEMA_ID: Final = "epl-pre-match"
-PREDICTOR_SCHEMA_VERSION: Final = 1
+PREDICTOR_SCHEMA_VERSION: Final = 2
 
 OptionalMetric = Literal[
     "shots_for",
@@ -80,6 +92,14 @@ class _TeamObservation:
     yellow_cards_against: int | None
     red_cards_for: int | None
     red_cards_against: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class SeasonFeatureBuildResult:
+    """Feature rows and end-of-season Elo state for chronological carryover."""
+
+    rows: tuple[PointInTimeFeatureRow, ...]
+    final_elo_ratings: tuple[tuple[UUID, float], ...]
 
 
 def _rate(numerator: int, denominator: int) -> float | None:
@@ -230,14 +250,102 @@ def _add_schedule_and_venue_features(
     )
 
 
+def _add_opening_prior_features(
+    values: dict[str, PredictorScalar],
+    prefix: str,
+    observations: Sequence[_TeamObservation],
+    prior: SeasonOpeningPrior,
+) -> None:
+    values.update(
+        {
+            f"{prefix}_opening_prior_from_fixed_baseline": (
+                prior.source == OpeningPriorSource.FIXED_BASELINE
+            ),
+            f"{prefix}_opening_prior_from_previous_league": (
+                prior.source == OpeningPriorSource.PREVIOUS_LEAGUE
+            ),
+            f"{prefix}_opening_prior_from_previous_team": (
+                prior.source == OpeningPriorSource.PREVIOUS_TEAM
+            ),
+            f"{prefix}_opening_prior_reference_matches": prior.reference_matches,
+            f"{prefix}_opening_prior_weight_matches": prior.weight_matches,
+            f"{prefix}_opening_prior_points_per_match": prior.points_per_match,
+            f"{prefix}_opening_prior_win_rate": prior.win_rate,
+            f"{prefix}_opening_prior_draw_rate": prior.draw_rate,
+            f"{prefix}_opening_prior_loss_rate": prior.loss_rate,
+            f"{prefix}_opening_prior_goals_for_per_match": (prior.goals_for_per_match),
+            f"{prefix}_opening_prior_goals_against_per_match": (
+                prior.goals_against_per_match
+            ),
+        }
+    )
+
+    current_matches = len(observations)
+    denominator = prior.weight_matches + current_matches
+    wins = sum(observation.won for observation in observations)
+    draws = sum(observation.drew for observation in observations)
+    losses = sum(observation.lost for observation in observations)
+    points = sum(observation.points for observation in observations)
+    goals_for = sum(observation.goals_for for observation in observations)
+    goals_against = sum(observation.goals_against for observation in observations)
+    values.update(
+        {
+            f"{prefix}_blended_points_per_match": (
+                prior.weight_matches * prior.points_per_match + points
+            )
+            / denominator,
+            f"{prefix}_blended_win_rate": (prior.weight_matches * prior.win_rate + wins)
+            / denominator,
+            f"{prefix}_blended_draw_rate": (
+                prior.weight_matches * prior.draw_rate + draws
+            )
+            / denominator,
+            f"{prefix}_blended_loss_rate": (
+                prior.weight_matches * prior.loss_rate + losses
+            )
+            / denominator,
+            f"{prefix}_blended_goals_for_per_match": (
+                prior.weight_matches * prior.goals_for_per_match + goals_for
+            )
+            / denominator,
+            f"{prefix}_blended_goals_against_per_match": (
+                prior.weight_matches * prior.goals_against_per_match + goals_against
+            )
+            / denominator,
+        }
+    )
+
+
 def _predictors_for_fixture(
     fixture: Fixture,
     state: dict[UUID, list[_TeamObservation]],
     season: PremierLeagueSeason,
     season_prior_fixtures: int,
+    opening_priors: Mapping[UUID, SeasonOpeningPrior],
+    elo_ratings: Mapping[UUID, float],
+    elo_parameters: EloParameters,
 ) -> PredictorSet:
+    elo_prediction = predict_elo_match(
+        fixture.home_team_id,
+        fixture.away_team_id,
+        elo_ratings,
+        elo_parameters,
+    )
     values: dict[str, PredictorScalar] = {
         "away_is_promoted": fixture.away_team_id in season.promoted_team_ids,
+        "away_elo_expected_score": elo_prediction.away_expected_score,
+        "away_elo_rating": elo_prediction.away_rating,
+        "elo_home_advantage": elo_parameters.home_advantage,
+        "elo_home_adjusted_rating_difference": (
+            elo_prediction.home_rating
+            + elo_parameters.home_advantage
+            - elo_prediction.away_rating
+        ),
+        "elo_rating_difference": (
+            elo_prediction.home_rating - elo_prediction.away_rating
+        ),
+        "home_elo_expected_score": elo_prediction.home_expected_score,
+        "home_elo_rating": elo_prediction.home_rating,
         "home_is_promoted": fixture.home_team_id in season.promoted_team_ids,
         "season_prior_fixtures": season_prior_fixtures,
         "season_progress": season_prior_fixtures
@@ -256,6 +364,12 @@ def _predictors_for_fixture(
             observations,
             fixture_competition_date(fixture),
             home_role=home_role,
+        )
+        _add_opening_prior_features(
+            values,
+            prefix,
+            observations,
+            opening_priors[team_id],
         )
 
     return PredictorSet(
@@ -368,14 +482,34 @@ def _validate_build_inputs(
             raise FeatureBuildError(msg)
 
 
-def build_point_in_time_feature_rows(
+def build_season_feature_result(
     fixtures: Sequence[Fixture],
     season: PremierLeagueSeason,
     provenance: CanonicalDatasetProvenance,
-) -> tuple[PointInTimeFeatureRow, ...]:
-    """Build deterministic within-season features, then update after each batch."""
+    *,
+    opening_priors: Mapping[UUID, SeasonOpeningPrior] | None = None,
+    initial_elo_ratings: Mapping[UUID, float] | None = None,
+    elo_parameters: EloParameters = DEFAULT_ELO_PARAMETERS,
+) -> SeasonFeatureBuildResult:
+    """Build a season and return its deterministic rows and terminal Elo state."""
 
     _validate_build_inputs(fixtures, season, provenance)
+    priors = (
+        build_season_opening_priors(season)
+        if opening_priors is None
+        else dict(opening_priors)
+    )
+    if set(priors) != set(season.team_ids):
+        msg = "opening priors must cover exactly the season membership"
+        raise FeatureBuildError(msg)
+    elo_ratings = (
+        initialize_season_ratings(season, parameters=elo_parameters)
+        if initial_elo_ratings is None
+        else dict(initial_elo_ratings)
+    )
+    if set(elo_ratings) != set(season.team_ids):
+        msg = "initial Elo ratings must cover exactly the season membership"
+        raise FeatureBuildError(msg)
     state: dict[UUID, list[_TeamObservation]] = {
         team_id: [] for team_id in season.team_ids
     }
@@ -389,6 +523,9 @@ def build_point_in_time_feature_rows(
                 state,
                 season,
                 season_prior_fixtures,
+                priors,
+                elo_ratings,
+                elo_parameters,
             )
             row_id = deterministic_feature_row_id(
                 fixture_id=fixture.id,
@@ -397,6 +534,7 @@ def build_point_in_time_feature_rows(
                 predictor_schema_version=predictors.schema_version,
                 canonical_dataset_id=provenance.dataset_id,
                 canonical_fixtures_sha256=provenance.fixtures_sha256,
+                historical_context_sha256=provenance.historical_context_sha256,
             )
             assert fixture.full_time_score is not None
             assert fixture.outcome is not None
@@ -424,6 +562,35 @@ def build_point_in_time_feature_rows(
         for fixture in batch.fixtures:
             state[fixture.home_team_id].append(_observation(fixture, home=True))
             state[fixture.away_team_id].append(_observation(fixture, home=False))
+        elo_ratings = update_elo_batch(
+            elo_ratings,
+            batch.fixtures,
+            elo_parameters,
+        )
         season_prior_fixtures += len(batch.fixtures)
 
-    return tuple(rows)
+    return SeasonFeatureBuildResult(
+        rows=tuple(rows),
+        final_elo_ratings=tuple(sorted(elo_ratings.items(), key=lambda item: item[0])),
+    )
+
+
+def build_point_in_time_feature_rows(
+    fixtures: Sequence[Fixture],
+    season: PremierLeagueSeason,
+    provenance: CanonicalDatasetProvenance,
+    *,
+    opening_priors: Mapping[UUID, SeasonOpeningPrior] | None = None,
+    initial_elo_ratings: Mapping[UUID, float] | None = None,
+    elo_parameters: EloParameters = DEFAULT_ELO_PARAMETERS,
+) -> tuple[PointInTimeFeatureRow, ...]:
+    """Build deterministic point-in-time rows with batch-delayed state updates."""
+
+    return build_season_feature_result(
+        fixtures,
+        season,
+        provenance,
+        opening_priors=opening_priors,
+        initial_elo_ratings=initial_elo_ratings,
+        elo_parameters=elo_parameters,
+    ).rows

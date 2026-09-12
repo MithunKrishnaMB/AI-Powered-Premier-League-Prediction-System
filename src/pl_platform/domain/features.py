@@ -17,7 +17,7 @@ from pydantic import (
 
 from pl_platform.domain.fixtures import KickoffPrecision, MatchOutcome
 
-FEATURE_ROW_SCHEMA_VERSION: Final = 1
+FEATURE_ROW_SCHEMA_VERSION: Final = 2
 
 Identifier = Annotated[str, Field(pattern=r"^[a-z0-9]+(?:[a-z0-9_-]*[a-z0-9])?$")]
 PositiveVersion = Annotated[int, Field(strict=True, ge=1)]
@@ -135,6 +135,7 @@ class CanonicalDatasetProvenance(BaseModel):
     competition_id: Identifier
     season_id: Annotated[str, Field(pattern=r"^\d{4}-\d{4}$")]
     fixtures_sha256: Sha256
+    historical_context_sha256: Sha256
     team_registry_schema_version: PositiveVersion
     season_registry_schema_version: PositiveVersion
     source: SourceArtifactProvenance
@@ -148,6 +149,7 @@ def deterministic_feature_row_id(
     predictor_schema_version: int,
     canonical_dataset_id: str,
     canonical_fixtures_sha256: str,
+    historical_context_sha256: str,
 ) -> UUID:
     """Return the stable identity of one feature row and its input lineage."""
 
@@ -161,6 +163,7 @@ def deterministic_feature_row_id(
             str(predictor_schema_version),
             canonical_dataset_id,
             canonical_fixtures_sha256,
+            historical_context_sha256,
         )
     )
     return uuid5(NAMESPACE_URL, f"pl-platform:feature-row:{identity}")
@@ -171,7 +174,7 @@ class PointInTimeFeatureRow(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: Literal[1] = FEATURE_ROW_SCHEMA_VERSION
+    schema_version: Literal[2] = FEATURE_ROW_SCHEMA_VERSION
     id: UUID
     fixture_id: UUID
     competition_id: Identifier
@@ -230,6 +233,7 @@ class PointInTimeFeatureRow(BaseModel):
             predictor_schema_version=self.predictors.schema_version,
             canonical_dataset_id=self.provenance.dataset_id,
             canonical_fixtures_sha256=self.provenance.fixtures_sha256,
+            historical_context_sha256=self.provenance.historical_context_sha256,
         )
         if self.id != expected_id:
             msg = "feature-row ID does not match its deterministic identity"

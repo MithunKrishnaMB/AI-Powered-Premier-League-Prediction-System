@@ -1,15 +1,14 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior from completed work through
-Milestone C Step 2.8. Steps 2.5 and 2.6 remain pending under the reconciled
-master roadmap. A later decision may supersede an accepted decision only by
-recording the replacement and its migration impact.
+These decisions describe implemented behavior through the completed Milestone C.
+A later decision may supersede an accepted decision only by recording the
+replacement and its migration impact.
 
 ## ADR-001 — Backend-first typed Python package
 
 **Status:** Accepted  
 **Context:** The platform will contain ingestion, feature engineering, machine
-learning, simulation, persistence, an API, and eventually a frontend.  
+learning, simulation, persistence, an API and eventually a frontend.  
 **Decision:** Use an installable `src/`-layout package on 64-bit Python 3.14.7.
 Use Pydantic models at external and domain boundaries, strict mypy, Ruff, pytest,
 and branch coverage with a 90% minimum.  
@@ -23,7 +22,7 @@ with libraries that have not yet released Python 3.14 wheels.
 **Context:** The user does not want DevOps or YAML-based automation in the
 project.  
 **Decision:** Keep deterministic local quality commands but do not configure
-GitHub Actions, CI/CD pipelines, or deployment automation.  
+GitHub Actions, CI/CD pipelines or deployment automation.  
 **Consequences:** The code retains engineering checks without adding operational
 complexity. Running the checks is a local milestone responsibility rather than
 an automatically enforced remote gate.
@@ -34,21 +33,21 @@ an automatically enforced remote gate.
 **Context:** A source URL can return different bytes over time, which would make
 model training irreproducible.  
 **Decision:** Track source URL, allowed hosts, capture time, encoding, required
-shape, byte count, row count, and SHA-256 in a validated manifest. Store raw CSVs
-outside Git, publish them without overwrite, and reject checksum conflicts.  
+shape, byte count, row count and SHA-256 in a validated manifest. Store raw CSVs
+outside Git, publish them without overwrite and reject checksum conflicts.  
 **Consequences:** A training input is byte-identifiable and reproducible. Source
 corrections require an explicit manifest review rather than a silent overwrite.
 
-## ADR-004 — Separate source, canonical, and quality boundaries
+## ADR-004 — Separate source, canonical and quality boundaries
 
 **Status:** Accepted  
 **Context:** Provider column names and aliases should not leak into feature or
-model code, and valid individual rows can still form an invalid season.  
+model code and valid individual rows can still form an invalid season.  
 **Decision:** Keep three boundaries: typed Football-Data records, provider-neutral
-domain records, and cross-record competition validation. Resolve teams through
+domain records and cross-record competition validation. Resolve teams through
 reviewed source aliases and stable UUIDs; do not use fuzzy matching.  
 **Consequences:** Provider changes are isolated, domain code gets stable
-identities, and failures have clearer ownership. More models and validation code
+identities and failures have clearer ownership. More models and validation code
 are required than in a single permissive dataframe pipeline.
 
 ## ADR-005 — Deterministic canonical identity and materialization
@@ -58,7 +57,7 @@ are required than in a single permissive dataframe pipeline.
 different bytes for equivalent data.  
 **Decision:** Generate fixture UUIDv5 values from competition, season, home team,
 and away team. Sort by kickoff and fixture ID, serialize JSON with stable key
-ordering, hash the output, and write a companion lineage manifest atomically.  
+ordering, hash the output and write a companion lineage manifest atomically.  
 **Consequences:** Rebuilds are idempotent and auditable. The identity scheme is
 appropriate for one ordered home/away pairing per league season; cup or replay
 fixtures will require an additional identity component.
@@ -92,31 +91,32 @@ columnar processed format without replacing the canonical source of truth.
 
 **Status:** Accepted
 
-**Context:** Model inputs must remain traceable to verified canonical data, and
+**Context:** Model inputs must remain traceable to verified canonical data and
 post-match targets or falsely precise historical kickoff ordering must not enter
 pre-match predictors.
 
 **Decision:** Represent each feature example with an immutable, provider-neutral
-schema containing canonical fixture, season, and team identities; UTC kickoff
+schema containing canonical fixture, season and team identities; UTC kickoff
 and feature-cutoff boundaries; a separately versioned predictor collection; an
-optional nested training label; and checksum-pinned canonical and raw-source
-lineage. Derive a deterministic UUIDv5 row ID from the semantic row and input
-lineage. For date-only fixtures, require the cutoff to precede the fixture's
+optional nested training label; and checksum-pinned canonical, historical and
+raw-source lineage. Derive a deterministic UUIDv5 row ID from the semantic row
+and input lineage. For date-only fixtures, require the cutoff to precede the fixture's
 `Europe/London` calendar date; chronological processing updates state only after
 the complete same-date batch. Predictor representability does not grant
-eligibility, and retained bookmaker columns remain unapproved.
+eligibility and retained bookmaker columns remain unapproved.
 
 **Consequences:** Predictors and targets cannot be conflated accidentally by the
-wire structure, equivalent inputs have stable identities, and every row can be
+wire structure, equivalent inputs have stable identities and every row can be
 traced to a manifest-verified source artifact. Feature definitions and material
 calculations remain separate versioned responsibilities.
 
 ## ADR-009 — Pre-batch within-season rolling state
 
-**Status:** Accepted
+**Status:** Accepted; cross-season portion superseded by ADR-012 for predictor
+schema version 2
 
 **Context:** Historical sources may omit kickoff times, optional statistics may
-be missing, and early-season teams do not have comparable Premier League history
+be missing and early-season teams do not have comparable Premier League history
 in the current season.
 
 **Decision:** Reset version 1 feature state at each season boundary and use a
@@ -126,13 +126,14 @@ every row in that batch has been created. If any fixture on a Premier League
 calendar date in `Europe/London` is date-only, batch the whole local date. Retain
 missing optional statistics as null averages with explicit observation counts.
 Derive promoted status only from the
-reviewed season registry, rest and congestion from prior fixture dates, and
+reviewed season registry, rest and congestion from prior fixture dates and
 season progress from prior processed fixtures and known membership size.
 
 **Consequences:** Current results cannot affect current predictors, unknown
-within-day ordering cannot leak, and missing statistics are distinguishable
+within-day ordering cannot leak and missing statistics are distinguishable
 from observed zeros. Version 1 deliberately has no cross-season carryover;
-future carryover would require a new reviewed predictor-schema version.
+ADR-012 introduces reviewed, explicitly separate carryover in predictor schema
+version 2 without changing factual within-season observation counts.
 
 ## ADR-010 — Deterministic processed feature artifacts
 
@@ -140,20 +141,21 @@ future carryover would require a new reviewed predictor-schema version.
 
 **Context:** In-memory feature rows are insufficient for reproducible training;
 the persisted bytes must remain tied to the exact verified raw and canonical
-inputs, feature schema, and temporal semantics.
+inputs, feature schema and temporal semantics.
 
 **Decision:** Materialize one compact, key-sorted JSON object per feature row
-under ignored `data/processed/`, ordered by cutoff, kickoff, and deterministic
+under ignored `data/processed/`, ordered by cutoff, kickoff and deterministic
 row UUID. Publish an adjacent deterministic manifest containing output checksum
 and count, all feature-related schema versions, the complete ordered predictor
-schema and checksum, processing parameters, canonical fixture checksum and
-registry versions, and raw source checksum and capture identity. Invoke the
-existing checksum-verifying canonical materializer before reading canonical
-data, validate canonical bytes against their manifest, and publish files through
+schema and checksum, processing parameters, recursive historical-context
+checksum, canonical fixture checksum and registry versions and raw source
+checksum and capture identity. Invoke the existing checksum-verifying canonical
+materializer for every required predecessor before building a target season,
+validate canonical bytes against their manifests and publish files through
 atomic replacement.
 
 **Consequences:** Training inputs are byte-identifiable, stale generated outputs
-are replaced without partial files, and unchanged builds return
+are replaced without partial files and unchanged builds return
 `already_current`. The JSON Lines representation is intentionally inspectable;
 a later columnar representation must retain the same lineage and deterministic
 semantics rather than silently replacing them.
@@ -173,13 +175,60 @@ and score only in a separate required `target`. Combine all manifest-listed
 seasons in deterministic kickoff/UUID order. Bind each example to its source
 feature row and season-specific feature dataset. Publish JSON Lines with a
 versioned manifest that pins the training checksum, predictor and target
-schemas, tracked input-file checksums, and every feature, canonical, and raw
-source checksum. Re-run the raw-verifying canonical and feature materializers
-before every combined build. Do not select a temporal split or fit a model in
-this step.
+schemas, tracked input-file checksums and every feature, canonical and raw
+source checksum plus each historical-context checksum. Re-run the raw-verifying
+canonical and feature materializers before every combined build. Do not select a
+temporal split or fit a model in this step.
 
 **Consequences:** The first model-ready corpus is byte-reproducible and rejects
 unknown or cross-season lineage, modified source artifacts, incomplete targets,
 and predictor drift. Later model milestones must choose chronological training
 and evaluation windows explicitly rather than treating this combined historical
 corpus as a randomly splittable dataset.
+
+## ADR-012 — Explicit season-opening priors
+
+**Status:** Accepted
+
+**Context:** Pure within-season aggregates are empty at kickoff of a season and
+unstable during its first matches. Silently pooling future matches, unverified
+lower-division data or pseudo-observations into factual counts would create
+leakage or misleading denominators.
+
+**Decision:** Predictor schema version 2 adds a separate opening-prior contract.
+A continuing club uses its own immediately preceding Premier League result and
+goal aggregates. A promoted club uses that preceding league's aggregate because
+Championship results are not present in the verified dataset. Every club in the
+first tracked season uses a fixed neutral prior: equal win/draw/loss rates, 4/3
+points per match and 1.5 goals for and against. Blend the prior with observed
+current-season results using a fixed five-match pseudo-weight, while leaving all
+factual match and statistic counts unchanged. Expose the prior source through
+mutually exclusive predictor flags and record every constant and source policy
+in the feature manifest.
+
+**Consequences:** Opening fixtures have finite, explicit form estimates without
+using future information or pretending that pseudo-matches occurred. Promoted
+clubs receive a deliberately coarse league fallback; introducing verified
+Championship history would require a new prior schema and provenance chain.
+
+## ADR-013 — Batch-safe cross-season Elo
+
+**Status:** Accepted
+
+**Context:** Elo supplies a compact strength estimate, but it can leak when one
+fixture on an uncertain date updates a rating used by another fixture in the
+same batch. Offseason and promoted-team initialization must also be explicit.
+
+**Decision:** Elo schema version 1 starts at 1500, adds 65 rating points for home
+advantage, uses K-factor 20 and a 400-point logistic scale and retains 75% of a
+continuing club's deviation from 1500 between seasons. Promoted clubs and every
+club in the first tracked season initialize at 1500. Calculate all expected
+scores and result deltas from one pre-batch rating snapshot, then apply the
+accumulated zero-sum deltas after the batch. Persist ratings and expected scores
+only as pre-match predictors. Bind cross-season state to a recursive checksum of
+all preceding verified canonical and raw inputs plus the parameter policy.
+
+**Consequences:** Exact and date-only fixtures share the same leakage boundary,
+reruns produce identical rating histories and changed predecessor data changes
+downstream row identities. Elo expected score remains a benchmark signal rather
+than a calibrated three-outcome probability model.

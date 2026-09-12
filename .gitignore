@@ -28,7 +28,7 @@ data/processed/
 artifacts/*
 !artifacts/.gitkeep
 
-# Logs, caches, and local databases
+# Logs, caches and local databases
 *.log
 logs/
 .cache/

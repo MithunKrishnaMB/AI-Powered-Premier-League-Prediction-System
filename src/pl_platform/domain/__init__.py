@@ -19,6 +19,11 @@ from pl_platform.domain.fixtures import (
     SourceFixtureReference,
     TeamMatchStatistics,
 )
+from pl_platform.domain.ratings import (
+    ELO_SCHEMA_VERSION,
+    EloMatchPrediction,
+    EloParameters,
+)
 from pl_platform.domain.seasons import (
     PremierLeagueSeason,
     SeasonEntryStatus,
@@ -39,10 +44,13 @@ from pl_platform.domain.training import (
 )
 
 __all__ = [
+    "ELO_SCHEMA_VERSION",
     "FEATURE_ROW_SCHEMA_VERSION",
     "TRAINING_ROW_SCHEMA_VERSION",
     "CanonicalDatasetProvenance",
     "CanonicalTeam",
+    "EloMatchPrediction",
+    "EloParameters",
     "Fixture",
     "FixtureScore",
     "FixtureStatistics",

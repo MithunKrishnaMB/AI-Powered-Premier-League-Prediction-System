@@ -1,4 +1,4 @@
-"""Explicit temporal, target-leakage, and missing-data boundary tests."""
+"""Explicit temporal, target-leakage and missing-data boundary tests."""
 
 from datetime import UTC, datetime
 
@@ -83,7 +83,44 @@ def test_shared_team_observes_pre_date_state_for_entire_date_only_batch() -> Non
 
     assert _values(rows[0])["home_prior_matches"] == 0
     assert _values(rows[1])["home_prior_matches"] == 0
+    assert _values(rows[0])["home_elo_rating"] == 1500.0
+    assert _values(rows[1])["home_elo_rating"] == 1500.0
     assert rows[0].feature_cutoff_at == rows[1].feature_cutoff_at
+
+
+def test_elo_updates_only_after_the_complete_date_only_batch() -> None:
+    first = make_fixture(
+        1,
+        datetime(2025, 8, 2, 12, tzinfo=UTC),
+        TEAM_IDS[0],
+        TEAM_IDS[1],
+        kickoff_precision=KickoffPrecision.DATE_ONLY,
+    )
+    same_date = make_fixture(
+        2,
+        datetime(2025, 8, 2, 12, tzinfo=UTC),
+        TEAM_IDS[0],
+        TEAM_IDS[2],
+        kickoff_precision=KickoffPrecision.DATE_ONLY,
+    )
+    later = make_fixture(
+        3,
+        datetime(2025, 8, 9, 15, tzinfo=UTC),
+        TEAM_IDS[0],
+        TEAM_IDS[3],
+    )
+
+    rows = build_point_in_time_feature_rows(
+        (later, same_date, first),
+        make_season(),
+        make_provenance(),
+    )
+
+    assert _values(rows[0])["home_elo_rating"] == 1500.0
+    assert _values(rows[1])["home_elo_rating"] == 1500.0
+    later_rating = _values(rows[2])["home_elo_rating"]
+    assert isinstance(later_rating, float)
+    assert later_rating > 1500.0
 
 
 def test_exact_later_kickoff_observes_earlier_exact_result() -> None:

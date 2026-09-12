@@ -22,6 +22,7 @@ HOME_TEAM_ID = UUID("6f4ce9e1-6d36-5198-af34-7aca2aac351e")
 AWAY_TEAM_ID = UUID("cfde9ca5-a6d2-5ec5-acaf-3a739dcd9c5b")
 FIXTURES_SHA256 = "a" * 64
 SOURCE_SHA256 = "b" * 64
+HISTORICAL_CONTEXT_SHA256 = "c" * 64
 KICKOFF = datetime(2025, 8, 15, 19, tzinfo=UTC)
 CUTOFF = datetime(2025, 8, 15, 18, tzinfo=UTC)
 
@@ -46,6 +47,7 @@ def _provenance() -> CanonicalDatasetProvenance:
         competition_id="eng-premier-league",
         season_id="2025-2026",
         fixtures_sha256=FIXTURES_SHA256,
+        historical_context_sha256=HISTORICAL_CONTEXT_SHA256,
         team_registry_schema_version=1,
         season_registry_schema_version=1,
         source=SourceArtifactProvenance(
@@ -68,6 +70,7 @@ def _row_payload() -> dict[str, object]:
             predictor_schema_version=predictors.schema_version,
             canonical_dataset_id=provenance.dataset_id,
             canonical_fixtures_sha256=provenance.fixtures_sha256,
+            historical_context_sha256=provenance.historical_context_sha256,
         ),
         "fixture_id": FIXTURE_ID,
         "competition_id": "eng-premier-league",
@@ -101,6 +104,7 @@ def _recalculate_id(payload: dict[str, object]) -> None:
         predictor_schema_version=predictors.schema_version,
         canonical_dataset_id=provenance.dataset_id,
         canonical_fixtures_sha256=provenance.fixtures_sha256,
+        historical_context_sha256=provenance.historical_context_sha256,
     )
 
 
@@ -111,7 +115,7 @@ def test_accepts_labeled_and_unlabeled_rows_with_separate_structures() -> None:
     unlabeled = PointInTimeFeatureRow.model_validate(unlabeled_payload)
 
     serialized = labeled.model_dump(mode="json")
-    assert labeled.schema_version == 1
+    assert labeled.schema_version == 2
     assert serialized["predictors"]["values"][0]["name"] == "away_prior_matches"
     assert serialized["training_label"] == {
         "outcome": "home_win",
@@ -276,6 +280,13 @@ def test_deterministic_identity_changes_with_lineage_and_is_validated() -> None:
     _recalculate_id(payload)
     assert payload["id"] == first
 
+    changed_context = _provenance().model_copy(
+        update={"historical_context_sha256": "d" * 64}
+    )
+    payload["provenance"] = changed_context
+    _recalculate_id(payload)
+    assert payload["id"] != first
+
     payload["id"] = UUID("00000000-0000-0000-0000-000000000000")
     with pytest.raises(ValidationError, match="deterministic identity"):
         PointInTimeFeatureRow.model_validate(payload)
@@ -288,6 +299,7 @@ def test_deterministic_identity_changes_with_lineage_and_is_validated() -> None:
             predictor_schema_version=1,
             canonical_dataset_id="canonical-fixtures-2025-2026",
             canonical_fixtures_sha256=FIXTURES_SHA256,
+            historical_context_sha256=HISTORICAL_CONTEXT_SHA256,
         )
 
 

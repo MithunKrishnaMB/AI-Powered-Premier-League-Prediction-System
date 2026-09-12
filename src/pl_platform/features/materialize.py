@@ -12,6 +12,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Final, Literal, Self
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -22,23 +23,34 @@ from pl_platform.domain.features import (
     SourceArtifactProvenance,
 )
 from pl_platform.domain.fixtures import Fixture
-from pl_platform.domain.seasons import load_season_registry
+from pl_platform.domain.ratings import ELO_SCHEMA_VERSION
+from pl_platform.domain.seasons import PremierLeagueSeason, load_season_registry
 from pl_platform.domain.teams import load_team_registry
+from pl_platform.features.elo import DEFAULT_ELO_PARAMETERS, initialize_season_ratings
 from pl_platform.features.engine import (
     FORM_WINDOW_MATCHES,
     PREDICTOR_SCHEMA_ID,
     PREDICTOR_SCHEMA_VERSION,
-    build_point_in_time_feature_rows,
+    build_season_feature_result,
+)
+from pl_platform.features.priors import (
+    FIXED_GOALS_PER_MATCH,
+    FIXED_POINTS_PER_MATCH,
+    FIXED_RESULT_RATE,
+    OPENING_PRIOR_SCHEMA_VERSION,
+    OPENING_PRIOR_WEIGHT_MATCHES,
+    build_season_opening_priors,
 )
 from pl_platform.ingestion.manifest import HistoricalFile, load_manifest
 from pl_platform.ingestion.materialize import materialize_historical_entry
 
-FEATURE_DATASET_SCHEMA_VERSION: Final = 1
+FEATURE_DATASET_SCHEMA_VERSION: Final = 2
 FEATURE_CHRONOLOGY_VERSION: Final = 1
 FeatureMaterializationStatus = Literal["written", "already_current"]
 PositiveInt = Annotated[int, Field(strict=True, ge=1)]
 Sha256 = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 PredictorName = Annotated[str, Field(pattern=r"^[a-z][a-z0-9_]*$")]
+FiniteFloat = Annotated[float, Field(strict=True, allow_inf_nan=False)]
 
 
 class FeatureDatasetError(ValueError):
@@ -49,7 +61,7 @@ class FeaturePredictorSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     id: Literal["epl-pre-match"]
-    version: Literal[1]
+    version: Literal[2]
     predictor_count: PositiveInt
     predictor_names: tuple[PredictorName, ...] = Field(min_length=1)
     predictor_names_sha256: Sha256
@@ -80,6 +92,75 @@ class FeatureProcessingContract(BaseModel):
     date_only_batch_timezone: Literal["Europe/London"]
     form_window_matches: Literal[5]
     season_state_resets: Literal[True]
+    opening_prior_schema_version: Literal[1]
+    opening_prior_weight_matches: Literal[5]
+    opening_prior_continued_source: Literal["previous_team"]
+    opening_prior_promoted_source: Literal["previous_league"]
+    opening_prior_first_window_source: Literal["fixed_baseline"]
+    opening_prior_fixed_points_per_match: FiniteFloat
+    opening_prior_fixed_result_rate: FiniteFloat
+    opening_prior_fixed_goals_per_match: FiniteFloat
+    elo_schema_version: Literal[1]
+    elo_initial_rating: FiniteFloat
+    elo_home_advantage: FiniteFloat
+    elo_k_factor: FiniteFloat
+    elo_rating_scale: FiniteFloat
+    elo_season_retention: FiniteFloat
+
+    @model_validator(mode="after")
+    def algorithms_must_match_the_supported_configuration(self) -> Self:
+        actual = (
+            self.opening_prior_fixed_points_per_match,
+            self.opening_prior_fixed_result_rate,
+            self.opening_prior_fixed_goals_per_match,
+            self.elo_initial_rating,
+            self.elo_home_advantage,
+            self.elo_k_factor,
+            self.elo_rating_scale,
+            self.elo_season_retention,
+        )
+        expected = (
+            FIXED_POINTS_PER_MATCH,
+            FIXED_RESULT_RATE,
+            FIXED_GOALS_PER_MATCH,
+            DEFAULT_ELO_PARAMETERS.initial_rating,
+            DEFAULT_ELO_PARAMETERS.home_advantage,
+            DEFAULT_ELO_PARAMETERS.k_factor,
+            DEFAULT_ELO_PARAMETERS.rating_scale,
+            DEFAULT_ELO_PARAMETERS.season_retention,
+        )
+        if actual != expected:
+            msg = "feature manifest uses an unsupported Elo configuration"
+            raise ValueError(msg)
+        return self
+
+
+class FeatureHistoricalContext(BaseModel):
+    """Checksum chain for all pre-season data capable of affecting predictors."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    history_chain_sha256: Sha256
+    previous_season_id: str | None = Field(
+        default=None,
+        pattern=r"^\d{4}-\d{4}$",
+    )
+    previous_canonical_dataset_id: str | None = Field(default=None, min_length=1)
+    previous_fixtures_sha256: Sha256 | None = None
+
+    @model_validator(mode="after")
+    def previous_source_fields_must_be_all_present_or_absent(self) -> Self:
+        fields = (
+            self.previous_season_id,
+            self.previous_canonical_dataset_id,
+            self.previous_fixtures_sha256,
+        )
+        if any(value is None for value in fields) and any(
+            value is not None for value in fields
+        ):
+            msg = "previous-season context fields must be all present or absent"
+            raise ValueError(msg)
+        return self
 
 
 class FeatureCanonicalSource(BaseModel):
@@ -116,15 +197,16 @@ class FeatureDatasetManifest(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    dataset_schema_version: Literal[1]
+    dataset_schema_version: Literal[2]
     dataset_id: str = Field(min_length=1)
     competition_id: Literal["eng-premier-league"]
     season_id: str = Field(pattern=r"^\d{4}-\d{4}$")
     feature_row_count: PositiveInt
     features_sha256: Sha256
-    feature_row_schema_version: Literal[1]
+    feature_row_schema_version: Literal[2]
     predictor_schema: FeaturePredictorSchema
     processing: FeatureProcessingContract
+    historical_context: FeatureHistoricalContext
     canonical_source: FeatureCanonicalSource
     raw_source: FeatureRawSource
 
@@ -162,6 +244,54 @@ class FeatureMaterializationResult:
 
 def _sha256(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
+
+
+def _history_policy_payload() -> dict[str, object]:
+    return {
+        "elo": DEFAULT_ELO_PARAMETERS.model_dump(mode="json"),
+        "opening_prior_schema_version": OPENING_PRIOR_SCHEMA_VERSION,
+        "opening_prior_weight_matches": OPENING_PRIOR_WEIGHT_MATCHES,
+        "opening_prior_continued_source": "previous_team",
+        "opening_prior_promoted_source": "previous_league",
+        "opening_prior_first_window_source": "fixed_baseline",
+        "opening_prior_fixed_points_per_match": FIXED_POINTS_PER_MATCH,
+        "opening_prior_fixed_result_rate": FIXED_RESULT_RATE,
+        "opening_prior_fixed_goals_per_match": FIXED_GOALS_PER_MATCH,
+        "predictor_schema_id": PREDICTOR_SCHEMA_ID,
+        "predictor_schema_version": PREDICTOR_SCHEMA_VERSION,
+    }
+
+
+def _initial_history_context_sha256() -> str:
+    payload = json.dumps(
+        {"policy": _history_policy_payload(), "prior_sources": []},
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode()
+    return _sha256(payload)
+
+
+def _advance_history_context_sha256(
+    current_context_sha256: str,
+    provenance: CanonicalDatasetProvenance,
+) -> str:
+    payload = json.dumps(
+        {
+            "canonical_dataset_id": provenance.dataset_id,
+            "canonical_fixtures_sha256": provenance.fixtures_sha256,
+            "current_context_sha256": current_context_sha256,
+            "raw_artifact_id": provenance.source.artifact_id,
+            "raw_captured_at": provenance.source.captured_at.isoformat(),
+            "raw_sha256": provenance.source.sha256,
+            "raw_source_id": provenance.source.source_id,
+            "season_id": provenance.season_id,
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode()
+    return _sha256(payload)
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
@@ -262,6 +392,7 @@ def _feature_manifest_bytes(
     rows: Sequence[PointInTimeFeatureRow],
     provenance: CanonicalDatasetProvenance,
     predictor_names: tuple[str, ...],
+    historical_context: FeatureHistoricalContext,
     *,
     source_fixture_count: int,
 ) -> bytes:
@@ -272,7 +403,7 @@ def _feature_manifest_bytes(
     ).encode()
     manifest = FeatureDatasetManifest(
         dataset_schema_version=FEATURE_DATASET_SCHEMA_VERSION,
-        dataset_id=f"point-in-time-features-{provenance.season_id}",
+        dataset_id=f"point-in-time-features-v2-{provenance.season_id}",
         competition_id="eng-premier-league",
         season_id=provenance.season_id,
         feature_row_count=len(rows),
@@ -290,7 +421,22 @@ def _feature_manifest_bytes(
             date_only_batch_timezone="Europe/London",
             form_window_matches=FORM_WINDOW_MATCHES,
             season_state_resets=True,
+            opening_prior_schema_version=OPENING_PRIOR_SCHEMA_VERSION,
+            opening_prior_weight_matches=OPENING_PRIOR_WEIGHT_MATCHES,
+            opening_prior_continued_source="previous_team",
+            opening_prior_promoted_source="previous_league",
+            opening_prior_first_window_source="fixed_baseline",
+            opening_prior_fixed_points_per_match=FIXED_POINTS_PER_MATCH,
+            opening_prior_fixed_result_rate=FIXED_RESULT_RATE,
+            opening_prior_fixed_goals_per_match=FIXED_GOALS_PER_MATCH,
+            elo_schema_version=ELO_SCHEMA_VERSION,
+            elo_initial_rating=DEFAULT_ELO_PARAMETERS.initial_rating,
+            elo_home_advantage=DEFAULT_ELO_PARAMETERS.home_advantage,
+            elo_k_factor=DEFAULT_ELO_PARAMETERS.k_factor,
+            elo_rating_scale=DEFAULT_ELO_PARAMETERS.rating_scale,
+            elo_season_retention=DEFAULT_ELO_PARAMETERS.season_retention,
         ),
+        historical_context=historical_context,
         canonical_source=FeatureCanonicalSource(
             dataset_id=provenance.dataset_id,
             dataset_schema_version=provenance.dataset_schema_version,
@@ -348,6 +494,8 @@ def load_feature_dataset(
             != manifest.canonical_source.fixtures_sha256
             or row.provenance.source.artifact_id != manifest.raw_source.artifact_id
             or row.provenance.source.sha256 != manifest.raw_source.sha256
+            or row.provenance.historical_context_sha256
+            != manifest.historical_context.history_chain_sha256
         ):
             msg = f"feature row {row.id} has inconsistent source lineage"
             raise FeatureDatasetError(msg)
@@ -360,6 +508,7 @@ def write_feature_dataset(
     provenance: CanonicalDatasetProvenance,
     *,
     source_fixture_count: int,
+    historical_context: FeatureHistoricalContext | None = None,
 ) -> FeatureMaterializationResult:
     """Validate and atomically publish deterministic feature rows and lineage."""
 
@@ -368,12 +517,19 @@ def write_feature_dataset(
         provenance,
         source_fixture_count=source_fixture_count,
     )
+    resolved_context = historical_context or FeatureHistoricalContext(
+        history_chain_sha256=provenance.historical_context_sha256,
+    )
+    if resolved_context.history_chain_sha256 != provenance.historical_context_sha256:
+        msg = "feature historical context does not match row provenance"
+        raise FeatureDatasetError(msg)
     rows_payload = _stable_feature_bytes(rows)
     manifest_payload = _feature_manifest_bytes(
         rows_payload,
         rows,
         provenance,
         predictor_names,
+        resolved_context,
         source_fixture_count=source_fixture_count,
     )
     feature_rows_path = output_directory / "features.jsonl"
@@ -403,6 +559,7 @@ def _canonical_inputs(
     entry: HistoricalFile,
     *,
     source_id: str,
+    historical_context_sha256: str | None = None,
 ) -> tuple[
     tuple[Fixture, ...],
     _CanonicalDatasetManifest,
@@ -438,6 +595,9 @@ def _canonical_inputs(
         competition_id=canonical_manifest.competition_id,
         season_id=canonical_manifest.season_id,
         fixtures_sha256=canonical_manifest.fixtures_sha256,
+        historical_context_sha256=(
+            historical_context_sha256 or _initial_history_context_sha256()
+        ),
         team_registry_schema_version=(canonical_manifest.team_registry_schema_version),
         season_registry_schema_version=(
             canonical_manifest.season_registry_schema_version
@@ -452,6 +612,130 @@ def _canonical_inputs(
     return fixtures, canonical_manifest, provenance
 
 
+def _validate_canonical_registry_lineage(
+    canonical_manifest: _CanonicalDatasetManifest,
+    season: PremierLeagueSeason,
+    *,
+    team_registry_schema_version: int,
+    season_registry_schema_version: int,
+) -> None:
+    if canonical_manifest.competition_id != season.competition_id:
+        msg = "canonical dataset competition does not match the season registry"
+        raise FeatureDatasetError(msg)
+    if canonical_manifest.season_id != season.id:
+        msg = "canonical dataset season does not match the season registry"
+        raise FeatureDatasetError(msg)
+    if canonical_manifest.team_registry_schema_version != team_registry_schema_version:
+        msg = "canonical dataset team-registry lineage is stale"
+        raise FeatureDatasetError(msg)
+    if (
+        canonical_manifest.season_registry_schema_version
+        != season_registry_schema_version
+    ):
+        msg = "canonical dataset season-registry lineage is stale"
+        raise FeatureDatasetError(msg)
+
+
+def materialize_feature_entries(
+    manifest_path: Path,
+    team_registry_path: Path,
+    season_registry_path: Path,
+    data_root: Path,
+    *,
+    stop_entry_id: str | None = None,
+) -> tuple[FeatureMaterializationResult, ...]:
+    """Verify and build the chronological feature history through a target."""
+
+    manifest = load_manifest(manifest_path)
+    if stop_entry_id is not None:
+        manifest.get_file(stop_entry_id)
+    teams = load_team_registry(team_registry_path)
+    seasons = load_season_registry(season_registry_path, teams)
+    results: list[FeatureMaterializationResult] = []
+    history_context_sha256 = _initial_history_context_sha256()
+    previous_fixtures: tuple[Fixture, ...] | None = None
+    previous_season: PremierLeagueSeason | None = None
+    previous_provenance: CanonicalDatasetProvenance | None = None
+    previous_final_ratings: dict[UUID, float] | None = None
+
+    for entry in manifest.files:
+        canonical_result = materialize_historical_entry(
+            manifest_path,
+            entry.id,
+            team_registry_path,
+            season_registry_path,
+            data_root,
+        )
+        season_id = f"{entry.season_start:04d}-{entry.season_end:04d}"
+        season = seasons.get(season_id)
+        fixtures, canonical_manifest, provenance = _canonical_inputs(
+            canonical_result.fixtures_path,
+            canonical_result.manifest_path,
+            entry,
+            source_id=manifest.source.id,
+            historical_context_sha256=history_context_sha256,
+        )
+        _validate_canonical_registry_lineage(
+            canonical_manifest,
+            season,
+            team_registry_schema_version=teams.schema_version,
+            season_registry_schema_version=seasons.schema_version,
+        )
+        opening_priors = build_season_opening_priors(
+            season,
+            previous_fixtures,
+            previous_season,
+        )
+        initial_elo_ratings = initialize_season_ratings(
+            season,
+            previous_final_ratings,
+        )
+        build = build_season_feature_result(
+            fixtures,
+            season,
+            provenance,
+            opening_priors=opening_priors,
+            initial_elo_ratings=initial_elo_ratings,
+        )
+        historical_context = FeatureHistoricalContext(
+            history_chain_sha256=history_context_sha256,
+            previous_season_id=(
+                None if previous_provenance is None else previous_provenance.season_id
+            ),
+            previous_canonical_dataset_id=(
+                None if previous_provenance is None else previous_provenance.dataset_id
+            ),
+            previous_fixtures_sha256=(
+                None
+                if previous_provenance is None
+                else previous_provenance.fixtures_sha256
+            ),
+        )
+        output_directory = data_root / "processed" / "features" / "epl" / season_id
+        results.append(
+            write_feature_dataset(
+                build.rows,
+                output_directory,
+                provenance,
+                source_fixture_count=canonical_manifest.fixture_count,
+                historical_context=historical_context,
+            )
+        )
+
+        history_context_sha256 = _advance_history_context_sha256(
+            history_context_sha256,
+            provenance,
+        )
+        previous_fixtures = fixtures
+        previous_season = season
+        previous_provenance = provenance
+        previous_final_ratings = dict(build.final_elo_ratings)
+        if entry.id == stop_entry_id:
+            break
+
+    return tuple(results)
+
+
 def materialize_feature_entry(
     manifest_path: Path,
     entry_id: str,
@@ -459,48 +743,15 @@ def materialize_feature_entry(
     season_registry_path: Path,
     data_root: Path,
 ) -> FeatureMaterializationResult:
-    """Verify raw and canonical data before building one season's features."""
+    """Verify and build all chronological context required by one season."""
 
-    canonical_result = materialize_historical_entry(
+    return materialize_feature_entries(
         manifest_path,
-        entry_id,
         team_registry_path,
         season_registry_path,
         data_root,
-    )
-    manifest = load_manifest(manifest_path)
-    entry = manifest.get_file(entry_id)
-    teams = load_team_registry(team_registry_path)
-    seasons = load_season_registry(season_registry_path, teams)
-    season_id = f"{entry.season_start:04d}-{entry.season_end:04d}"
-    season = seasons.get(season_id)
-    fixtures, canonical_manifest, provenance = _canonical_inputs(
-        canonical_result.fixtures_path,
-        canonical_result.manifest_path,
-        entry,
-        source_id=manifest.source.id,
-    )
-    if canonical_manifest.competition_id != season.competition_id:
-        msg = "canonical dataset competition does not match the season registry"
-        raise FeatureDatasetError(msg)
-    if canonical_manifest.season_id != season.id:
-        msg = "canonical dataset season does not match the season registry"
-        raise FeatureDatasetError(msg)
-    if canonical_manifest.team_registry_schema_version != teams.schema_version:
-        msg = "canonical dataset team-registry lineage is stale"
-        raise FeatureDatasetError(msg)
-    if canonical_manifest.season_registry_schema_version != seasons.schema_version:
-        msg = "canonical dataset season-registry lineage is stale"
-        raise FeatureDatasetError(msg)
-
-    rows = build_point_in_time_feature_rows(fixtures, season, provenance)
-    output_directory = data_root / "processed" / "features" / "epl" / season_id
-    return write_feature_dataset(
-        rows,
-        output_directory,
-        provenance,
-        source_fixture_count=canonical_manifest.fixture_count,
-    )
+        stop_entry_id=entry_id,
+    )[-1]
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -525,21 +776,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     arguments = parser.parse_args(argv)
     try:
-        entry_ids = (
-            tuple(entry.id for entry in load_manifest(arguments.manifest).files)
-            if arguments.all
-            else (arguments.entry_id,)
-        )
-        results = tuple(
-            materialize_feature_entry(
+        if arguments.all:
+            results = materialize_feature_entries(
                 arguments.manifest,
-                entry_id,
                 arguments.teams,
                 arguments.seasons,
                 arguments.data_root,
             )
-            for entry_id in entry_ids
-        )
+        else:
+            results = (
+                materialize_feature_entry(
+                    arguments.manifest,
+                    arguments.entry_id,
+                    arguments.teams,
+                    arguments.seasons,
+                    arguments.data_root,
+                ),
+            )
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
 

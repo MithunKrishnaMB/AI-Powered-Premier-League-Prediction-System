@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "premier-league-prediction-platform"
 version = "0.1.0"
-description = "Backend-first Premier League prediction, simulation, and analytics platform"
+description = "Backend-first Premier League prediction, simulation and analytics platform"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [

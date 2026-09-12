@@ -1,11 +1,11 @@
 # AI-Powered Premier League Prediction Platform
 
-A backend-first data, machine-learning, simulation, and analytics platform for
+A backend-first data, machine-learning, simulation and analytics platform for
 probabilistic Premier League forecasting.
 
 The system will ingest historical and current-season football data, construct
 strictly point-in-time features, estimate match-result and scoreline
-probabilities, and simulate the remainder of a season. It will eventually expose
+probabilities and simulate the remainder of a season. It will eventually expose
 those results through a FastAPI service and a separately developed web frontend.
 
 ## Priorities
@@ -27,8 +27,8 @@ completed matches  -> evaluation -> Elo/state updates -> refreshed forecasts
 ```
 
 The initial backend and ML milestone does not require live scores, player-level
-data, Redis, WebSockets, or a frontend. Those capabilities will be introduced
-only after the historical pipeline, models, simulation, persistence, and API are
+data, Redis, WebSockets or a frontend. Those capabilities will be introduced
+only after the historical pipeline, models, simulation, persistence and API are
 working together and tested.
 
 ## Repository status
@@ -39,9 +39,10 @@ and a versioned point-in-time feature system. Eleven completed Premier League
 seasons (2015–16 through 2025–26) can be downloaded, canonicalized, validated,
 and transformed into leakage-safe rolling predictors. Per-season feature
 datasets and the first combined 4,180-row training dataset are reproducibly
-materialized with checksum-pinned lineage. Elo ratings, trained model artifacts,
-database migrations, and the frontend have not yet been created. CI/CD
-automation is intentionally not configured.
+materialized with checksum-pinned lineage. Versioned season-opening priors and a
+point-in-time Elo engine are included in predictor schema version 2. Trained
+probabilistic model artifacts, database migrations and the frontend have not
+yet been created. CI/CD automation is intentionally not configured.
 
 The development environment uses 64-bit Python 3.14.
 
@@ -69,7 +70,7 @@ pytest --cov
 ## Historical data acquisition
 
 Historical source metadata is versioned in `data/manifests/`. Raw third-party
-files are checksum-verified, stored below the ignored `data/raw/` directory, and
+files are checksum-verified, stored below the ignored `data/raw/` directory and
 never overwritten by the downloader.
 
 Download or verify the complete historical window with:
@@ -108,7 +109,7 @@ plp-materialize-features `
 ```
 
 This command re-verifies raw inputs and canonical materialization before writing
-4,180 feature rows and companion lineage manifests beneath
+4,180 feature rows with 175 predictors and companion lineage manifests beneath
 `data/processed/features/`. A second unchanged run returns `already_current`.
 
 Produce the first reproducible training dataset with:
@@ -121,7 +122,7 @@ plp-materialize-training `
   --data-root data
 ```
 
-This command re-verifies every raw, canonical, and feature input before writing
+This command re-verifies every raw, canonical and feature input before writing
 the combined model-ready JSON Lines dataset and its lineage manifest beneath
 `data/processed/training/`. Predictors and post-match targets remain separate;
 the command does not fit a model or define a temporal train/test split.
@@ -132,7 +133,7 @@ integrity details.
 ## Data and artifact policy
 
 - Raw third-party data is immutable and is not committed to Git.
-- Source URLs, checksums, schema versions, and reproducibility metadata belong in
+- Source URLs, checksums, schema versions and reproducibility metadata belong in
   `data/manifests/` and may be committed.
 - Intermediate and processed datasets are generated locally and ignored.
 - Trained model binaries are generated artifacts and ignored.
@@ -149,7 +150,7 @@ implementation. Start with:
 - [current project status](docs/project-status.md)
 - [architecture index and decisions](docs/architecture/README.md)
 - [Milestone B to C handoff](docs/handoffs/milestone-b-to-c.md)
-- [Milestone C progress note](docs/handoffs/milestone-c-progress.md)
+- [Milestone C to D handoff](docs/handoffs/milestone-c-to-d.md)
 
 ## Development order
 
@@ -162,9 +163,9 @@ The planned order is:
 5. Season simulation and model versioning
 6. PostgreSQL persistence and current-provider integration
 7. Prediction lifecycle and FastAPI
-8. Automation, deployment, and end-to-end backend validation
+8. Automation, deployment and end-to-end backend validation
 9. Frontend architecture and implementation
 
-The current milestone is **Milestone C — Point-in-Time Features and Elo**. The
-next step is **Step 2.5: add explicit season-opening priors**, followed by the
-Step 2.6 Elo engine and the remaining Elo/prior leakage tests in Step 2.7.
+After the user commits the completed Milestone C changes, the next milestone is
+**Milestone D — Probabilistic Models**, beginning with **Step 3.1: implement
+naive and Elo benchmarks** against the point-in-time training dataset.

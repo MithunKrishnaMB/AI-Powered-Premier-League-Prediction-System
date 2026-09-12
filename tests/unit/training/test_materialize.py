@@ -121,7 +121,7 @@ def test_writes_and_loads_deterministic_training_dataset(tmp_path: Path) -> None
     assert manifest.training_row_count == 2
     assert manifest.season_ids == ("2025-2026",)
     assert manifest.target_schema.fields == ("outcome", "home_goals", "away_goals")
-    assert manifest.predictor_schema.predictor_count == 134
+    assert manifest.predictor_schema.predictor_count == 175
     assert manifest.source_feature_datasets == (source,)
 
 
@@ -149,7 +149,7 @@ def test_training_projection_rejects_feature_manifest_mismatches(
     wrong_season = rows[0].model_copy(update={"season_id": "2024-2025"})
     wrong_predictors = rows[0].model_copy(
         update={
-            "predictors": rows[0].predictors.model_copy(update={"schema_version": 2})
+            "predictors": rows[0].predictors.model_copy(update={"schema_version": 999})
         }
     )
 
@@ -204,7 +204,7 @@ def test_rejects_inconsistent_predictor_schema(tmp_path: Path) -> None:
     changed = examples[0].model_copy(
         update={
             "predictors": examples[0].predictors.model_copy(
-                update={"schema_version": 2}
+                update={"schema_version": 999}
             )
         }
     )
@@ -304,13 +304,16 @@ def test_orchestrator_reverifies_feature_sources_before_combining(
         lambda path: _historical_manifest(),
     )
 
-    def verified_features(*args: object) -> FeatureMaterializationResult:
-        calls.append(str(args[1]))
-        return feature_result
+    def verified_features(
+        *args: object,
+        **kwargs: object,
+    ) -> tuple[FeatureMaterializationResult, ...]:
+        calls.append(str(args[0]))
+        return (feature_result,)
 
     monkeypatch.setattr(
         training_module,
-        "materialize_feature_entry",
+        "materialize_feature_entries",
         verified_features,
     )
 
@@ -321,7 +324,7 @@ def test_orchestrator_reverifies_feature_sources_before_combining(
         tmp_path,
     )
 
-    assert calls == ["epl-2025-2026"]
+    assert calls == [str(manifest_path)]
     assert result.training_row_count == 2
     assert result.training_rows_path == (
         tmp_path / "processed/training/epl/2025-2026_to_2025-2026/training.jsonl"

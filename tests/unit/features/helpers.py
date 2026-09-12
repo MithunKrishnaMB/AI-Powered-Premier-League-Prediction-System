@@ -59,6 +59,7 @@ def make_provenance(
         competition_id=competition_id,
         season_id=season_id,
         fixtures_sha256="a" * 64,
+        historical_context_sha256="c" * 64,
         team_registry_schema_version=1,
         season_registry_schema_version=1,
         source=SourceArtifactProvenance(

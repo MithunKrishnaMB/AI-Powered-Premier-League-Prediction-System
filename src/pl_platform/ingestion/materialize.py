@@ -156,7 +156,7 @@ def materialize_historical_entry(
     season_registry_path: Path,
     data_root: Path,
 ) -> MaterializationResult:
-    """Run verification, parsing, canonicalization, quality, and writing."""
+    """Run verification, parsing, canonicalization, quality and writing."""
 
     manifest = load_manifest(manifest_path)
     entry = manifest.get_file(entry_id)

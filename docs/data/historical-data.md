@@ -4,13 +4,13 @@
 
 The initial source is [Football-Data.co.uk](https://www.football-data.co.uk/data.php).
 It publishes downloadable CSV files containing football results, match
-statistics, and betting odds. The provider states that the data is free and
+statistics and betting odds. The provider states that the data is free and
 intended for league-match prediction, while warning that it cannot guarantee
 accuracy.
 
 The tracked source window contains eleven completed English Premier League
 seasons from 2015–16 through 2025–26, totaling 4,180 matches. Every season has
-its own immutable URL, capture timestamp, byte count, row count, encoding, and
+its own immutable URL, capture timestamp, byte count, row count, encoding and
 SHA-256 digest in `data/manifests/football-data.json`.
 
 The newest captured file is the completed 2025–26 season:
@@ -31,7 +31,7 @@ availability must be assessed separately to prevent leakage.
 
 `data/manifests/football-data.json` is tracked in Git. It records source
 attribution, the allowed download hosts, season identity, destination, expected
-shape, encoding, capture time, and checksum.
+shape, encoding, capture time and checksum.
 
 The raw CSV files are ignored by Git. A fresh environment can reproduce or
 verify the complete capture with:
@@ -57,7 +57,7 @@ The downloader:
 
 1. accepts only HTTPS URLs from manifest-approved hosts;
 2. prevents destinations from escaping the selected data directory;
-3. validates byte count, SHA-256 checksum, required columns, and row count;
+3. validates byte count, SHA-256 checksum, required columns and row count;
 4. publishes a verified file atomically;
 5. treats an existing matching file as an idempotent success; and
 6. refuses to replace an existing file whose checksum differs.

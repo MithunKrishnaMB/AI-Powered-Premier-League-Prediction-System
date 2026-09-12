@@ -13,7 +13,7 @@ from pl_platform.domain.teams import TeamRegistry
 
 
 class SeasonRegistryValidationError(ValueError):
-    """Season membership is incomplete, ambiguous, or references unknown teams."""
+    """Season membership is incomplete, ambiguous or references unknown teams."""
 
 
 class SeasonEntryStatus(StrEnum):

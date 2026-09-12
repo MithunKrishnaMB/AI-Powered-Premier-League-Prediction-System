@@ -3,7 +3,7 @@
 This is the durable implementation sequence for the Premier League prediction
 platform. The master roadmap supplied by the user controls milestone and step
 numbering. Status annotations describe the repository as implemented, including
-work completed ahead of an earlier unfinished step.
+the two approved deviations recorded below.
 
 Two standing project decisions intentionally override the original wording:
 
@@ -19,11 +19,11 @@ Each numbered step should remain small enough to review and test in isolation.
   skeleton.
 - **Step 0.2 — complete with approved runtime revision:** Select 64-bit Python
   3.14.7 and create the local environment.
-- **Step 0.3 — complete:** Add `pyproject.toml`, pinned dependency groups, and
+- **Step 0.3 — complete:** Add `pyproject.toml`, pinned dependency groups and
   local quality tools.
 - **Step 0.4 — complete:** Create the application package and smoke test.
 - **Step 0.5 — complete with approved CI exclusion:** Add typed configuration,
-  `.env.example`, and structured logging. CI was deliberately not added.
+  `.env.example` and structured logging. CI was deliberately not added.
 
 ## Milestone B — Historical Data System — complete
 
@@ -38,15 +38,15 @@ Each numbered step should remain small enough to review and test in isolation.
   mappings without fuzzy matching.
 - **Step 1.7 — complete:** Normalize one season, then expand deterministic
   materialization to 2015–16 through 2025–26.
-- **Step 1.8 — complete:** Add duplicate, score, date, status, identity, and
+- **Step 1.8 — complete:** Add duplicate, score, date, status, identity and
   competition-wide season validation.
-- **Step 1.9 — complete:** Handle missing columns and postponed fixtures, and
+- **Step 1.9 — complete:** Handle missing columns and postponed fixtures and
   record reviewed promoted-team membership.
 
-## Milestone C — Point-in-Time Features and Elo — in progress
+## Milestone C — Point-in-Time Features and Elo — complete
 
 - **Step 2.1 — complete:** Define the versioned, provider-independent feature
-  schema and metadata, with fixture, season, and team identity; kickoff and
+  schema and metadata, with fixture, season and team identity; kickoff and
   precision; feature cutoff; structurally separate predictors and labels; and
   source/schema provenance.
 - **Step 2.2 — complete:** Implement deterministic chronological match-state
@@ -57,27 +57,24 @@ Each numbered step should remain small enough to review and test in isolation.
 - **Step 2.4 — complete:** Add home/away and rest/congestion features. The
   implementation also includes prior-only goal, shot, foul, card, promotion,
   and season-progress context.
-- **Step 2.5 — next:** Add explicit season-opening priors. The current predictor
-  schema resets state at each season boundary and deliberately has no
-  cross-season carryover, so this requires a reviewed semantic and
-  schema-version decision.
-- **Step 2.6 — pending:** Implement Elo initialization, pre-match prediction,
-  and post-batch update, including home advantage and season transitions.
-- **Step 2.7 — partially complete:** Feature leakage, determinism, missing-data,
-  checksum, and temporal-boundary tests are complete. Add adversarial invariants
-  for season-opening priors and Elo when Steps 2.5 and 2.6 are implemented.
-- **Step 2.8 — complete ahead of Steps 2.5–2.7:** Produce the first reproducible
-  training dataset from all 11 verified feature seasons, with a versioned row
-  contract, structurally separate target, deterministic bytes, and complete
-  checksum provenance.
+- **Step 2.5 — complete:** Add explicit season-opening priors. Continuing clubs
+  use their immediately preceding Premier League season, promoted clubs use the
+  preceding league aggregate and the first tracked season uses a fixed neutral
+  baseline. Blend these with observed current-season results using a five-match
+  prior weight.
+- **Step 2.6 — complete:** Implement Elo initialization, pre-match prediction,
+  and post-batch update with a 1500 baseline, 65-point home advantage, K-factor
+  20, 400-point scale and 75% offseason retention for continuing clubs.
+- **Step 2.7 — complete:** Add adversarial leakage, determinism, missing-data,
+  checksum, temporal-boundary, opening-prior, Elo transition and simultaneous
+  batch tests.
+- **Step 2.8 — complete:** Regenerate the reproducible 11-season training
+  dataset using predictor schema version 2, structurally separate targets,
+  deterministic bytes and the complete historical checksum chain.
 
-Milestone C is not complete until Steps 2.5, 2.6, and the remaining Step 2.7
-coverage are finished and the training dataset is regenerated if its approved
-predictor schema changes.
+## Milestone D — Probabilistic Models — current
 
-## Milestone D — Probabilistic Models — planned
-
-- **Step 3.1:** Implement naive and Elo benchmarks.
+- **Step 3.1 — next:** Implement naive and Elo benchmarks.
 - **Step 3.2:** Train multinomial logistic regression.
 - **Step 3.3:** Implement expanding/walk-forward validation.
 - **Step 3.4:** Freeze an untouched test season.
@@ -91,7 +88,7 @@ predictor schema changes.
 ## Milestone E — Registry and Simulation — planned
 
 - **Step 4.1:** Define artifact layout and manifest schema.
-- **Step 4.2:** Serialize, checksum, and reload models.
+- **Step 4.2:** Serialize, checksum and reload models.
 - **Step 4.3:** Implement model registry states and promotion rules.
 - **Step 4.4:** Define simulator domain structures.
 - **Step 4.5:** Sample deterministic scorelines.
@@ -105,8 +102,8 @@ predictor schema changes.
 - **Step 5.1:** Finalize the entity-relationship model against produced data.
 - **Step 5.2:** Configure local and test PostgreSQL connections.
 - **Step 5.3:** Initialize Alembic.
-- **Step 5.4:** Add identity, season, and fixture migrations.
-- **Step 5.5:** Add rating, feature, and model migrations.
+- **Step 5.4:** Add identity, season and fixture migrations.
+- **Step 5.5:** Add rating, feature and model migrations.
 - **Step 5.6:** Add prediction and evaluation migrations.
 - **Step 5.7:** Add simulation and ingestion/cache migrations.
 - **Step 5.8:** Implement repositories one aggregate at a time.
@@ -116,7 +113,7 @@ predictor schema changes.
 
 - **Step 6.1:** Define provider capability and domain contracts.
 - **Step 6.2:** Implement fixture/team adapter transformation.
-- **Step 6.3:** Add quota handling, retries, and sanitized logging.
+- **Step 6.3:** Add quota handling, retries and sanitized logging.
 - **Step 6.4:** Add PostgreSQL response caching.
 - **Step 6.5:** Synchronize fixtures idempotently.
 - **Step 6.6:** Reconcile completed results.
@@ -139,16 +136,16 @@ predictor schema changes.
 ## Milestone I — FastAPI — planned
 
 - **Step 8.1:** Create the app factory and health endpoints.
-- **Step 8.2:** Add error envelopes, pagination, and request IDs.
+- **Step 8.2:** Add error envelopes, pagination and request IDs.
 - **Step 8.3:** Implement teams and seasons.
 - **Step 8.4:** Implement fixtures and standings.
 - **Step 8.5:** Implement predictions.
 - **Step 8.6:** Implement simulations and the predicted table.
 - **Step 8.7:** Implement model metrics and performance.
 - **Step 8.8:** Add OpenAPI and API contract tests.
-- **Step 8.9:** Add CORS, security headers, and rate controls.
+- **Step 8.9:** Add CORS, security headers and rate controls.
 
-## Milestone J — Live Data, Automation, and Retraining — planned
+## Milestone J — Live Data, Automation and Retraining — planned
 
 - **Step 9.1:** Implement cache-aware live fixture reads.
 - **Step 9.2:** Add a kickoff-aware polling policy.
@@ -163,13 +160,13 @@ predictor schema changes.
 
 ## Milestone K — Backend Release — planned
 
-- **Step 10.1:** Harden tests, migrations, and dependency scanning.
+- **Step 10.1:** Harden tests, migrations and dependency scanning.
 - **Step 10.2:** Create production container/runtime configuration.
 - **Step 10.3:** Provision and migrate a hosted PostgreSQL database.
 - **Step 10.4:** Deploy FastAPI after current platform research and explicit
   deployment approval.
 - **Step 10.5:** Run historical-to-API end-to-end validation.
-- **Step 10.6:** Verify secret handling, quotas, recovery, and reproducibility.
+- **Step 10.6:** Verify secret handling, quotas, recovery and reproducibility.
 - **Step 10.7:** Declare the backend/ML acceptance gate passed.
 
 ## Milestone L — Frontend, Last — planned
@@ -183,7 +180,7 @@ predictor schema changes.
 - **Step 11.7:** Build simulation visualization.
 - **Step 11.8:** Build history and model-performance views.
 - **Step 11.9:** Build the near-live match centre.
-- **Step 11.10:** Add accessibility, component, and end-to-end tests.
+- **Step 11.10:** Add accessibility, component and end-to-end tests.
 - **Step 11.11:** Deploy the frontend.
 - **Step 11.12:** Run full production integration tests.
 
@@ -191,4 +188,4 @@ predictor schema changes.
 
 A milestone is complete only when its implementation and documentation agree,
 the complete local quality suite passes, generated artifacts are reproducible,
-important constraints are recorded, and a local milestone commit is created.
+important constraints are recorded and a local milestone commit is created.

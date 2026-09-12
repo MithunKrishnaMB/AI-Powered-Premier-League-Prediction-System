@@ -1,4 +1,4 @@
-"""Tests for leakage-safe rolling, performance, and context features."""
+"""Tests for leakage-safe rolling, performance and context features."""
 
 from datetime import UTC, datetime, timedelta
 from uuid import UUID

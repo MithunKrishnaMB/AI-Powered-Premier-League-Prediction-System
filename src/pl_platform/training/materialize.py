@@ -25,7 +25,7 @@ from pl_platform.features.materialize import (
     FeatureDatasetManifest,
     FeaturePredictorSchema,
     load_feature_dataset,
-    materialize_feature_entry,
+    materialize_feature_entries,
 )
 from pl_platform.ingestion.manifest import load_manifest
 
@@ -57,6 +57,7 @@ class TrainingFeatureSource(BaseModel):
     feature_manifest_sha256: Sha256
     canonical_dataset_id: str = Field(min_length=1)
     canonical_fixtures_sha256: Sha256
+    historical_context_sha256: Sha256
     raw_source_id: str = Field(min_length=1)
     raw_artifact_id: str = Field(min_length=1)
     raw_sha256: Sha256
@@ -387,6 +388,7 @@ def _feature_source(
         feature_manifest_sha256=_sha256(manifest_path.read_bytes()),
         canonical_dataset_id=manifest.canonical_source.dataset_id,
         canonical_fixtures_sha256=manifest.canonical_source.fixtures_sha256,
+        historical_context_sha256=(manifest.historical_context.history_chain_sha256),
         raw_source_id=manifest.raw_source.source_id,
         raw_artifact_id=manifest.raw_source.artifact_id,
         raw_sha256=manifest.raw_source.sha256,
@@ -406,14 +408,20 @@ def materialize_training_dataset(
     examples: list[TrainingExample] = []
     sources: list[TrainingFeatureSource] = []
     predictor_schema: FeaturePredictorSchema | None = None
-    for entry in historical_manifest.files:
-        feature_result = materialize_feature_entry(
-            manifest_path,
-            entry.id,
-            team_registry_path,
-            season_registry_path,
-            data_root,
-        )
+    feature_results = materialize_feature_entries(
+        manifest_path,
+        team_registry_path,
+        season_registry_path,
+        data_root,
+    )
+    if len(feature_results) != len(historical_manifest.files):
+        msg = "feature materialization did not cover the historical manifest"
+        raise TrainingDatasetError(msg)
+    for entry, feature_result in zip(
+        historical_manifest.files,
+        feature_results,
+        strict=True,
+    ):
         rows, feature_manifest = load_feature_dataset(
             feature_result.feature_rows_path,
             feature_result.manifest_path,

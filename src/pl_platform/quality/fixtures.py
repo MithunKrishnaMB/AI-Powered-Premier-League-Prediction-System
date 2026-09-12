@@ -75,7 +75,7 @@ def validate_premier_league_fixtures(
     fixtures: tuple[Fixture, ...],
     season: PremierLeagueSeason,
 ) -> FixtureQualityReport:
-    """Validate identity, membership, schedule, status, and completeness."""
+    """Validate identity, membership, schedule, status and completeness."""
 
     issues: list[QualityIssue] = []
     fixture_ids: set[UUID] = set()

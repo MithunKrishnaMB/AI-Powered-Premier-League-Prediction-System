@@ -10,12 +10,12 @@ Milestone C without relying on the previous chat transcript.
 
 - Steps 0.1 through 0.5 are complete.
 - Steps 1.1 through 1.10 are complete.
-- The package, configuration, structured logging, and local quality gates are in
+- The package, configuration, structured logging and local quality gates are in
   place.
 - Eleven checksum-pinned Football-Data EPL seasons are locally reproducible.
 - All 4,180 fixtures canonicalize successfully against 34 reviewed club
   identities and 11 season registries.
-- Per-row, domain, cross-record, lineage, atomic-write, and idempotency behavior
+- Per-row, domain, cross-record, lineage, atomic-write and idempotency behavior
   are covered by tests.
 - The second materialization pass returned `already_current` for every season.
 - CI/CD and the initially created GitHub Actions workflow were removed by user
@@ -66,7 +66,7 @@ not automatically contain those ignored datasets or `.venv`.
 
 ## Non-negotiable constraints
 
-- Do not add GitHub Actions, YAML CI/CD, or deployment automation.
+- Do not add GitHub Actions, YAML CI/CD or deployment automation.
 - Ask for explicit approval before every project-changing numbered step.
 - Use Python 3.14.7 and keep strict typing and the 90% coverage gate.
 - Do not silently overwrite raw data or bypass manifest verification.
@@ -75,7 +75,7 @@ not automatically contain those ignored datasets or `.venv`.
 - Prevent temporal and target leakage by construction.
 - For `date_only` fixtures, calculate all same-date features from pre-date state
   and apply match updates only after the whole date batch.
-- Preserve deterministic IDs, outputs, checksums, and provenance.
+- Preserve deterministic IDs, outputs, checksums and provenance.
 
 ## Exact next step
 
@@ -86,17 +86,17 @@ pre-match feature row. It must explicitly represent fixture, season and team
 identity; kickoff and its precision; feature cutoff; predictor values; training
 label; and source/schema provenance. Predictors and post-match labels must be
 structurally distinguishable. Validation must reject inconsistent teams,
-non-UTC timestamps, and a feature cutoff later than the fixture's information
+non-UTC timestamps and a feature cutoff later than the fixture's information
 boundary. Add unit tests and update schema documentation.
 
 Do not implement rolling feature calculations, Elo, models, persistence, APIs,
-deployment, or frontend code in Step 2.1.
+deployment or frontend code in Step 2.1.
 
 ## Step 2.1 completion evidence expected
 
-- New feature contract is typed, immutable, and versioned.
+- New feature contract is typed, immutable and versioned.
 - Temporal and domain invariants have focused unit tests.
-- Predictor, label, and provenance semantics are documented.
+- Predictor, label and provenance semantics are documented.
 - Existing historical tests continue to pass.
 - The complete local quality suite remains green.
 - The user receives a concise summary and approves Step 2.2 separately.

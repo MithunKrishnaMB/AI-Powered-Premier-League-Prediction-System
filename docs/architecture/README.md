@@ -8,15 +8,15 @@ Planned topics include:
 - system context and component boundaries
 - canonical football data and team identity
 - point-in-time feature generation and leakage prevention
-- model training, validation, calibration, and versioning
+- model training, validation, calibration and versioning
 - score modelling and season simulation
 - PostgreSQL schema and migration strategy
-- provider adapters, caching, and ingestion workflows
+- provider adapters, caching and ingestion workflows
 - FastAPI contracts and scheduled jobs
 - deployment and operational decisions
 - frontend architecture, after backend acceptance
 
-Major decisions will record the decision, alternatives, rationale, and
+Major decisions will record the decision, alternatives, rationale and
 trade-offs. Documentation should describe implemented behavior rather than
 speculative future complexity.
 
@@ -27,4 +27,4 @@ speculative future complexity.
 - [Implementation roadmap](../roadmap.md)
 - [Project status](../project-status.md)
 - [Milestone B to C handoff](../handoffs/milestone-b-to-c.md)
-- [Milestone C progress note](../handoffs/milestone-c-progress.md)
+- [Milestone C to D handoff](../handoffs/milestone-c-to-d.md)
