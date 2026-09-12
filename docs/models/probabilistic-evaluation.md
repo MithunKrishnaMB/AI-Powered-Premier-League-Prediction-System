@@ -2,10 +2,11 @@
 
 ## Scope
 
-Steps 3.1 through 3.5 implement deterministic naive and Elo benchmarks, an
+Steps 3.1 through 3.8 implement deterministic naive and Elo benchmarks, an
 L2-regularized multinomial logistic baseline, expanding-season walk-forward
-validation, a formal untouched-test freeze and bounded CatBoost tuning. They do
-not implement calibration, a final untouched-test evaluation, score models, a
+validation, a formal untouched-test freeze, bounded CatBoost tuning,
+chronological calibration assessment and Poisson and Dixon–Coles score models.
+They do not implement acceptance gates, a final untouched-test evaluation, a
 model registry or serving.
 
 Every production evaluation begins by invoking the existing training
@@ -102,6 +103,66 @@ The aggregate development results are:
 
 These are walk-forward development results, not final test performance.
 
+## Calibration assessment
+
+Temperature scaling raises each CatBoost probability to `1 / temperature` and
+renormalizes the three outcomes. The scalar is constrained to `[0.25, 4.0]` and
+fit with a deterministic 96-iteration golden-section search minimizing natural
+log loss.
+
+The first CatBoost out-of-fold season, 2020–21, supplies calibration history but
+is not scored as calibrated. For each season from 2021–22 through 2024–25, the
+temperature is fit only on all preceding out-of-fold seasons and then applied to
+the next whole season. This produces a paired 1,520-match assessment without
+using the prediction's own target or splitting a simultaneous date batch.
+
+Temperature scaling produced log loss 0.978567, Brier score 0.581670 and RPS
+0.201827, compared with 0.975195, 0.579316 and 0.200545 for the same uncalibrated
+CatBoost rows. The selection rule therefore retains identity calibration. A
+final development-only diagnostic fit over all 1,900 out-of-fold rows found
+temperature 1.124308, but it is not adopted or serialized.
+
+## Independent-Poisson score baseline
+
+The baseline fits a global intercept, home advantage and canonical-team attack
+and defence coefficients on each reference window. It models home and away
+goals as conditionally independent Poisson variables:
+
+```text
+log(lambda_home) = intercept + home_advantage + attack_home + defence_away
+log(lambda_away) = intercept + attack_away + defence_home
+```
+
+Coefficients use L2 strength 0.01 and deterministic 2,000-iteration full-batch
+Adam with learning rate 0.03, beta values 0.9 and 0.999 and epsilon `1e-8`.
+Expected goals are bounded to `[0.05, 6.0]`. A promoted team unseen in the
+reference window receives neutral zero attack and defence coefficients rather
+than a guessed identity. The normalized score grid covers 0 through 40 goals
+for each team and projects to home win, draw and away win. Score grids remain in
+memory; the evaluation artifact stores only target-free three-way projections.
+
+Across the five 1,900-match development folds, log loss was 1.010365, Brier
+score 0.603093 and RPS 0.214432.
+
+## Dixon–Coles adjustment
+
+The adjustment fits one rho value using only the same reference rows as the
+underlying Poisson model. A deterministic scalar likelihood search is bounded
+to `[-0.15, 0.025]`, which keeps all correction factors positive under the
+expected-goal cap. It changes only the four low-score cells:
+
+```text
+tau(0, 0) = 1 - lambda_home * lambda_away * rho
+tau(0, 1) = 1 + lambda_home * rho
+tau(1, 0) = 1 + lambda_away * rho
+tau(1, 1) = 1 - rho
+```
+
+No time decay or joint parameter refit is introduced in this baseline. The
+final development diagnostic rho was -0.027104. Across the five folds, the
+adjusted projection produced log loss 1.011675, Brier score 0.603583 and RPS
+0.214514, so it did not improve this independent-Poisson baseline.
+
 ## Metrics and artifacts
 
 The evaluator reports mean natural-log multiclass log loss, mean sum-of-three
@@ -137,3 +198,17 @@ plp-tune-catboost `
 The second command writes the freeze manifest and selected development-fold
 predictions only after re-running the raw-verifying training materializer. A
 second unchanged invocation returns `already_current` with identical bytes.
+
+Run Steps 3.6 through 3.8 with:
+
+```powershell
+plp-evaluate-advanced-models `
+  --manifest data/manifests/football-data.json `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+This command re-runs raw-verifying training materialization and strictly loads
+the CatBoost and freeze artifacts before producing the advanced development
+dataset. It neither predicts nor scores 2025–26.

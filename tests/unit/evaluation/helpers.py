@@ -5,12 +5,18 @@ import json
 from datetime import UTC, datetime
 from uuid import UUID
 
+from pl_platform.domain.evaluation import (
+    OutcomeProbabilities,
+    ProbabilisticPrediction,
+    deterministic_prediction_id,
+)
 from pl_platform.domain.features import PredictorSet, PredictorValue, TrainingLabel
 from pl_platform.domain.fixtures import KickoffPrecision, MatchOutcome
 from pl_platform.domain.training import (
     TrainingExample,
     deterministic_training_example_id,
 )
+from pl_platform.evaluation.walk_forward import walk_forward_windows
 from pl_platform.features.materialize import FeaturePredictorSchema
 from pl_platform.training.materialize import (
     TrainingDatasetManifest,
@@ -91,6 +97,55 @@ def complete_corpus() -> tuple[TrainingExample, ...]:
                 make_example(index, season, outcome, signal=signal, home_elo=elo)
             )
             index += 1
+    return tuple(rows)
+
+
+def catboost_predictions() -> tuple[ProbabilisticPrediction, ...]:
+    """Return target-free synthetic CatBoost OOF rows for all five folds."""
+
+    probabilities = {
+        MatchOutcome.HOME_WIN: OutcomeProbabilities(
+            home_win=0.90, draw=0.06, away_win=0.04
+        ),
+        MatchOutcome.DRAW: OutcomeProbabilities(
+            home_win=0.20, draw=0.60, away_win=0.20
+        ),
+        MatchOutcome.AWAY_WIN: OutcomeProbabilities(
+            home_win=0.04, draw=0.06, away_win=0.90
+        ),
+    }
+    window_by_season = {
+        window.evaluation_season_ids[0]: window for window in walk_forward_windows()
+    }
+    rows = []
+    for example in complete_corpus():
+        window = window_by_season.get(example.season_id)
+        if window is None:
+            continue
+        rows.append(
+            ProbabilisticPrediction(
+                id=deterministic_prediction_id(
+                    source_training_sha256=SOURCE_TRAINING_SHA256,
+                    source_training_example_id=example.id,
+                    partition_id=window.id,
+                    method="catboost",
+                    method_version=1,
+                    configuration_id="catboost-test",
+                ),
+                method="catboost",
+                method_version=1,
+                configuration_id="catboost-test",
+                partition_id=window.id,
+                source_training_dataset_id=SOURCE_DATASET_ID,
+                source_training_sha256=SOURCE_TRAINING_SHA256,
+                source_training_example_id=example.id,
+                fixture_id=example.fixture_id,
+                season_id=example.season_id,
+                kickoff_at=example.kickoff_at,
+                feature_cutoff_at=example.feature_cutoff_at,
+                probabilities=probabilities[example.target.outcome],
+            )
+        )
     return tuple(rows)
 
 

@@ -23,7 +23,15 @@ NonNegativeFloat = Annotated[float, Field(strict=True, ge=0.0, allow_inf_nan=Fal
 PositiveInt = Annotated[int, Field(strict=True, ge=1)]
 SeasonId = Annotated[str, Field(pattern=r"^\d{4}-\d{4}$")]
 Sha256 = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-EvaluationMethod = Literal["naive", "elo", "multinomial_logistic", "catboost"]
+EvaluationMethod = Literal[
+    "naive",
+    "elo",
+    "multinomial_logistic",
+    "catboost",
+    "catboost_calibrated",
+    "poisson",
+    "dixon_coles",
+]
 
 
 class EvaluationContractError(ValueError):

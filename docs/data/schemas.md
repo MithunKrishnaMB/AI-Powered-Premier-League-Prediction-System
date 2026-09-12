@@ -133,7 +133,7 @@ checksum validator and select only explicit chronological windows.
 
 ## Probabilistic development evaluation
 
-Steps 3.1 through 3.5 materialize target-free `ProbabilisticPrediction` schema
+Steps 3.1 through 3.8 materialize target-free `ProbabilisticPrediction` schema
 version 1 rows beneath `data/processed/evaluation/epl/`. Each row contains the
 deterministic prediction ID, method and partition identity, source training
 dataset and example identity, canonical fixture and season identity, kickoff and
@@ -180,6 +180,30 @@ Prediction ordering is partition, feature cutoff, kickoff and training-example
 ID. Validation rejects candidate drift, an incorrect winner, incomplete fold or
 prediction populations, cross-candidate predictions, checksum changes and test
 season rows. Model weights and test predictions are not part of this schema.
+
+### Advanced probabilistic and score-model evaluation
+
+`AdvancedEvaluationManifest` schema version 1 pins the complete verified
+training manifest and checksum plus the selected CatBoost tuning dataset,
+prediction and untouched-test freeze checksums. It records four expanding
+prior-out-of-fold temperature-calibration folds, five Poisson and Dixon–Coles
+folds, typed optimizer and low-score-adjustment contracts, per-fold and
+aggregate metrics and final development-only fit diagnostics.
+
+The adjacent `predictions.jsonl` contains 1,520 temperature-scaling assessment
+rows and 1,900 rows each for independent Poisson and Dixon–Coles. Every row uses
+the shared target-free prediction schema with three explicit outcome
+probabilities and immutable training-example lineage. Outcomes, goals and
+expected-goal parameters are not persisted in prediction rows; score grids are
+produced in memory and projected to the three-way evaluation boundary. The
+manifest may contain aggregate development target counts inside metric reports,
+but contains no untouched-test targets or metrics.
+
+Rows are ordered by method, partition, feature cutoff, kickoff and training
+example. The loader rejects modified or non-canonical bytes, checksum changes,
+duplicate identities, unknown methods or folds, wrong method populations,
+changed training lineage and any 2025–26 prediction. Artifacts are written to
+`data/processed/evaluation/epl/advanced-development-2015-2016_to_2024-2025/`.
 
 ## Team identity
 

@@ -45,9 +45,11 @@ naive and Elo benchmarks, multinomial logistic regression and five-fold
 expanding-season validation now cover the 2015–16 through 2024–25 development
 window. The 2025–26 season is formally frozen as the untouched test boundary,
 and deterministic CatBoost candidate tuning is restricted to the development
-folds. No final test metric has been calculated. Calibration, model registries,
-database migrations and the frontend have not been created. CI/CD automation
-is intentionally not configured.
+folds. Expanding out-of-fold calibration assessment, an independent-Poisson
+score baseline and a Dixon–Coles low-score adjustment now complete Steps 3.6
+through 3.8. No final test metric has been calculated. Model acceptance gates,
+model registries, database migrations and the frontend have not been created.
+CI/CD automation is intentionally not configured.
 
 The development environment uses 64-bit Python 3.14.
 
@@ -164,6 +166,22 @@ configurations only on the five development folds through 2024–25 and records
 the selected configuration and complete provenance. It does not evaluate the
 test season or serialize a model.
 
+Evaluate calibration and the score-model baselines with:
+
+```powershell
+plp-evaluate-advanced-models `
+  --manifest data/manifests/football-data.json `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+The command re-verifies the complete training lineage, validates the selected
+CatBoost and untouched-test artifacts and produces only development predictions.
+Temperature scaling is fitted on preceding out-of-fold seasons before each next
+season. Poisson and Dixon–Coles use the established five expanding folds. The
+2025–26 test target remains unopened.
+
 See [historical data provenance](docs/data/historical-data.md) for source and
 integrity details.
 
@@ -203,8 +221,9 @@ The planned order is:
 8. Automation, deployment and end-to-end backend validation
 9. Frontend architecture and implementation
 
-Milestone D is in progress. Steps 3.1 through 3.5 provide naive and Elo
+Milestone D is in progress. Steps 3.1 through 3.8 provide naive and Elo
 benchmarks, multinomial logistic regression, expanding walk-forward validation,
-an untouched 2025–26 test freeze and development-only CatBoost tuning. The next
-step is **Step 3.6: assess and apply probability calibration**; 2025–26 remains
-sealed and has not contributed a fit, tuning decision or metric.
+an untouched 2025–26 test freeze, development-only CatBoost tuning, calibration
+assessment and independent-Poisson and Dixon–Coles score models. The next step
+is **Step 3.9: compare models against predefined acceptance gates**; 2025–26
+remains sealed and has not contributed a fit, tuning decision or metric.

@@ -11,9 +11,11 @@ C — Point-in-Time Features and Elo
 
 **Completed Milestone D steps:** 3.1 — naive and Elo benchmarks; 3.2 —
 multinomial logistic regression; 3.3 — expanding walk-forward validation; 3.4
-— untouched test freeze; 3.5 — development-only CatBoost tuning
+— untouched test freeze; 3.5 — development-only CatBoost tuning; 3.6 —
+chronological calibration assessment; 3.7 — independent-Poisson score baseline;
+3.8 — Dixon–Coles adjustment
 
-**Exact next step:** 3.6 — assess and apply probability calibration
+**Exact next step:** 3.9 — compare models against predefined acceptance gates
 
 ## Implemented capabilities
 
@@ -72,6 +74,17 @@ multinomial logistic regression; 3.3 — expanding walk-forward validation; 3.4
 - Deterministic candidate selection by aggregate walk-forward log loss, then
   Brier score, ranked probability score and candidate ID; a final in-memory fit
   on all 3,800 development rows does not create a model artifact.
+- Four expanding calibration assessments in which temperature is fit only on
+  preceding CatBoost out-of-fold seasons and applied to the next complete
+  season. Paired proper scores select the identity calibration policy.
+- Deterministic independent-Poisson team attack, defence, intercept and home
+  advantage fitting using only reference-window canonical team IDs and scores.
+- A normalized 0–40 goal grid with expected goals bounded from 0.05 to 6.0 and
+  three-way home-win, draw and away-win projection.
+- Training-window-only Dixon–Coles rho fitting and low-score adjustment for
+  0–0, 0–1, 1–0 and 1–1 without time weighting or test access.
+- Atomic advanced-evaluation artifacts containing 5,320 target-free development
+  predictions and strict training, CatBoost and untouched-test provenance.
 
 ## Historical dataset status
 
@@ -114,15 +127,22 @@ multinomial logistic regression; 3.3 — expanding walk-forward validation; 3.4
   `b9f878bdaf689082ce1216030fa9698378041d74cf6bd9a74435822345f39f46`.
 - CatBoost tuning manifest SHA-256:
   `324039af347357582af5dc4d1c20c88b1e6dfbd0933402f30038d3902a08b7e3`.
+- Advanced evaluation predictions: 5,320 target-free rows.
+- Advanced evaluation location:
+  `data/processed/evaluation/epl/advanced-development-2015-2016_to_2024-2025/`.
+- Advanced predictions SHA-256:
+  `786fab5892ec91feea5a19522d22b2cfb2027da608a770989d7387f60d9c8445`.
+- Advanced manifest SHA-256:
+  `2cb53b4925ef717c4a526e2b5f8960eac66f12bcd496e69ca37d8c618f55a4ab`.
 - Raw, interim and processed files are reproducible local artifacts and are
   ignored by Git.
 
 ## Last verified quality result
 
-The Steps 3.4 and 3.5 implementation passed the complete local suite:
+The Steps 3.6 through 3.8 implementation passed the complete local suite:
 
-- pytest: 211 passed.
-- branch-aware coverage: 90.44% (minimum required: 90%).
+- pytest: 247 passed.
+- branch-aware coverage: 90.91% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
 - strict mypy: passed.
@@ -149,6 +169,14 @@ The Steps 3.4 and 3.5 implementation passed the complete local suite:
   candidate was then fit in memory on all 3,800 development examples.
 - a second freeze-and-tuning run returned `already_current` with identical
   prediction, tuning-manifest and freeze-manifest checksums.
+- all calibration fits used only earlier out-of-fold development seasons; the
+  paired 1,520-row assessment selected identity over temperature scaling.
+- all Poisson and Dixon–Coles fold fits used only complete preceding seasons;
+  the final in-memory fits used 3,800 development rows and never 2025–26.
+- the advanced prediction artifact contains no targets, scores or test-season
+  prediction rows and retains all three explicit outcome probabilities.
+- a second advanced-evaluation run returned `already_current` with unchanged
+  prediction and manifest checksums.
 
 ## Important project constraints
 
@@ -173,7 +201,6 @@ The Steps 3.4 and 3.5 implementation passed the complete local suite:
 ## Not implemented yet
 
 - Final one-time untouched-test evaluation.
-- Probability calibration or score modelling.
 - Model acceptance gates.
 - Model serialization or registry behavior.
 - Season simulation.
@@ -190,12 +217,15 @@ regression. Across five expanding folds covering 1,900 validation matches, log
 loss was 1.068916, 0.996658 and 1.033894 respectively. CatBoost candidate log
 losses were 0.991213 (depth 4), 0.995511 (depth 5) and 0.990106 (selected depth
 6). The selected candidate's aggregate Brier score was 0.588451 and normalized
-ranked probability score was 0.205650. These are development comparisons, not
-final test performance.
+ranked probability score was 0.205650. On the paired four-season calibration
+window, uncalibrated CatBoost log loss was 0.975195 versus 0.978567 after
+temperature scaling, so identity was selected. Across all five folds, Poisson
+log loss was 1.010365 and Dixon–Coles log loss was 1.011675. These are
+development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 3.6 may assess calibration using only target-bearing predictions generated
-inside the development walk-forward boundary. The frozen 2025–26 target remains
-prohibited until an explicit one-time final-test evaluation step and cannot be
-used for calibration choice, tuning, feature selection or acceptance design.
+Step 3.9 may define acceptance gates using only the completed development
+evidence. Gate thresholds and comparison rules must be fixed before any
+one-time final-test access. The frozen 2025–26 target remains prohibited for
+gate design, calibration choice, tuning or feature selection.

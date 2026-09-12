@@ -87,11 +87,17 @@ Each numbered step should remain small enough to review and test in isolation.
   candidates within the five expanding development folds, select by proper
   probabilistic scores and fit the winner on all development seasons without
   serializing it or opening the untouched test target.
-- **Step 3.6 — next:** Assess and apply probability calibration using only
-  development predictions and chronological boundaries.
-- **Step 3.7:** Implement a Poisson score baseline.
-- **Step 3.8:** Implement and test the Dixon–Coles adjustment.
-- **Step 3.9:** Compare models against predefined acceptance gates.
+- **Step 3.6 — complete:** Assess bounded scalar temperature scaling with four
+  expanding prior-out-of-fold calibration folds. The paired development result
+  selects the identity policy because temperature scaling did not improve the
+  proper probabilistic scores; the untouched test remains sealed.
+- **Step 3.7 — complete:** Implement a deterministic L2-regularized independent
+  Poisson team attack/defence and home-advantage score baseline, evaluated over
+  the five established chronological folds.
+- **Step 3.8 — complete:** Fit and test a training-window-only Dixon–Coles rho
+  correction for the four low-score cells and compare its three-way projection
+  over the same folds.
+- **Step 3.9 — next:** Compare models against predefined acceptance gates.
 - **Step 3.10:** Add explanation data appropriate to each model.
 
 ## Milestone E — Registry and Simulation — planned

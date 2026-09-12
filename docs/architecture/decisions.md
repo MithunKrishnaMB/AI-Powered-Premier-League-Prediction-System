@@ -332,3 +332,57 @@ read, predict or score 2025–26.
 reproducible and CatBoost preserves the three explicit Premier League outcome
 probabilities. The selected development configuration is evidence for later
 calibration work, not a registered production model or final-test result.
+
+## ADR-018 — Expanding prior-out-of-fold calibration
+
+**Status:** Accepted
+
+**Context:** Fitting and assessing a calibrator on the same predictions gives an
+optimistic result, while using 2025–26 would violate the untouched-test policy.
+The selected CatBoost artifact already supplies one out-of-fold prediction for
+each development fixture from 2020–21 onward.
+
+**Decision:** Assess a single bounded temperature-scaling candidate against an
+identity policy. Use 2020–21 only as the first calibration-history season. For
+each season from 2021–22 through 2024–25, fit temperature on every preceding
+CatBoost out-of-fold season and apply it to the next complete season. Minimize
+natural-log loss with a deterministic 96-iteration golden-section search over
+temperatures from 0.25 through 4.0. Select by aggregate log loss, then Brier
+score and normalized ranked probability score on the paired 1,520 predictions.
+Fit a final diagnostic temperature on all 1,900 development out-of-fold rows,
+but do not serialize it or apply it to the untouched test.
+
+**Consequences:** Calibration assessment never uses a prediction's own target
+or crosses a whole-season boundary. Temperature scaling was worse on the paired
+development population, so the adopted calibration strategy is identity. The
+temperature-transformed development rows remain an auditable rejected-candidate
+artifact, not a production calibration claim.
+
+## ADR-019 — Independent-Poisson and Dixon–Coles score baselines
+
+**Status:** Accepted
+
+**Context:** Three-way classifiers do not produce scoreline distributions.
+Score baselines must handle promoted clubs, preserve deterministic fitting and
+remain comparable inside the established chronological development folds.
+
+**Decision:** Fit an independent-Poisson model with one global intercept, home
+advantage and canonical-team attack and defence coefficients. Use only scores
+from the current reference seasons; an unseen canonical team receives neutral
+zero attack and defence coefficients. Apply L2 strength 0.01 and fixed
+2,000-iteration full-batch Adam with learning rate 0.03, beta values 0.9 and
+0.999 and epsilon `1e-8`. Bound expected goals to 0.05 through 6.0 and construct
+a normalized 0–40 by 0–40 score grid before projecting it to three outcomes.
+
+Fit Dixon–Coles rho separately on the same reference rows by deterministic
+scalar likelihood search over `[-0.15, 0.025]`. Adjust only 0–0, 0–1, 1–0 and
+1–1, then renormalize. Do not add time decay or jointly refit the Poisson
+coefficients in this baseline. Evaluate both models on all five expanding folds
+and fit final diagnostics on all 3,800 development fixtures. Persist target-free
+three-way projections and contracts, not score grids or model weights.
+
+**Consequences:** The platform now has reproducible score-generating baselines
+without odds, fuzzy identities, within-season random splits or test access.
+The fitted development rho is negative, but the adjusted model did not improve
+the base Poisson log loss. Model acceptance remains a separate Step 3.9 policy
+decision fixed before final-test access.
