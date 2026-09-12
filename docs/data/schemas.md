@@ -128,7 +128,25 @@ adjacent versioned manifest. The manifest pins:
 The loader rejects modified bytes, wrong row counts, predictor-schema drift,
 unknown or cross-season feature references and incomplete season coverage.
 The artifact contains all 4,180 completed fixtures and the 175 predictors in
-schema version 2; temporal splitting and model fitting remain later work.
+schema version 2. Downstream model evaluation must load it through the typed
+checksum validator and select only explicit chronological windows.
+
+## Probabilistic development evaluation
+
+Steps 3.1 through 3.3 materialize target-free `ProbabilisticPrediction` schema
+version 1 rows beneath `data/processed/evaluation/epl/`. Each row contains the
+deterministic prediction ID, method and partition identity, source training
+dataset and example identity, canonical fixture and season identity, kickoff and
+feature cutoff and three explicit probabilities in the fixed order `home_win`,
+`draw`, `away_win`. Scores and observed outcomes are deliberately absent.
+
+The adjacent evaluation dataset manifest pins the prediction bytes and count;
+the complete verified training manifest and its checksum; benchmark, metric,
+preprocessing, optimizer and numerical-runtime versions; the fixed holdout and
+five expanding walk-forward folds; per-fold fit diagnostics and metrics; and
+aggregate walk-forward metrics. The embedded training manifest preserves the
+raw, canonical, feature, registry and recursive historical-context provenance.
+Equivalent inputs produce identical prediction and manifest bytes.
 
 ## Team identity
 

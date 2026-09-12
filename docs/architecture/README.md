@@ -24,6 +24,7 @@ speculative future complexity.
 
 - [Architectural decision register](decisions.md)
 - [Point-in-time feature processing](../features/point-in-time.md)
+- [Probabilistic development evaluation](../models/probabilistic-evaluation.md)
 - [Implementation roadmap](../roadmap.md)
 - [Project status](../project-status.md)
 - [Milestone B to C handoff](../handoffs/milestone-b-to-c.md)

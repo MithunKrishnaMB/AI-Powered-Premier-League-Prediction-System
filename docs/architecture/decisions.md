@@ -232,3 +232,51 @@ all preceding verified canonical and raw inputs plus the parameter policy.
 reruns produce identical rating histories and changed predecessor data changes
 downstream row identities. Elo expected score remains a benchmark signal rather
 than a calibrated three-outcome probability model.
+
+## ADR-014 — Fixed chronological probabilistic development evaluation
+
+**Status:** Accepted
+
+**Context:** Model comparison needs deterministic three-way probabilities and
+metrics without exposing evaluation targets during prediction or consuming the
+most recent season before the formal test-freeze step.
+
+**Decision:** Use 2015–16 through 2022–23 as the fixed holdout reference window
+and 2023–24 through 2024–25 as its evaluation window. Also evaluate five
+expanding folds: train through each preceding season and validate one complete
+season from 2020–21 through 2024–25. Keep 2025–26 outside every development fit
+and metric. Fit the naive outcome frequency and all preprocessing only on each
+reference window. Predictions remain target-free and evaluation joins targets
+only by immutable training-example ID after prediction. Score mean natural-log
+multiclass log loss, mean three-class Brier score and normalized ranked
+probability score. Re-run the existing raw-verifying training materializer before
+evaluation and publish deterministic JSON Lines plus a checksum-pinned manifest.
+
+**Consequences:** No random split or incomplete simultaneous batch can enter
+development evaluation and the most recent season remains available for Step
+3.4. Holdout and fold estimates are transparent but are development results,
+not final test performance.
+
+## ADR-015 — Deterministic benchmark bridge and multinomial logistic baseline
+
+**Status:** Accepted
+
+**Context:** Elo expected score is binary-like expected match score, not a
+calibrated home/draw/away distribution, while the first fitted classifier must
+handle nullable, differently scaled predictors without leaking evaluation
+statistics.
+
+**Decision:** The naive benchmark emits the reference-window three-way outcome
+frequency. The Elo benchmark fixes draw mass to the same reference draw
+frequency and allocates the remaining mass according to the two complementary
+pre-match Elo expected scores. It does not tune or calibrate that mapping. The
+logistic baseline uses every ordered predictor from `epl-pre-match` version 2,
+maps booleans to zero/one, mean-imputes nulls and standardizes columns using only
+the current training window, then fits a three-class L2-regularized softmax model
+with a fixed full-batch Adam contract in NumPy float64. No random initialization,
+feature selection, hyperparameter tuning or model serialization occurs.
+
+**Consequences:** All methods preserve draws and can be compared with proper
+probabilistic scores. Preprocessing is fold-local and deterministic. The
+logistic result is an evaluated development baseline, not a tuned, calibrated or
+registered production model.

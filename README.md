@@ -38,11 +38,14 @@ logging, local quality tooling, a checksum-pinned historical ingestion pipeline,
 and a versioned point-in-time feature system. Eleven completed Premier League
 seasons (2015–16 through 2025–26) can be downloaded, canonicalized, validated,
 and transformed into leakage-safe rolling predictors. Per-season feature
-datasets and the first combined 4,180-row training dataset are reproducibly
+datasets and the combined 4,180-row training dataset are reproducibly
 materialized with checksum-pinned lineage. Versioned season-opening priors and a
-point-in-time Elo engine are included in predictor schema version 2. Trained
-probabilistic model artifacts, database migrations and the frontend have not
-yet been created. CI/CD automation is intentionally not configured.
+point-in-time Elo engine are included in predictor schema version 2. Deterministic
+naive and Elo benchmarks, multinomial logistic regression and five-fold
+expanding-season validation now cover the 2015–16 through 2024–25 development
+window; 2025–26 remains outside model fitting and evaluation. Model registries,
+database migrations and the frontend have not been created. CI/CD automation is
+intentionally not configured.
 
 The development environment uses 64-bit Python 3.14.
 
@@ -127,6 +130,21 @@ the combined model-ready JSON Lines dataset and its lineage manifest beneath
 `data/processed/training/`. Predictors and post-match targets remain separate;
 the command does not fit a model or define a temporal train/test split.
 
+Evaluate the deterministic benchmarks and multinomial logistic model with:
+
+```powershell
+plp-evaluate-models `
+  --manifest data/manifests/football-data.json `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data
+```
+
+The command re-runs the raw-verifying training materializer before producing
+target-free prediction rows and a checksum-pinned evaluation manifest beneath
+`data/processed/evaluation/`. It uses fixed chronological holdout and expanding
+walk-forward windows and never randomly splits the combined corpus.
+
 See [historical data provenance](docs/data/historical-data.md) for source and
 integrity details.
 
@@ -166,6 +184,8 @@ The planned order is:
 8. Automation, deployment and end-to-end backend validation
 9. Frontend architecture and implementation
 
-After the user commits the completed Milestone C changes, the next milestone is
-**Milestone D — Probabilistic Models**, beginning with **Step 3.1: implement
-naive and Elo benchmarks** against the point-in-time training dataset.
+Milestone D is in progress. Steps 3.1 through 3.3 provide naive and Elo
+benchmarks, multinomial logistic regression and expanding walk-forward
+validation. The next step is **Step 3.4: freeze an untouched test season**;
+2025–26 has deliberately not been used by the implemented development
+evaluation.

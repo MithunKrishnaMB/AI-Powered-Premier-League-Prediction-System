@@ -9,7 +9,10 @@ C — Point-in-Time Features and Elo
 
 **Current milestone:** D — Probabilistic Models
 
-**Exact next step:** 3.1 — implement naive and Elo benchmarks
+**Completed Milestone D steps:** 3.1 — naive and Elo benchmarks; 3.2 —
+multinomial logistic regression; 3.3 — expanding walk-forward validation
+
+**Exact next step:** 3.4 — freeze an untouched test season
 
 ## Implemented capabilities
 
@@ -47,6 +50,19 @@ C — Point-in-Time Features and Elo
   result/score target.
 - Deterministic all-season training-dataset materialization with typed loading
   and complete feature, canonical, raw, manifest and registry provenance.
+- Strict target-free three-way probability and evaluation contracts.
+- Reference-frequency naive and fixed-draw Elo benchmarks that preserve draws
+  without misrepresenting Elo expected score as calibrated probabilities.
+- Training-window-only mean imputation and standardization for every approved
+  predictor in manifest order.
+- Deterministic L2-regularized multinomial logistic regression using pinned
+  NumPy float64 and no random initialization.
+- Fixed 3,040-row reference and 760-row chronological holdout through 2024–25.
+- Five complete-season expanding walk-forward folds from 2020–21 through
+  2024–25, with 2025–26 excluded from all fitting and evaluation.
+- Multiclass log loss, Brier score and normalized ranked probability score.
+- Atomic target-free prediction artifacts and a typed manifest retaining the
+  complete checksum and historical provenance chain.
 
 ## Historical dataset status
 
@@ -71,15 +87,22 @@ C — Point-in-Time Features and Elo
   `data/interim/canonical/epl/<season>/fixtures.jsonl`.
 - Training location:
   `data/processed/training/epl/2015-2016_to_2025-2026/training.jsonl`.
+- Development evaluation predictions: 7,980 target-free rows.
+- Evaluation location:
+  `data/processed/evaluation/epl/development-2015-2016_to_2024-2025/`.
+- Evaluation predictions SHA-256:
+  `793a75459ab0789a0001d29ab5d40526c9416da38572b482e19f60777a066ad0`.
+- Evaluation manifest SHA-256:
+  `8fb62a9306a4500a87f42bc0d4baacc9ba882231093014969f19d2fe151da08a`.
 - Raw, interim and processed files are reproducible local artifacts and are
   ignored by Git.
 
 ## Last verified quality result
 
-The Milestone C implementation passed the complete local suite:
+The Steps 3.1 through 3.3 implementation passed the complete local suite:
 
-- pytest: 173 passed.
-- branch-aware coverage: 92.01% (minimum required: 90%).
+- pytest: 194 passed.
+- branch-aware coverage: 91.24% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
 - strict mypy: passed.
@@ -97,6 +120,9 @@ The Milestone C implementation passed the complete local suite:
 - typed artifact loading confirmed 760 fixed-prior team appearances in the first
   window and, in each later season, 646 previous-team plus 114
   previous-league team appearances.
+- all six logistic fits converged under the frozen optimizer contract.
+- an unchanged second model-evaluation run returned `already_current` with
+  identical prediction and manifest checksums.
 
 ## Important project constraints
 
@@ -120,17 +146,26 @@ The Milestone C implementation passed the complete local suite:
 
 ## Not implemented yet
 
-- Model training, calibration or score modelling.
-- Temporal cross-validation.
+- Formal untouched-test designation and evaluation.
+- Model tuning, calibration or score modelling.
+- CatBoost or model acceptance gates.
+- Model serialization or registry behavior.
 - Season simulation.
 - PostgreSQL persistence or migrations.
 - Current-season provider integration.
 - FastAPI endpoints.
 - Deployment or frontend code.
 
+## Development evaluation snapshot
+
+The fixed 2023–24 through 2024–25 holdout produced log loss of 1.067476 for the
+naive benchmark, 0.987353 for Elo and 1.002758 for multinomial logistic
+regression. Across five expanding folds covering 1,900 validation matches, log
+loss was 1.068916, 0.996658 and 1.033894 respectively. These are development
+comparisons, not final test performance.
+
 ## Next step boundary
 
-Step 3.1 implements naive and Elo benchmarks against explicit chronological
-evaluation windows. It must define probabilistic metrics and simple acceptance
-baselines without fitting the Step 3.2 logistic-regression model or treating
-Elo expected score as an already calibrated three-way probability.
+Step 3.4 may formally freeze the already excluded 2025–26 season and define the
+one-time untouched-test protocol. It must not use that season for tuning,
+calibration, feature selection or development acceptance decisions.

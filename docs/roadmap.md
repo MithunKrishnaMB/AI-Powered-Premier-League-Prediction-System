@@ -74,10 +74,15 @@ Each numbered step should remain small enough to review and test in isolation.
 
 ## Milestone D — Probabilistic Models — current
 
-- **Step 3.1 — next:** Implement naive and Elo benchmarks.
-- **Step 3.2:** Train multinomial logistic regression.
-- **Step 3.3:** Implement expanding/walk-forward validation.
-- **Step 3.4:** Freeze an untouched test season.
+- **Step 3.1 — complete:** Implement deterministic three-way naive and Elo
+  benchmarks against a fixed chronological holdout.
+- **Step 3.2 — complete:** Train deterministic L2-regularized multinomial
+  logistic regression using training-window-only preprocessing.
+- **Step 3.3 — complete:** Implement five expanding-season walk-forward folds
+  through 2024–25 and aggregate probabilistic metrics.
+- **Step 3.4 — next:** Freeze an untouched test season. The 2025–26 season is
+  currently excluded from all development fitting and evaluation but is not yet
+  designated or consumed as the formal test artifact.
 - **Step 3.5:** Train and tune CatBoost within temporal folds.
 - **Step 3.6:** Assess and apply probability calibration.
 - **Step 3.7:** Implement a Poisson score baseline.
