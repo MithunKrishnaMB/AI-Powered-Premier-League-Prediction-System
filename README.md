@@ -149,7 +149,7 @@ implementation. Start with:
 - [current project status](docs/project-status.md)
 - [architecture index and decisions](docs/architecture/README.md)
 - [Milestone B to C handoff](docs/handoffs/milestone-b-to-c.md)
-- [Milestone C to D handoff](docs/handoffs/milestone-c-to-d.md)
+- [Milestone C progress note](docs/handoffs/milestone-c-progress.md)
 
 ## Development order
 
@@ -165,6 +165,6 @@ The planned order is:
 8. Automation, deployment, and end-to-end backend validation
 9. Frontend architecture and implementation
 
-The next milestone is **Milestone D — Elo Engine**: define and implement
-point-in-time ratings, home advantage, season transitions, and reproducible
-rating history without changing the completed feature datasets.
+The current milestone is **Milestone C — Point-in-Time Features and Elo**. The
+next step is **Step 2.5: add explicit season-opening priors**, followed by the
+Step 2.6 Elo engine and the remaining Elo/prior leakage tests in Step 2.7.

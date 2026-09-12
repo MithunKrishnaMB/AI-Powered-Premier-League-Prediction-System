@@ -1,13 +1,14 @@
 # Project Status
 
 **Status date:** 2026-09-12
+
 **Runtime:** 64-bit Python 3.14.7
-**Completed milestones:** A — Repository Foundation; B — Historical Data System;
-C — Point-in-Time Feature System
 
-**Current milestone:** C closed
+**Completed milestones:** A — Repository Foundation; B — Historical Data System
 
-**Next milestone:** D — Elo Engine
+**Current milestone:** C — Point-in-Time Features and Elo — in progress
+
+**Exact next step:** 2.5 — add explicit season-opening priors
 
 ## Implemented capabilities
 
@@ -68,7 +69,7 @@ C — Point-in-Time Feature System
 
 ## Last verified quality result
 
-The Milestone C implementation passed the complete local suite:
+The completed Milestone C work through Step 2.8 passed the complete local suite:
 
 - pytest: 159 passed.
 - branch-aware coverage: 92.55% (minimum required: 90%).
@@ -108,6 +109,7 @@ The Milestone C implementation passed the complete local suite:
 
 ## Not implemented yet
 
+- Explicit season-opening priors.
 - Elo ratings.
 - Model training, calibration, or score modelling.
 - Temporal cross-validation.
@@ -117,10 +119,15 @@ The Milestone C implementation passed the complete local suite:
 - FastAPI endpoints.
 - Deployment or frontend code.
 
-## Next milestone boundary
+## Next step boundary
 
-Milestone D adds point-in-time Elo ratings, home advantage, reviewed
-initialization and season-transition rules, deterministic rating history, and
-tests showing ratings update only after the relevant chronological batch. It
-must not retroactively change the completed feature dataset schema without an
-explicit schema-version decision.
+Step 2.5 defines and implements explicit season-opening priors. Predictor schema
+version 1 currently resets every team to empty within-season state and has no
+cross-season carryover. Adding priors therefore requires a reviewed source,
+initialization, promoted-team, missing-history, and schema-version policy. Step
+2.6 then implements point-in-time Elo initialization, prediction, and post-batch
+updates. Step 2.7 remains open for the corresponding adversarial tests.
+
+The current Step 2.8 artifact remains the first reproducible training dataset,
+but it must be regenerated and versioned if Steps 2.5 or 2.6 change its approved
+predictor schema.

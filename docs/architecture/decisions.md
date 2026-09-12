@@ -1,8 +1,9 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior and constraints through Milestone
-C Step 2.8. A later milestone may supersede a decision only by recording the
-replacement and its migration impact.
+These decisions describe implemented behavior from completed work through
+Milestone C Step 2.8. Steps 2.5 and 2.6 remain pending under the reconciled
+master roadmap. A later decision may supersede an accepted decision only by
+recording the replacement and its migration impact.
 
 ## ADR-001 — Backend-first typed Python package
 

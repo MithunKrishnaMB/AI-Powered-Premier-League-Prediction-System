@@ -27,4 +27,4 @@ speculative future complexity.
 - [Implementation roadmap](../roadmap.md)
 - [Project status](../project-status.md)
 - [Milestone B to C handoff](../handoffs/milestone-b-to-c.md)
-- [Milestone C to D handoff](../handoffs/milestone-c-to-d.md)
+- [Milestone C progress note](../handoffs/milestone-c-progress.md)
