@@ -56,13 +56,15 @@ sampling and immutable Premier League table mechanics implement Steps 4.4
 through 4.6. Fixed 10,000-run vectorized execution, complete position and
 threshold aggregation and reproducibility invariants complete Milestone E. No
 final test metric has been calculated and no model has been activated.
-The PostgreSQL entity-relationship model now fixes stable identities, exact-byte
+The PostgreSQL entity-relationship model fixes stable identities, exact-byte
 lineage, ownership, lifecycle and fail-closed constraints for the produced data
 and artifacts. Separate local development and test connections use a restricted
-application login through typed secret settings and the initialized Alembic
-environment contains no schema revision yet. Production score-distribution
-integration, persistence migrations, repositories and the frontend have not
-been created. CI/CD automation is intentionally not configured.
+application login through typed secret settings. Four linear Alembic revisions
+implement the schema and raw-manifest-gated repositories provide atomic,
+idempotent exact-byte and normalized-projection writes with reload comparison.
+Production artifact import, current score-distribution integration and the
+frontend have not been created. CI/CD automation is intentionally not
+configured.
 
 The development environment uses 64-bit Python 3.14.7.
 
@@ -297,9 +299,11 @@ implementation. Start with:
 - [Milestone E to F handoff](docs/handoffs/milestone-e-to-f.md)
 - [PostgreSQL entity-relationship model](docs/architecture/postgresql-entity-relationship-model.md)
 - [PostgreSQL connections and Alembic](docs/architecture/postgresql-connections-and-alembic.md)
+- [PostgreSQL repositories and transactions](docs/architecture/postgresql-repositories.md)
 - [Step 5.1 to 5.2 handoff](docs/handoffs/step-5-1-to-5-2.md)
 - [Step 5.3 to 5.4 handoff](docs/handoffs/step-5-3-to-5-4.md)
 - [Step 5.7 to 5.8 handoff](docs/handoffs/step-5-7-to-5-8.md)
+- [Milestone F to G handoff](docs/handoffs/milestone-f-to-g.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -317,13 +321,14 @@ The planned order is:
 8. Automation, deployment and end-to-end backend validation
 9. Frontend architecture and implementation
 
-Milestone E is complete and Milestone F is in progress. The selected development
+Milestones E and F are complete. The selected development
 classifier has deterministic versioned components and an append-only
 development-accepted registry record. Model-agnostic simulation contracts,
 scoreline sampling, table mechanics, vectorized 10,000-run execution and
 aggregate position probabilities are implemented. Steps 5.1 through 5.7 have
 finalized the PostgreSQL entity-relationship design, configured isolated typed
-local connections and implemented the complete schema as four linear Alembic
-revisions. The next step is **Step 5.8: implement typed repositories one
-aggregate at a time**. The test season remains sealed and has not
+local connections, implemented the complete schema as four linear Alembic
+revisions and added raw-manifest-gated atomic repositories with PostgreSQL
+transaction tests. The next step is **Step 6.1: define current-provider
+capability and domain contracts**. The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

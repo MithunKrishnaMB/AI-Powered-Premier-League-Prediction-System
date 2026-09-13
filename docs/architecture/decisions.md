@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 5.7 of Milestone F.
+These decisions describe implemented behavior through Milestone F.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -740,5 +740,61 @@ persist or evaluate repository artifacts.
 **Consequences:** A fresh database can upgrade to one head and downgrade to an
 empty application schema without losing migration history correctness. Invalid
 identity, provenance, chronology, runtime, registry or probability state fails
-at the database boundary. Typed import repositories and transaction-focused
-integration tests remain Steps 5.8 and 5.9 respectively.
+at the database boundary. Steps 5.8 and 5.9 build and verify the repository
+boundary on this unchanged four-revision head.
+
+## ADR-034 — Raw-gated immutable aggregate repositories
+
+**Status:** Accepted
+
+**Context:** The schema can reject invalid rows, but persistence must also retain
+the exact produced bytes, existing content identities and artifact boundaries.
+An upsert that silently replaces history, reconstructs JSON from relational
+values or begins writing before source verification would weaken the completed
+lineage guarantees.
+
+**Decision:** Accept only frozen `AggregateWritePlan` values containing exact
+`StoredObject` bytes and allowlisted `ImmutableRow` projections. Keep the
+aggregate kinds for identity/reference data, raw captures, canonical fixtures,
+features/Elo, training, evaluation, model artifacts, registry, provider cache,
+scoreline distributions, simulation inputs, runs and summaries distinct. Use
+only caller-supplied UUID, textual and SHA-256 identities and require rows in
+foreign-key dependency order.
+
+Before opening a database transaction, verify every file in the reviewed raw
+manifest and compare any aggregate raw-artifact or historical-manifest lineage
+with that evidence. Within one serializable transaction, insert exact bytes
+first, insert normalized projections second, force every deferred constraint to
+run and reload-compare every supplied field and byte before commit. Conflict
+handling is retry-only: `ON CONFLICT DO NOTHING` is followed by exact comparison
+and never hides different existing content. Map database failures to stable,
+non-secret categories.
+
+**Consequences:** Retrying an identical aggregate is idempotent while a reused
+identity with different content fails closed. The repository cannot bypass raw
+manifest verification, change immutable history, access the sealed target,
+activate a development-accepted model or infer scorelines from three-way
+classifier probabilities. Production corpus import remains a separate,
+explicitly authorized operation.
+
+## ADR-035 — Transaction and PostgreSQL constraint verification
+
+**Status:** Accepted
+
+**Context:** Unit validation alone cannot prove transaction rollback, deferred
+constraint execution, immutable database guards or retry behavior against the
+real PostgreSQL schema.
+
+**Decision:** Run Step 5.9 integration tests only against the isolated
+`pl_platform_test` database at exact Alembic head `f0004_step_5_7`. Exercise
+successful atomic persistence, byte-for-byte idempotent retry, conflicting
+existing content, rollback after a later row constraint fails, direct checksum
+rejection, immutable update rejection and a raw-verification failure that opens
+no write transaction. Retain the existing empty-to-head, head-to-base and
+schema-introspection tests.
+
+**Consequences:** The executable test boundary verifies both application and
+database enforcement without importing the production artifact corpus or
+modifying development data. The 2025–26 target stays sealed, the registry has no
+active model and current-provider, API, deployment, frontend and CI/CD work
+remain outside Milestone F.

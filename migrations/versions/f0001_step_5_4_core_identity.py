@@ -123,7 +123,13 @@ DDL: tuple[str, ...] = (
             CHECK (
                 (canonicalization_profile = 'numpy_array_v1' AND encoding IS NULL)
                 OR
-                (canonicalization_profile <> 'numpy_array_v1' AND encoding = 'utf-8')
+                (canonicalization_profile = 'opaque'
+                    AND encoding IN ('utf-8', 'utf-8-sig', 'cp1252'))
+                OR
+                (canonicalization_profile IN (
+                    'canonical_json_v1', 'canonical_jsonl_v1',
+                    'identity_json_v1'
+                ) AND encoding = 'utf-8')
             ),
         CONSTRAINT ck_stored_object_canonical_linefeed
             CHECK (
@@ -134,7 +140,10 @@ DDL: tuple[str, ...] = (
             ),
         CONSTRAINT ck_stored_object_no_utf8_bom
             CHECK (
-                encoding IS NULL
+                canonicalization_profile NOT IN (
+                    'canonical_json_v1', 'canonical_jsonl_v1',
+                    'identity_json_v1'
+                )
                 OR substring(payload FROM 1 FOR 3) <> decode('efbbbf', 'hex')
             )
     )

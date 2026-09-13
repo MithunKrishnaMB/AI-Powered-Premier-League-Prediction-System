@@ -35,7 +35,7 @@ alembic upgrade head
 ```
 
 Do not run `downgrade base` against a database containing retained artifacts.
-Step 5.8 must import aggregates through typed repositories, verify raw manifests
+Step 5.8 now supplies typed aggregate repositories that verify raw manifests
 before opening writes and compare exact bytes and normalized relationships
-before commit. Step 5.9 adds transaction-level negative tests; it does not
-weaken the constraints already installed here.
+before commit. Step 5.9 verifies transaction rollback, idempotency, conflicts,
+checksums and immutable guards against this unchanged migration head.

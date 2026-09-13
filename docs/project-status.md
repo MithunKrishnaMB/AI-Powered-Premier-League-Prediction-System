@@ -6,9 +6,9 @@
 
 **Completed milestones:** A — Repository Foundation; B — Historical Data
 System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
-Registry and Simulation
+Registry and Simulation; F — PostgreSQL Persistence
 
-**Current milestone:** F — PostgreSQL Persistence
+**Current milestone:** G — Current-Season Integration
 
 **Completed Milestone F steps:** 5.1 — PostgreSQL entity-relationship model
 finalized against produced data and artifacts; 5.2 — typed, isolated local/test
@@ -16,7 +16,9 @@ PostgreSQL connections; 5.3 — secret-free Alembic initialization without a
 schema revision; 5.4 — exact-content, identity, season and fixture migration;
 5.5 — feature/Elo, model artifact and registry migration; 5.6 — training,
 sealed-test, prediction and evaluation migration; 5.7 — ingestion/cache,
-explicit scoreline-distribution and simulation migration
+explicit scoreline-distribution and simulation migration; 5.8 — typed,
+raw-manifest-gated immutable aggregate repositories; 5.9 — PostgreSQL
+transaction, rollback, idempotency and constraint integration tests
 
 **Completed Milestone E steps:** 4.1 — deterministic model artifact layout and
 manifest; 4.2 — canonical model serialization, checksums and reload; 4.3 —
@@ -33,8 +35,8 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 5.8 — implement typed repositories one
-aggregate at a time.
+**Exact next implementation step:** 6.1 — define current-provider capability
+and domain contracts.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -54,6 +56,12 @@ acceptance and explanations
   features/Elo, training/evaluation artifacts, model components, append-only
   registry events, raw captures, explicit scoreline distributions and complete
   10,000-run simulation outputs.
+- Frozen aggregate write plans with explicit table ownership, caller-supplied
+  identities, dependency ordering and exact canonical or binary objects.
+- Pre-transaction verification of every reviewed raw capture, serializable
+  exact-byte-first writes, forced deferred constraints and reload comparison.
+- Stable non-secret repository failure categories, retry idempotency and
+  rollback on any conflict or invalid later projection.
 - Structured JSON logging with recursive key-based secret redaction.
 - Local Ruff, strict mypy, pytest, branch coverage and dependency checks.
 - Versioned Football-Data manifest with HTTPS host allowlisting.
@@ -167,8 +175,8 @@ acceptance and explanations
   simulation inputs/runs and complete aggregate summaries.
 - Explicit persistence ownership, primary and foreign keys, uniqueness,
   canonical order, immutability, restrictive deletion and fail-closed immediate
-  and deferred constraint responsibilities without a database connection or
-  migration.
+  and deferred constraint responsibilities enforced by migrations and the
+  repository transaction boundary.
 
 ## Historical dataset status
 
@@ -241,11 +249,11 @@ acceptance and explanations
 
 ## Last verified quality result
 
-The implementation through Step 5.7 passed the complete local suite:
+The implementation through Step 5.9 passed the complete local suite:
 
-- pytest: 373 passed, including both live PostgreSQL targets and migration-shape
-  integration checks.
-- branch-aware coverage: 90.75% (minimum required: 90%).
+- pytest: 389 passed, including live PostgreSQL migration and repository
+  transaction checks.
+- branch-aware coverage: 90.53% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
 - strict mypy: passed.
@@ -258,6 +266,12 @@ The implementation through Step 5.7 passed the complete local suite:
   role-creation, replication or row-security-bypass capability.
 - the test database completed a transactional upgrade from base to
   `f0004_step_5_7`, downgrade to base and second upgrade to head.
+- repository tests verified atomic exact-object and normalized-row writes,
+  identical retry idempotency, conflict detection and reload comparison.
+- a later normalized-row constraint failure rolled back the earlier exact-byte
+  insert, while a raw-manifest failure prevented any database write.
+- direct checksum corruption and immutable-row updates were rejected by
+  PostgreSQL.
 - schema introspection confirmed all 11 bounded application schemas, restrictive
   update/delete behavior on every provenance foreign key, immutable guards on
   every application table and the sealed-test and 10,000-run constraints.
@@ -352,7 +366,7 @@ The implementation through Step 5.7 passed the complete local suite:
 - Persistence and current-provider production of fixture score distributions.
 - Simulation artifact serialization or database storage.
 - Final-test evidence and active model promotion.
-- Typed repositories and artifact import transactions.
+- Production artifact-corpus import through the typed repositories.
 - Current-season provider integration.
 - FastAPI endpoints.
 - Deployment or frontend code.
@@ -373,10 +387,10 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 5.8 may implement typed repositories one aggregate at a time against the
-completed [migration chain](architecture/postgresql-migrations.md). Import
-must verify exact source before opening a transaction, retain the canonical
-bytes and normalized projection together, use existing UUID/SHA identities and
-reload/compare before commit. It must not add current-provider ingestion,
-perform final-test evaluation, promote an active model, add APIs, deployment,
-frontend code or CI/CD configuration.
+Step 6.1 may define current-provider capability and domain contracts against
+the completed [Milestone F handoff](handoffs/milestone-f-to-g.md). It may name
+supported operations, payloads, identity and timestamp rules and typed
+quota/error vocabulary, but must not implement provider transformation,
+network retries, response caching, production artifact import, final-test
+evaluation, active promotion, APIs, deployment, frontend code or CI/CD
+configuration.

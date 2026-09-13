@@ -1,8 +1,9 @@
 # PostgreSQL Entity-Relationship Model
 
 **Implementation status:** The model is implemented by the linear Step
-5.4–5.7 Alembic chain ending at revision `f0004_step_5_7`. No artifacts have
-been imported by these schema-only revisions.
+5.4–5.7 Alembic chain ending at revision `f0004_step_5_7` and Steps 5.8–5.9
+provide and verify its typed transaction boundary. No production artifact
+corpus has been imported by the migrations or repository tests.
 
 ## Status and scope
 
@@ -26,8 +27,9 @@ The design covers:
 - deterministic 10,000-run simulation inputs, results and aggregate summaries.
 
 Database settings, credentials and connections begin in Step 5.2. Alembic
-initialization is Step 5.3. This document is not a migration and does not create
-tables, repositories or persisted simulation artifacts.
+initialization is Step 5.3. This document remains the normative design rather
+than a migration; the implementation and repository behavior are documented in
+the linked PostgreSQL architecture pages.
 
 ## Verified design baseline
 

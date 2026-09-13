@@ -130,7 +130,7 @@ Each numbered step should remain small enough to review and test in isolation.
 consistency checks also pass. The 2025–26 target remained sealed and no model
 was activated.
 
-## Milestone F — PostgreSQL Persistence — in progress
+## Milestone F — PostgreSQL Persistence — complete
 
 - **Step 5.1 — complete:** Finalized the PostgreSQL entity-relationship model
   against produced data and artifacts. Stable UUID/content identities, exact
@@ -151,12 +151,15 @@ was activated.
   and evaluation migrations.
 - **Step 5.7 — complete:** Added raw-capture, future provider-cache, explicit
   scoreline-distribution, simulation-input/run and aggregate-summary migrations.
-- **Step 5.8 — next:** Implement repositories one aggregate at a time.
-- **Step 5.9:** Add transaction and PostgreSQL integration tests.
+- **Step 5.8 — complete:** Implemented the typed, raw-manifest-gated immutable
+  aggregate repository with exact-byte-first atomic writes, dependency-ordered
+  projections, idempotent reload comparison and stable failure categories.
+- **Step 5.9 — complete:** Added live PostgreSQL transaction, rollback,
+  idempotency, conflict, checksum, immutable-guard and migration-contract tests.
 
-## Milestone G — Current-Season Integration — planned
+## Milestone G — Current-Season Integration — next
 
-- **Step 6.1:** Define provider capability and domain contracts.
+- **Step 6.1 — next:** Define provider capability and domain contracts.
 - **Step 6.2:** Implement fixture/team adapter transformation.
 - **Step 6.3:** Add quota handling, retries and sanitized logging.
 - **Step 6.4:** Add PostgreSQL response caching.

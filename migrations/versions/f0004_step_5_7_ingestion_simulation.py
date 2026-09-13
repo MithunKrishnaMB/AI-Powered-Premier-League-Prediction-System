@@ -52,7 +52,8 @@ DDL: tuple[str, ...] = (
             AND destination !~ '^[/\\\\]'
         ),
         CONSTRAINT ck_raw_capture_contract CHECK (
-            encoding = 'utf-8' AND expected_byte_count > 0
+            encoding IN ('utf-8', 'utf-8-sig', 'cp1252')
+            AND expected_byte_count > 0
             AND expected_row_count > 0 AND cardinality(required_columns) > 0
             AND immutable
         )
