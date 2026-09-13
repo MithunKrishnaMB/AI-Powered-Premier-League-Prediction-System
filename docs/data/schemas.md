@@ -272,6 +272,15 @@ ranking exposes head-to-head points and away-goal values when those official
 tiebreaks are used. No simulation contract accepts team names, betting odds,
 training targets or a three-way-to-scoreline conversion.
 
+`VectorizedSimulationResult` retains read-only `int64` points, goals-for and
+goals-against matrices, `int16` sampled-score matrices and a float64
+`(10000, 20, 20)` position-mass tensor. Its deterministic run UUID binds the
+complete season input, ordered distribution identities, seed, algorithm version
+and fixed count. `SeasonSimulationSummary` contains 20 ordered
+`TeamSimulationSummary` records with expected points and goals, a complete
+20-position probability vector and champion, top-four, top-six and relegation
+probabilities. The summary UUID binds the exact aggregate content.
+
 See [Simulation Domain, Scorelines and Table Rules](../simulation/domain-and-table.md)
 for sampling, ordering and ranking details.
 

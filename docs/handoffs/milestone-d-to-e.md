@@ -104,12 +104,17 @@ evaluation and test-freeze lineage.
   scoreline selection that is invariant to fixture iteration order.
 - **4.6 complete:** ledger-reconciled table updates and official statistical
   tiebreak ordering, with a residual playoff requirement failing closed.
+- **4.7 complete:** fixed 10,000-run vectorized score selection, table totals and
+  final-position mass with deterministic input-bound run identities.
+- **4.8 complete:** expected points and goals, all 20 position probabilities and
+  champion, top-four, top-six and relegation aggregates.
+- **4.9 complete:** exact repeated-run, probability-mass, score-frequency,
+  goal-conservation, points and tamper-rejection tests.
 
-## Exact next step — 4.7
+## Exact next step — 5.1
 
-Vectorize 10,000 simulations over the established single-run structures. First
-define the approved source and provenance for explicit fixture scoreline
-distributions; the registered three-way classifier cannot supply them. Preserve
-order-independent draws and fail closed on an unresolved official playoff. Do
-not open 2025–26, add persistence or APIs or weaken canonical team identity,
+Finalize the entity-relationship model against the artifacts and simulation
+summaries now produced. Persistence must retain deterministic identities and
+must not treat the registered three-way classifier as a score-distribution
+source. Do not open 2025–26, add APIs or weaken canonical team identity,
 point-in-time batches, predictor separation or raw-manifest verification.

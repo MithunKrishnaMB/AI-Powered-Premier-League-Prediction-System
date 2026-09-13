@@ -53,10 +53,11 @@ complete. A deterministic CatBoost depth-6 model artifact, strict compatibility
 manifest and append-only development registry now implement Steps 4.1 through
 4.3. Strict simulator inputs, explicit scoreline distributions, stateless
 sampling and immutable Premier League table mechanics implement Steps 4.4
-through 4.6. No final test metric has been calculated and no model has been
-activated. Vectorized 10,000-run simulation, aggregation, database migrations
-and the frontend have not been created. CI/CD automation is intentionally not
-configured.
+through 4.6. Fixed 10,000-run vectorized execution, complete position and
+threshold aggregation and reproducibility invariants complete Milestone E. No
+final test metric has been calculated and no model has been activated.
+Production score-distribution integration, database migrations and the frontend
+have not been created. CI/CD automation is intentionally not configured.
 
 The development environment uses 64-bit Python 3.14.
 
@@ -259,6 +260,7 @@ implementation. Start with:
 - [Milestone B to C handoff](docs/handoffs/milestone-b-to-c.md)
 - [Milestone C to D handoff](docs/handoffs/milestone-c-to-d.md)
 - [Milestone D to E handoff](docs/handoffs/milestone-d-to-e.md)
+- [Milestone E to F handoff](docs/handoffs/milestone-e-to-f.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -276,9 +278,11 @@ The planned order is:
 8. Automation, deployment and end-to-end backend validation
 9. Frontend architecture and implementation
 
-Milestone E is complete through Step 4.6. The selected development classifier
+Milestone E is complete. The selected development classifier
 has deterministic versioned components and an append-only development-accepted
 registry record. Model-agnostic single-run simulation contracts, scoreline
-sampling and table mechanics are implemented. The next step is **Step 4.7:
-vectorize 10,000 simulations**. The test season remains sealed and has not
-contributed a fit, tuning decision, acceptance decision or metric.
+sampling, table mechanics, vectorized 10,000-run execution and aggregate
+position probabilities are implemented. The next step is **Step 5.1: finalize
+the entity-relationship model against produced data**. The test season remains
+sealed and has not contributed a fit, tuning decision, acceptance decision or
+metric.

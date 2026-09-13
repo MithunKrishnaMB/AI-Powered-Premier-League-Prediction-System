@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 4.6 of Milestone E.
+These decisions describe implemented behavior through Step 4.9 of Milestone E.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -543,6 +543,71 @@ official rule calls for a separately prescribed neutral-venue playoff when a
 material placing must be determined.
 
 **Consequences:** Every row is auditable back to results and every reported
-position follows official statistical criteria. Later multi-run aggregation
-must explicitly handle the exceptional playoff boundary rather than silently
+position follows official statistical criteria. ADR-027 defines how multi-run
+aggregation represents the exceptional playoff boundary without silently
 inventing a sporting result.
+
+## ADR-027 — Fixed vectorized simulation batch and fractional playoff mass
+
+**Status:** Accepted
+
+**Context:** Ten thousand simulations must remain reproducible without building
+10,000 mutable object graphs. An unresolved official playoff also cannot be
+silently replaced by an identifier sort or an unsupported match model.
+
+**Decision:** Fix simulation algorithm version 1 at exactly 10,000 runs. Sample
+each explicit fixture distribution across the run axis, accumulate table values
+in NumPy and store read-only score and table matrices plus a float64 position-
+mass tensor. Rank by the official statistical criteria. If a remaining tie
+occupies multiple positions, distribute each tied team's mass equally across
+those positions while the single-table API continues to reject a request for a
+unique order. Bind the run UUID to complete canonical input, seed, algorithm
+version and run count.
+
+**Consequences:** Every team and position retains unit probability without
+claiming a fictional playoff winner. Repeated inputs yield identical run
+identity and matrix values and later parallel execution cannot change fixture
+draws.
+
+## ADR-028 — Complete position and threshold aggregation
+
+**Status:** Accepted
+
+**Context:** Consumers need probabilities rather than individual simulated
+tables and partial position outputs can hide lost or duplicated probability
+mass.
+
+**Decision:** Aggregate float64 position mass into a complete 20-position vector
+per team. Derive expected points, goals for, goals against and goal difference,
+plus champion, top-four, top-six and relegation probabilities. Require each team
+and position to sum to one and the four league thresholds to total one, four,
+six and three. Derive a content-bound UUIDv5 summary identity.
+
+**Consequences:** Aggregates are self-checking, deterministic and explicit about
+all finishing positions. No database schema, API representation or production
+score-distribution provider is implied.
+
+## ADR-029 — Persistence begins with a schema-only boundary
+
+**Status:** Accepted
+
+**Context:** Milestone E closes with deterministic artifact, registry and
+simulation contracts, while Milestone F introduces PostgreSQL persistence. A
+database design that collapses immutable provenance, treats development
+acceptance as activation or assumes that classifier probabilities are scoreline
+distributions would invalidate completed guarantees before any migration exists.
+
+**Decision:** Begin Milestone F with Step 5.1 as an entity-relationship design
+step against the data and artifacts already produced. Model canonical fixtures,
+feature and training lineage, evaluations, artifact components and manifests,
+append-only registry events, explicit simulation inputs and aggregate summaries
+without configuring a database, initializing Alembic or creating migrations.
+Preserve content identities, canonical checksums, three-way outcome order,
+predictor/target separation and the sealed 2025–26 final-test boundary. Keep a
+development-accepted registry entry distinct from an active model and keep
+scoreline distributions independent of the CatBoost classifier.
+
+**Consequences:** Step 5.1 can settle entities, keys, relationships, constraints
+and ownership before operational database choices are introduced. Connections
+remain Step 5.2, Alembic remains Step 5.3 and migrations remain Steps 5.4–5.7;
+no persistence implementation may bypass raw-source or evaluation lineage.

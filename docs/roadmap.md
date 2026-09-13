@@ -104,7 +104,7 @@ Each numbered step should remain small enough to review and test in isolation.
   standardized logistic coefficients, CatBoost structural importance,
   canonical-team Poisson rate components and Dixon–Coles correction scope.
 
-## Milestone E — Registry and Simulation — current
+## Milestone E — Registry and Simulation — complete
 
 - **Step 4.1 — complete:** Define deterministic artifact layout, stable
   identities, strict manifest contracts and fail-closed compatibility rules.
@@ -118,13 +118,23 @@ Each numbered step should remain small enough to review and test in isolation.
   SHA-256 draws and canonical inverse-CDF selection.
 - **Step 4.6 — complete:** Implement immutable table updates and official
   statistical ranking with fail-closed unresolved-playoff handling.
-- **Step 4.7 — next:** Vectorize 10,000 simulations.
-- **Step 4.8:** Aggregate threshold and position probabilities.
-- **Step 4.9:** Add simulator invariant and reproducibility tests.
+- **Step 4.7 — complete:** Execute exactly 10,000 simulations with vectorized
+  inverse-CDF score sampling, table arithmetic and final-position mass.
+- **Step 4.8 — complete:** Aggregate expected table values, all 20 position
+  probabilities and champion, top-four, top-six and relegation thresholds.
+- **Step 4.9 — complete:** Verify exact reproducibility, sampling behavior,
+  table conservation and league-wide probability invariants.
 
-## Milestone F — PostgreSQL Persistence — planned
+**Closeout evidence:** The complete local suite passes with 343 tests and
+90.86% branch coverage. Ruff lint, Ruff formatting, strict mypy and dependency
+consistency checks also pass. The 2025–26 target remained sealed and no model
+was activated.
 
-- **Step 5.1:** Finalize the entity-relationship model against produced data.
+## Milestone F — PostgreSQL Persistence — next
+
+- **Step 5.1 — next:** Finalize the entity-relationship model against produced
+  data. This step defines the persistence model only; connection configuration,
+  Alembic and migrations remain in Steps 5.2–5.7.
 - **Step 5.2:** Configure local and test PostgreSQL connections.
 - **Step 5.3:** Initialize Alembic.
 - **Step 5.4:** Add identity, season and fixture migrations.

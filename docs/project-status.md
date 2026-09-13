@@ -5,15 +5,18 @@
 **Runtime:** 64-bit Python 3.14.7
 
 **Completed milestones:** A — Repository Foundation; B — Historical Data
-System; C — Point-in-Time Features and Elo; D — Probabilistic Models
+System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
+Registry and Simulation
 
-**Current milestone:** E — Registry and Simulation
+**Current milestone:** F — PostgreSQL Persistence
 
 **Completed Milestone E steps:** 4.1 — deterministic model artifact layout and
 manifest; 4.2 — canonical model serialization, checksums and reload; 4.3 —
 append-only registry states and development-promotion rules; 4.4 — simulator
 domain contracts; 4.5 — deterministic scoreline sampling; 4.6 — immutable
-table updates and ranking
+table updates and ranking; 4.7 — vectorized 10,000-run execution; 4.8 —
+aggregate position and threshold probabilities; 4.9 — simulator invariants and
+exact reproducibility tests
 
 **Completed Milestone D steps:** 3.1 — naive and Elo benchmarks; 3.2 —
 multinomial logistic regression; 3.3 — expanding walk-forward validation; 3.4
@@ -22,7 +25,8 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 4.7 — vectorize 10,000 simulations.
+**Exact next implementation step:** 5.1 — finalize the entity-relationship
+model against produced data.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -127,6 +131,16 @@ acceptance and explanations
   reconciliation.
 - Final-table ranking by points, goal difference, goals scored, head-to-head
   points and head-to-head away goals, with unresolved playoffs failing closed.
+- Fixed 10,000-run simulation batches with vectorized score selection, goal and
+  point accumulation and read-only NumPy result matrices.
+- Deterministic simulation identities binding the complete canonical season
+  input, score-distribution identities, seed, run count and algorithm version.
+- Doubly stochastic final-position mass, using equal fractional allocation over
+  statistically unresolved playoff slots without asserting an official winner.
+- Per-team expected points, goals and goal difference; all 20 position
+  probabilities; and champion, top-four, top-six and relegation probabilities.
+- Content-derived aggregate summary identities and league-wide unit-mass,
+  threshold-total, conservation and reproducibility invariants.
 
 ## Historical dataset status
 
@@ -199,10 +213,10 @@ acceptance and explanations
 
 ## Last verified quality result
 
-The implementation through Milestone E Step 4.6 passed the complete local suite:
+The completed Milestone E implementation passed the complete local suite:
 
-- pytest: 333 passed.
-- branch-aware coverage: 90.95% (minimum required: 90%).
+- pytest: 343 passed.
+- branch-aware coverage: 90.86% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
 - strict mypy: passed.
@@ -255,6 +269,13 @@ The implementation through Milestone E Step 4.6 passed the complete local suite:
 - table tests reconciled home wins, draws and away wins against the immutable
   fixture ledger and exercised every official statistical ranking criterion;
   an unresolved playoff remained an explicit failure.
+- repeated 10,000-run batches produced identical identities and exact NumPy
+  matrices; team and position mass each summed to one for every run.
+- aggregate champion, top-four, top-six and relegation probability totals were
+  exactly one, four, six and three within the strict numerical tolerance.
+- a complete deterministic 380-fixture double round robin produced 57 points,
+  19 goals for and 19 goals against per club in every run and conserved 1,140
+  league points per simulation.
 
 ## Important project constraints
 
@@ -274,12 +295,22 @@ The implementation through Milestone E Step 4.6 passed the complete local suite:
 - Retained bookmaker columns are not automatically eligible model features.
 - Preserve a strict separation between predictors, labels and provenance to
   prevent target leakage.
+- The selected development policy remains CatBoost depth 6 with identity
+  calibration and outcome order `home_win`, `draw`, `away_win`.
+- A `development_accepted` registry entry is not an active model. Active
+  promotion remains unavailable until typed final-test evidence is authorized
+  and implemented.
+- The three-way classifier does not produce scoreline probabilities. Simulation
+  requires an explicit, separately identified scoreline distribution.
+- Preserve deterministic identities, canonical ordering and bytes, checksums,
+  numerical dtypes and the complete source-to-evaluation provenance chain.
 - Develop the backend and ML system before the frontend.
 
 ## Not implemented yet
 
 - Final one-time untouched-test evaluation.
-- Vectorized 10,000-run season simulation and aggregate probabilities.
+- Persistence and current-provider production of fixture score distributions.
+- Simulation artifact serialization or database storage.
 - Final-test evidence and active model promotion.
 - PostgreSQL persistence or migrations.
 - Current-season provider integration.
@@ -302,8 +333,11 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 4.7 may execute and vectorize 10,000 simulations using the strict
-single-run contracts. It must first consume an explicitly approved scoreline
-distribution source rather than infer scores from the registered three-way
-classifier. It must not open the one-time 2025–26 test target, activate a model
-or weaken the immutable source and evaluation lineage.
+Step 5.1 may finalize the entity-relationship model against the canonical
+fixtures, feature and training lineage, evaluations, model artifacts, append-only
+registry events, explicit simulation inputs and aggregate summaries already
+produced. It is a schema-design step only. Database connection configuration is
+Step 5.2, Alembic initialization is Step 5.3 and migrations begin in Step 5.4.
+Step 5.1 must not invent a production source for fixture score distributions,
+open the one-time 2025–26 test target, activate a model or weaken immutable
+source and evaluation lineage.

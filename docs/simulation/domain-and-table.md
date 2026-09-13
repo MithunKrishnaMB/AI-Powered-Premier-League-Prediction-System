@@ -2,11 +2,11 @@
 
 ## Scope
 
-Milestone E Steps 4.4 through 4.6 define the typed input and state contracts for
-one season simulation, deterministic sampling from an explicit scoreline
-distribution and immutable Premier League table updates and ranking. They do
-not generate score distributions, execute or vectorize a complete simulation,
-aggregate simulation results or persist outputs.
+Milestone E Steps 4.4 through 4.9 define the typed input and state contracts for
+season simulation, deterministic sampling from an explicit scoreline
+distribution, immutable Premier League table updates, fixed 10,000-run
+vectorized execution, aggregate probabilities and reproducibility invariants.
+They do not generate score distributions or persist outputs.
 
 The development-accepted CatBoost artifact emits three-way outcome
 probabilities only. It is not a score model. The simulator therefore requires a
@@ -71,11 +71,44 @@ playoff when a material placing must be decided. This implementation raises
 `UnresolvedTableTieError`. It does not use club names, alphabetical order or
 canonical UUIDs as a hidden sporting tiebreak and does not simulate a playoff.
 
+## Vectorized execution
+
+`simulate_season_10k` always executes exactly 10,000 runs. It derives the same
+stateless fixture draws defined above, performs inverse-CDF selection in NumPy
+and accumulates points, goals for and goals against across the run axis. Result
+matrices are read-only and use `int64` for table totals, `int16` for sampled
+goals and float64 for position mass.
+
+The simulation UUID binds schema and algorithm version, the full completed
+fixture ledger, ordered remaining fixture and distribution identities, canonical
+team order, season, unsigned 64-bit seed and fixed run count. Repeating an
+unchanged input and seed returns byte-identical matrix values and the same UUID.
+
+Primary ranking is vectorized across points, goal difference and goals scored.
+Head-to-head points and away goals are evaluated only for primary tie groups.
+When official statistics still require a playoff, each tied team receives equal
+fractional probability over the unresolved occupied positions. This preserves
+unit probability for every team and every position without claiming which club
+would win an unplayed playoff. The strict single-table API continues to raise
+`UnresolvedTableTieError` when a unique official order is requested.
+
+## Aggregation and invariants
+
+`aggregate_simulations` emits expected points, goals for, goals against and goal
+difference plus all 20 finishing-position probabilities for each team. It also
+derives champion, top-four, top-six and relegation probabilities. The aggregate
+summary UUID binds the run and exact team summaries.
+
+Validation requires every team's position probabilities to sum to one, every
+position's probability across teams to sum to one and league-wide champion,
+top-four, top-six and relegation mass to total one, four, six and three. Tests
+also verify exact repeated-run equality, order-independent fixture draws,
+score-distribution frequencies, goals-for/goals-against conservation, points
+bounds, immutable arrays and summary identity rejection after tampering.
+
 ## Deferred work
 
-Step 4.7 will execute and vectorize 10,000 simulations from these contracts.
-Step 4.8 will define aggregate threshold and position probabilities and Step
-4.9 will add whole-simulator invariants and reproducibility tests. Those steps
-must resolve how externally approved scoreline distributions enter the run and
-how a statistically unresolved official playoff is represented before complete
-position probabilities can be claimed.
+Milestone F may persist these structures after its entity relationships are
+reviewed. A later integration step must still define how a current provider and
+an approved score model produce provenance-bound fixture distributions. The
+registered CatBoost artifact alone remains insufficient for that purpose.
