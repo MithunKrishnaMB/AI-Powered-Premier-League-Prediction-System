@@ -48,10 +48,14 @@ and deterministic CatBoost candidate tuning is restricted to the development
 folds. Expanding out-of-fold calibration assessment, an independent-Poisson
 score baseline and a Dixon–Coles low-score adjustment are included. Frozen
 development-only acceptance gates select CatBoost as champion and deterministic
-global explanation data covers every evaluated model family. Milestone D's
-implementation is complete and awaits the user-owned milestone commit. No final
-test metric has been calculated. Model registries, database migrations and the
-frontend have not been created. CI/CD automation is intentionally not
+global explanation data covers every evaluated model family. Milestone D is
+complete. A deterministic CatBoost depth-6 model artifact, strict compatibility
+manifest and append-only development registry now implement Steps 4.1 through
+4.3. Strict simulator inputs, explicit scoreline distributions, stateless
+sampling and immutable Premier League table mechanics implement Steps 4.4
+through 4.6. No final test metric has been calculated and no model has been
+activated. Vectorized 10,000-run simulation, aggregation, database migrations
+and the frontend have not been created. CI/CD automation is intentionally not
 configured.
 
 The development environment uses 64-bit Python 3.14.
@@ -201,6 +205,35 @@ complete development folds and refits explanation-only models on the 3,800
 development rows. It neither predicts nor scores 2025–26 and does not serialize
 a model.
 
+Build, checksum and reload the selected development artifact with:
+
+```powershell
+plp-build-model-artifact `
+  --manifest data/manifests/football-data.json `
+  --teams data/reference/teams.json `
+  --seasons data/reference/seasons.json `
+  --data-root data `
+  --artifact-root artifacts
+```
+
+This command re-enters through raw verification, fits only the 3,800 development
+examples and writes canonical CatBoost and stateless preprocessing components
+beneath ignored `artifacts/models/v1/`. It verifies checksums, compatibility and
+all development probabilities after reload without opening 2025–26.
+
+Register the artifact as development-accepted with:
+
+```powershell
+plp-register-model-artifact `
+  --artifact-manifest <artifact-manifest-path> `
+  --artifact-root artifacts `
+  --registry-root artifacts/registry `
+  --accept-development
+```
+
+The registry is append-only. Development acceptance is not activation; active
+promotion fails closed until typed one-time final-test evidence exists.
+
 See [historical data provenance](docs/data/historical-data.md) for source and
 integrity details.
 
@@ -226,6 +259,8 @@ implementation. Start with:
 - [Milestone B to C handoff](docs/handoffs/milestone-b-to-c.md)
 - [Milestone C to D handoff](docs/handoffs/milestone-c-to-d.md)
 - [Milestone D to E handoff](docs/handoffs/milestone-d-to-e.md)
+- [model artifacts and registry](docs/models/model-artifacts.md)
+- [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
 ## Development order
 
@@ -241,9 +276,9 @@ The planned order is:
 8. Automation, deployment and end-to-end backend validation
 9. Frontend architecture and implementation
 
-Milestone D's implementation is complete. It provides chronological three-way
-benchmarks and models, an untouched 2025–26 test freeze, deterministic tuning
-and calibration assessment, score models, frozen acceptance gates and global
-model-appropriate explanations. The next step is **Step 4.1: define artifact
-layout and manifest schema**. The test season remains sealed and has not
+Milestone E is complete through Step 4.6. The selected development classifier
+has deterministic versioned components and an append-only development-accepted
+registry record. Model-agnostic single-run simulation contracts, scoreline
+sampling and table mechanics are implemented. The next step is **Step 4.7:
+vectorize 10,000 simulations**. The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

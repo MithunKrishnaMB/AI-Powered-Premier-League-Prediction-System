@@ -228,6 +228,53 @@ score cells. These are global model-structure summaries, not fixture-level or
 causal explanations. The canonical path is
 `data/processed/evaluation/epl/model-assessment-2015-2016_to_2024-2025/assessment-manifest.json`.
 
+## Model artifact and registry
+
+`ModelArtifactManifest` schema version 1 defines a content-addressed artifact
+beneath `artifacts/models/v1/<model-id>/<artifact-id>/`. It requires exactly two
+ordered components: a canonical stateless `preprocessor.json` and a canonical
+CatBoost `classifier.json`. Each component has a stable UUIDv5 identity, fixed
+role, relative path, format contract, byte count and SHA-256. Separate UUIDv5
+values identify the semantic fitted model, exact component bundle and complete
+manifest.
+
+The manifest pins CPython, CatBoost, NumPy, Pydantic, tzdata and float64
+requirements; the exact predictor schema, order and checksum; the fixed
+home-win, draw, away-win output order; CatBoost depth-6 metadata; identity
+calibration; and the explicit absence of a selected score model. Its provenance
+embeds the complete training, assessment and untouched-test-freeze manifests and
+cross-checks all base, CatBoost and advanced evaluation checksums.
+
+Registry schema version 1 stores one immutable `RegistryEntry` plus canonical,
+checksum-linked `RegistryEvent` files. Registration creates `candidate`; the
+verified development policy may become `development_accepted`; eligible entries
+may be rejected. Active promotion is unavailable without a future typed final-
+test evidence contract. Registry state is not stored in the artifact manifest.
+
+See [Model Artifacts and Registry](../models/model-artifacts.md) for byte,
+identity, path, compatibility and transition rules.
+
+## Simulation domain
+
+Simulation schema version 1 defines strict `Scoreline`,
+`ScorelineProbability`, `FixtureScorelineDistribution`, `SimulationFixture`,
+`PlayedFixture`, `SampledFixtureResult`, `SeasonSimulationInput`,
+`LeagueTableState` and ranked-table contracts. Distribution and sampled-result
+identities are deterministic UUIDv5 values bound to their complete semantic
+inputs. Scores are bounded to 0–40 and positive ordered probability mass must
+sum to one within `1e-12`.
+
+Season inputs require 20 unique, canonically ordered team UUIDs. Completed and
+remaining fixture identities are unique and disjoint; all teams must belong to
+the season. Date-only fixtures preserve the existing simultaneous calendar-date
+batch policy. Table rows are reconciled against a canonical fixture ledger and
+ranking exposes head-to-head points and away-goal values when those official
+tiebreaks are used. No simulation contract accepts team names, betting odds,
+training targets or a three-way-to-scoreline conversion.
+
+See [Simulation Domain, Scorelines and Table Rules](../simulation/domain-and-table.md)
+for sampling, ordering and ranking details.
+
 ## Team identity
 
 `data/reference/teams.json` contains 34 stable team records covering every club

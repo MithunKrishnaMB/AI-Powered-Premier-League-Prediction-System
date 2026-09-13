@@ -72,7 +72,7 @@ Each numbered step should remain small enough to review and test in isolation.
   dataset using predictor schema version 2, structurally separate targets,
   deterministic bytes and the complete historical checksum chain.
 
-## Milestone D — Probabilistic Models — implementation complete; commit pending
+## Milestone D — Probabilistic Models — complete
 
 - **Step 3.1 — complete:** Implement deterministic three-way naive and Elo
   benchmarks against a fixed chronological holdout.
@@ -104,15 +104,21 @@ Each numbered step should remain small enough to review and test in isolation.
   standardized logistic coefficients, CatBoost structural importance,
   canonical-team Poisson rate components and Dixon–Coles correction scope.
 
-## Milestone E — Registry and Simulation — planned next
+## Milestone E — Registry and Simulation — current
 
-- **Step 4.1 — next:** Define artifact layout and manifest schema.
-- **Step 4.2:** Serialize, checksum and reload models.
-- **Step 4.3:** Implement model registry states and promotion rules.
-- **Step 4.4:** Define simulator domain structures.
-- **Step 4.5:** Sample deterministic scorelines.
-- **Step 4.6:** Implement table updates and ranking.
-- **Step 4.7:** Vectorize 10,000 simulations.
+- **Step 4.1 — complete:** Define deterministic artifact layout, stable
+  identities, strict manifest contracts and fail-closed compatibility rules.
+- **Step 4.2 — complete:** Serialize CatBoost and its stateless preprocessor as
+  canonical checksum-pinned components and verify deterministic reload behavior.
+- **Step 4.3 — complete:** Implement an append-only local registry,
+  development-acceptance promotion and fail-closed active-promotion boundary.
+- **Step 4.4 — complete:** Define strict simulator inputs, scoreline
+  distributions, sampled results, fixture batches and table-state contracts.
+- **Step 4.5 — complete:** Sample scorelines with stateless, order-independent
+  SHA-256 draws and canonical inverse-CDF selection.
+- **Step 4.6 — complete:** Implement immutable table updates and official
+  statistical ranking with fail-closed unresolved-playoff handling.
+- **Step 4.7 — next:** Vectorize 10,000 simulations.
 - **Step 4.8:** Aggregate threshold and position probabilities.
 - **Step 4.9:** Add simulator invariant and reproducibility tests.
 

@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through the completed Milestone C.
+These decisions describe implemented behavior through Step 4.6 of Milestone E.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -415,3 +415,134 @@ manifest, not model weights, registry state or test output.
 before final-test access. Explanations are auditable global summaries appropriate
 to each model family. The 2025–26 target remains sealed; final-test evaluation,
 serialization, promotion, simulation and deployment remain out of scope.
+Milestone D is closed out with CatBoost plus identity calibration as the
+development policy. Step 4.1 is next and may define artifact layout and schema
+only; serialization begins in Step 4.2 and registry-state behavior in Step 4.3.
+The completed implementation is recorded in local commit `3ac10a2`.
+
+## ADR-021 — Content-addressed model artifact contract
+
+**Status:** Accepted
+
+**Context:** The selected development model needs stable semantic and physical
+identity before model bytes or mutable registry state can be introduced. A
+manifest that omits preprocessing, runtime or upstream acceptance lineage could
+load successfully while changing prediction semantics.
+
+**Decision:** Use layout
+`artifacts/models/v1/<model-id>/<artifact-id>/` with one canonical manifest and
+exactly two ordered required components: a stateless numeric preprocessor and a
+CatBoost classifier. Derive distinct UUIDv5 model, component, artifact and
+manifest identities from compact canonical identity payloads. Pin exact Python,
+CatBoost, NumPy, Pydantic, tzdata, predictor-schema and three-outcome contracts.
+Embed the training, assessment and untouched-test-freeze manifests and
+cross-check all evaluation and prediction checksums. Represent identity
+calibration and the absence of a selected score model explicitly. Reject
+unknown fields, versions, paths, components and compatibility drift.
+
+**Consequences:** The selected CatBoost depth-6 identity policy is portable and
+auditable without conflating its semantic model identity, physical bytes or
+future registry state. The artifact produces three-way probabilities only and
+cannot be treated as a scoreline model.
+
+## ADR-022 — Canonical CatBoost JSON serialization and reload
+
+**Status:** Accepted
+
+**Context:** Equivalent CatBoost fits produce different default binary and JSON
+bytes because exports contain a random GUID and wall-clock finish time. Raw
+export checksums therefore cannot satisfy deterministic artifact requirements.
+
+**Decision:** Fit the selected model only on the 3,800 development examples
+after the existing raw-verifying assessment and training workflows succeed.
+Export CatBoost's supported JSON format, replace only its non-predictive model
+GUID and finish time with the stable model ID and fixed epoch, then apply the
+platform's canonical JSON encoding. Serialize the stateless preprocessor
+contract separately. Atomically publish components before the manifest, verify
+size and SHA-256, reload CatBoost, require 200 trees, 175 features and class
+order 0, 1, 2 and compare all development predictions within four float64
+machine epsilons. Never read or predict the untouched test season.
+
+**Consequences:** Repeated builds have stable bytes and checksums while retaining
+CatBoost's supported loader and numerical behavior. The maximum permitted
+round-trip tolerance is explicit and much smaller than the persisted
+probability precision.
+
+## ADR-023 — Append-only development registry with sealed activation
+
+**Status:** Accepted
+
+**Context:** Registry state must not mutate the immutable artifact or imply that
+development acceptance is production approval. The final-test target is still
+sealed and there is no typed final-test evidence contract.
+
+**Decision:** Store an immutable registry entry and deterministically named,
+checksum-linked events below `artifacts/registry/v1/entries/<entry-id>/`.
+Registration fully verifies the artifact and creates `candidate`.
+`development_accepted` requires the embedded frozen assessment and selected
+policy. Candidate and development-accepted entries may transition to terminal
+`rejected` with a reason. Reserve `active` and `retired`, but fail every active
+promotion with `final_test_evidence_required` until a later explicit step adds
+and verifies typed one-time final-test evidence. Do not keep a mutable active
+pointer in Step 4.3.
+
+**Consequences:** Registry history is deterministic and tamper-evident, no
+development-only result can silently become active and future activation must
+extend the schema rather than bypass the untouched-test boundary.
+
+## ADR-024 — Explicit scoreline-distribution simulation boundary
+
+**Status:** Accepted
+
+**Context:** The selected CatBoost classifier emits only home-win, draw and
+away-win probabilities. A season simulator needs scores for goal difference,
+goals scored and head-to-head away-goal ranking, but three-way probabilities do
+not identify a unique or validated score distribution.
+
+**Decision:** Require every remaining `SimulationFixture` to carry a strict,
+content-identified `FixtureScorelineDistribution`. Bind it to canonical fixture
+and team UUIDs, ordered positive probabilities summing to one and scores from 0
+through 40. Do not provide any classifier-to-scoreline conversion. Preserve the
+existing UTC and date-only simultaneous-batch chronology in canonical season
+inputs.
+
+**Consequences:** Table mechanics can be built and tested without pretending
+that the registered artifact has an unsupported scoreline capability. A later
+integration step must explicitly choose and provenance the distribution source.
+
+## ADR-025 — Stateless SHA-256 scoreline draws
+
+**Status:** Accepted
+
+**Context:** A mutable pseudorandom generator makes sampled results depend on
+fixture iteration order and complicates later vectorization and exact
+reproduction.
+
+**Decision:** Derive each unit-interval draw from SHA-256 over schema version,
+unsigned 64-bit seed, non-negative simulation index and canonical fixture UUID.
+Use the first big-endian 64 bits divided by `2^64`, then apply inverse-CDF
+selection in canonical score order. Bind sampled-result UUIDv5 identity to the
+distribution, seed, index and selected score.
+
+**Consequences:** Reordering or parallelizing fixtures cannot change a given
+fixture's draw. The algorithm is portable, explicit and independent of NumPy's
+mutable RNG state.
+
+## ADR-026 — Fixture-ledger table state and official ranking
+
+**Status:** Accepted
+
+**Context:** Simulation tables must reconcile exactly with sampled results and
+must not use a convenient but unofficial alphabetical or identifier tiebreak.
+
+**Decision:** Rebuild immutable rows from a unique, canonically ordered fixture
+ledger. Award three points for a win and one for a draw. Rank final rows by
+points, goal difference, goals scored, head-to-head points and head-to-head away
+goals. If tied clubs remain equal, raise `UnresolvedTableTieError` because the
+official rule calls for a separately prescribed neutral-venue playoff when a
+material placing must be determined.
+
+**Consequences:** Every row is auditable back to results and every reported
+position follows official statistical criteria. Later multi-run aggregation
+must explicitly handle the exceptional playoff boundary rather than silently
+inventing a sporting result.

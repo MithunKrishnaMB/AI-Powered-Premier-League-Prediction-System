@@ -70,6 +70,7 @@ CATBOOST_CANDIDATES: Final = (
 class _CatBoostModel(Protocol):
     tree_count_: int
     classes_: npt.NDArray[np.int64]
+    feature_names_: list[str]
 
     def fit(
         self,
@@ -83,6 +84,8 @@ class _CatBoostModel(Protocol):
     ) -> object: ...
 
     def get_feature_importance(self, *, type: str) -> object: ...
+
+    def save_model(self, fname: str, *, format: str) -> None: ...
 
 
 @dataclass(frozen=True, slots=True)

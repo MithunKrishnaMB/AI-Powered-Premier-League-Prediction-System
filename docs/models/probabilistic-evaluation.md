@@ -259,3 +259,8 @@ plp-assess-models `
 The command strictly loads every preceding artifact, revalidates the sealed
 test identity and writes one deterministic assessment manifest. A repeated
 unchanged invocation returns `already_current`.
+
+The accepted CatBoost identity policy is packaged by Steps 4.1 and 4.2 without
+changing these development results. Its versioned manifest embeds this
+assessment and the untouched-test freeze and Step 4.3 may record only
+development acceptance. See [Model Artifacts and Registry](model-artifacts.md).

@@ -1,14 +1,19 @@
 # Project Status
 
-**Status date:** 2026-09-12
+**Status date:** 2026-09-13
 
 **Runtime:** 64-bit Python 3.14.7
 
-**Completed milestones:** A — Repository Foundation; B — Historical Data System;
-C — Point-in-Time Features and Elo
+**Completed milestones:** A — Repository Foundation; B — Historical Data
+System; C — Point-in-Time Features and Elo; D — Probabilistic Models
 
-**Current milestone:** D — Probabilistic Models; implementation complete and
-awaiting the user-owned milestone commit
+**Current milestone:** E — Registry and Simulation
+
+**Completed Milestone E steps:** 4.1 — deterministic model artifact layout and
+manifest; 4.2 — canonical model serialization, checksums and reload; 4.3 —
+append-only registry states and development-promotion rules; 4.4 — simulator
+domain contracts; 4.5 — deterministic scoreline sampling; 4.6 — immutable
+table updates and ranking
 
 **Completed Milestone D steps:** 3.1 — naive and Elo benchmarks; 3.2 —
 multinomial logistic regression; 3.3 — expanding walk-forward validation; 3.4
@@ -17,8 +22,10 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 4.1 — define artifact layout and manifest
-schema, after Milestone D closeout
+**Exact next implementation step:** 4.7 — vectorize 10,000 simulations.
+
+**Milestone D closeout commit:** `3ac10a2` — complete milestone D model
+acceptance and explanations
 
 ## Implemented capabilities
 
@@ -98,6 +105,28 @@ schema, after Milestone D closeout
   bridge, standardized multinomial coefficients, CatBoost
   `PredictionValuesChange`, canonical-team Poisson rate terms and Dixon–Coles
   rho and low-score scope.
+- Versioned, content-addressed model layout with distinct stable model,
+  component, artifact and manifest UUIDv5 identities.
+- Strict manifest contracts for runtime, predictor, outcome, classifier,
+  preprocessing, calibration, absent-score-model and provenance metadata.
+- Canonical CatBoost JSON serialization with volatile metadata normalized,
+  exact component checksums and float64-tolerance development round-trip checks.
+- Deterministic loading that rejects non-canonical bytes, missing or changed
+  components, incompatible runtimes and predictor or policy drift.
+- Append-only registry entries and checksum-linked events with deterministic
+  candidate and development-accepted transitions.
+- Fail-closed active promotion until a future typed, explicitly authorized
+  one-time final-test evidence contract exists.
+- Strict version-1 simulator contracts for canonical 20-team inputs, explicit
+  scoreline distributions, sampled results and immutable table state.
+- Date-only simulation fixtures conservatively batched with every fixture on
+  the same Premier League calendar date.
+- Stateless SHA-256 scoreline draws keyed by seed, simulation index and fixture
+  UUID, with canonical inverse-CDF selection independent of iteration order.
+- Immutable fixture-ledger table updates with exact result, goal and points
+  reconciliation.
+- Final-table ranking by points, goal difference, goals scored, head-to-head
+  points and head-to-head away goals, with unresolved playoffs failing closed.
 
 ## Historical dataset status
 
@@ -154,15 +183,26 @@ schema, after Milestone D closeout
 - Development champion: CatBoost with identity calibration.
 - Model assessment manifest SHA-256:
   `15b86d54ba84f1df9737efafa9553d39022772a9cb9080cc2b30161bfcf2c7bc`.
+- Model ID: `ca224b48-24c9-54f2-9df7-28f293ae426b`.
+- Artifact ID: `a5f8a12c-768b-5b5f-a8af-53dae5e5505e`.
+- Artifact manifest ID: `5e94e19e-d4bc-540c-9b04-dd245f5a3073`.
+- Artifact manifest SHA-256:
+  `53090c8956291926b03a0009695193638919c5a289afe646accee03ad43f22a3`.
+- Preprocessor SHA-256:
+  `6984224e6ba51551b59d110e87b5c37da158cb04d8877a3b1f5e4b60f094bba7`.
+- Classifier SHA-256:
+  `f2e273bf9dd0c6ad9897637ba73546988842a4a7f133ad7a9a581a1dacd005c7`.
+- Registry entry ID: `86374a5a-2317-51e3-8ba1-e156d8810640`.
+- Registry state: `development_accepted`; no active model exists.
 - Raw, interim and processed files are reproducible local artifacts and are
   ignored by Git.
 
 ## Last verified quality result
 
-The completed Milestone D implementation passed the complete local suite:
+The implementation through Milestone E Step 4.6 passed the complete local suite:
 
-- pytest: 265 passed.
-- branch-aware coverage: 91.28% (minimum required: 90%).
+- pytest: 333 passed.
+- branch-aware coverage: 90.95% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
 - strict mypy: passed.
@@ -205,6 +245,16 @@ The completed Milestone D implementation passed the complete local suite:
   targets, test predictions, model binaries or registry state.
 - a second model-assessment run returned `already_current` with manifest SHA-256
   `15b86d54ba84f1df9737efafa9553d39022772a9cb9080cc2b30161bfcf2c7bc`.
+- the selected CatBoost model was serialized, checksum-verified, reloaded and
+  compared across all 3,800 development rows without accessing 2025–26 targets.
+- the artifact was registered through two immutable events as candidate and
+  development-accepted; active promotion remains unavailable.
+- simulation fixtures reproduced the same sampled result independently of
+  fixture iteration order and date-only records absorbed all fixtures on their
+  Premier League calendar date into one simultaneous batch.
+- table tests reconciled home wins, draws and away wins against the immutable
+  fixture ledger and exercised every official statistical ranking criterion;
+  an unresolved playoff remained an explicit failure.
 
 ## Important project constraints
 
@@ -229,8 +279,8 @@ The completed Milestone D implementation passed the complete local suite:
 ## Not implemented yet
 
 - Final one-time untouched-test evaluation.
-- Model serialization or registry behavior.
-- Season simulation.
+- Vectorized 10,000-run season simulation and aggregate probabilities.
+- Final-test evidence and active model promotion.
 - PostgreSQL persistence or migrations.
 - Current-season provider integration.
 - FastAPI endpoints.
@@ -252,8 +302,8 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 4.1 may define registry artifact layout and manifest schema around the
-selected development champion. It must not serialize or promote a model yet,
-open the one-time 2025–26 test target or weaken the immutable source and
-evaluation lineage. Registry state transitions and promotion rules remain Step
-4.3 work.
+Step 4.7 may execute and vectorize 10,000 simulations using the strict
+single-run contracts. It must first consume an explicitly approved scoreline
+distribution source rather than infer scores from the registered three-way
+classifier. It must not open the one-time 2025–26 test target, activate a model
+or weaken the immutable source and evaluation lineage.
