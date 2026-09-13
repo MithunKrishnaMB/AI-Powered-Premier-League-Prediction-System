@@ -88,3 +88,9 @@ identify entities, ownership, keys, relationships, uniqueness, immutability and
 provenance constraints without configuring or connecting to PostgreSQL.
 Database connection configuration begins in Step 5.2, Alembic initialization in
 Step 5.3 and migrations in Step 5.4.
+
+## Successor record
+
+Step 5.1 is now complete. Its finalized design and the Step 5.2 boundary are
+recorded in the [Step 5.1 to 5.2 handoff](step-5-1-to-5-2.md). This document
+remains the historical Milestone E closeout record.

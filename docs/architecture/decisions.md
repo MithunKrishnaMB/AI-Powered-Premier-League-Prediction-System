@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 4.9 of Milestone E.
+These decisions describe implemented behavior through Step 5.1 of Milestone F.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -611,3 +611,48 @@ scoreline distributions independent of the CatBoost classifier.
 and ownership before operational database choices are introduced. Connections
 remain Step 5.2, Alembic remains Step 5.3 and migrations remain Steps 5.4–5.7;
 no persistence implementation may bypass raw-source or evaluation lineage.
+
+## ADR-030 — Lossless PostgreSQL projection of immutable artifacts
+
+**Status:** Accepted
+
+**Context:** The implemented pipeline uses stable UUIDv5 and content-derived
+identities, exact canonical JSON or JSON Lines bytes, checksum-pinned manifests,
+strictly ordered predictors and simulation inputs and an append-only registry.
+Normalizing only selected values into mutable relational rows or storing JSON as
+`jsonb` alone would lose byte identity, ordering or historical context. Generated
+database identities would also break references already embedded in artifacts.
+
+**Decision:** Use existing UUIDs, textual dataset IDs and SHA-256 values as
+primary keys. Tables without a domain identity use owner-plus-ordinal composite
+keys; PostgreSQL must not generate replacement identities. Store every source,
+dataset, manifest, model component and registry event as an independently owned
+entity linked to its exact immutable `bytea` content and server-verified SHA-256.
+Use explicit ordinals for every canonical order and typed normalized projections
+for querying, while keeping original bytes authoritative.
+
+Separate stable fixtures from immutable fixture revisions so a postponed match
+can retain identity without overwriting history. Keep predictor values and
+training targets in separate relations, and keep classifier, preprocessing,
+calibration, score-model, physical-component and registry metadata distinct.
+Registry state is derived from checksum-linked events; schema version 1 rejects
+activation because typed final-test evidence does not exist.
+
+Represent scoreline distributions independently of three-way predictions and
+attach separate immutable producer provenance without changing their content
+identity. Persist simulation inputs in declared order, require algorithm version
+1 and exactly 10,000 runs and preserve `int64`, `int16` and `float64` result
+component contracts. Preserve date-only whole-date simultaneous batches.
+
+Use immediate constraints for local validity and deferred constraint triggers
+for cross-row ordering, membership, probability mass, checksum-chain and
+aggregate invariants. All historical and derived entities are immutable and use
+restrictive foreign-key deletion; archive, rejection, retirement and
+supersession do not delete provenance.
+
+**Consequences:** PostgreSQL can support relational queries without replacing
+the files' deterministic identity or provenance semantics. Exact import and
+repository behavior remain later steps, as do connections, Alembic and
+migrations. The design requires explicit database digest, immutability and
+deferred-validation support in those migrations, but it does not configure or
+connect to PostgreSQL in Step 5.1.

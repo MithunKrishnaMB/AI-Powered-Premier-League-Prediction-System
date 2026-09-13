@@ -108,7 +108,25 @@ bounds, immutable arrays and summary identity rejection after tampering.
 
 ## Deferred work
 
-Milestone F may persist these structures after its entity relationships are
-reviewed. A later integration step must still define how a current provider and
-an approved score model produce provenance-bound fixture distributions. The
+Step 5.1 has finalized the future persistence shape in the
+[PostgreSQL entity-relationship model](../architecture/postgresql-entity-relationship-model.md).
+It does not serialize simulation outputs or configure a database.
+
+Scoreline distribution content and producer provenance are separate immutable
+entities. This preserves a distribution's existing content-derived UUID while
+allowing independently traceable provenance attestations. Every persisted
+remaining fixture must select both a distribution and one provenance record.
+The current CatBoost artifact cannot be a producer because its prediction
+contract explicitly denies scoreline capability.
+
+A persisted simulation input preserves explicit team, completed-fixture,
+remaining-fixture, distribution and simultaneous-batch order. Its run keeps the
+existing deterministic UUID, unsigned 64-bit seed, algorithm version 1 and
+exactly 10,000 simulations. Future result components must retain their exact
+bytes, shapes and `int64`, `int16` or `float64` dtypes. Aggregate summaries use
+their existing UUID and normalized team and 20-position rows with deferred
+league-wide mass constraints.
+
+A later integration step must still define how a current provider and an
+approved score model produce provenance-bound fixture distributions. The
 registered CatBoost artifact alone remains insufficient for that purpose.

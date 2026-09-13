@@ -130,12 +130,14 @@ Each numbered step should remain small enough to review and test in isolation.
 consistency checks also pass. The 2025–26 target remained sealed and no model
 was activated.
 
-## Milestone F — PostgreSQL Persistence — next
+## Milestone F — PostgreSQL Persistence — in progress
 
-- **Step 5.1 — next:** Finalize the entity-relationship model against produced
-  data. This step defines the persistence model only; connection configuration,
-  Alembic and migrations remain in Steps 5.2–5.7.
-- **Step 5.2:** Configure local and test PostgreSQL connections.
+- **Step 5.1 — complete:** Finalized the PostgreSQL entity-relationship model
+  against produced data and artifacts. Stable UUID/content identities, exact
+  bytes, ordering, provenance, metadata separation, append-only lifecycle,
+  simulation semantics, ownership and fail-closed constraints are fixed without
+  database configuration, Alembic or migrations.
+- **Step 5.2 — next:** Configure local and test PostgreSQL connections.
 - **Step 5.3:** Initialize Alembic.
 - **Step 5.4:** Add identity, season and fixture migrations.
 - **Step 5.5:** Add rating, feature and model migrations.

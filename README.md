@@ -56,10 +56,13 @@ sampling and immutable Premier League table mechanics implement Steps 4.4
 through 4.6. Fixed 10,000-run vectorized execution, complete position and
 threshold aggregation and reproducibility invariants complete Milestone E. No
 final test metric has been calculated and no model has been activated.
-Production score-distribution integration, database migrations and the frontend
-have not been created. CI/CD automation is intentionally not configured.
+The PostgreSQL entity-relationship model now fixes stable identities, exact-byte
+lineage, ownership, lifecycle and fail-closed constraints for the produced data
+and artifacts without configuring a database. Production score-distribution
+integration, database connections, migrations and the frontend have not been
+created. CI/CD automation is intentionally not configured.
 
-The development environment uses 64-bit Python 3.14.
+The development environment uses 64-bit Python 3.14.7.
 
 ## Local setup
 
@@ -261,6 +264,8 @@ implementation. Start with:
 - [Milestone C to D handoff](docs/handoffs/milestone-c-to-d.md)
 - [Milestone D to E handoff](docs/handoffs/milestone-d-to-e.md)
 - [Milestone E to F handoff](docs/handoffs/milestone-e-to-f.md)
+- [PostgreSQL entity-relationship model](docs/architecture/postgresql-entity-relationship-model.md)
+- [Step 5.1 to 5.2 handoff](docs/handoffs/step-5-1-to-5-2.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -278,11 +283,12 @@ The planned order is:
 8. Automation, deployment and end-to-end backend validation
 9. Frontend architecture and implementation
 
-Milestone E is complete. The selected development classifier
-has deterministic versioned components and an append-only development-accepted
-registry record. Model-agnostic single-run simulation contracts, scoreline
-sampling, table mechanics, vectorized 10,000-run execution and aggregate
-position probabilities are implemented. The next step is **Step 5.1: finalize
-the entity-relationship model against produced data**. The test season remains
-sealed and has not contributed a fit, tuning decision, acceptance decision or
-metric.
+Milestone E is complete and Milestone F is in progress. The selected development
+classifier has deterministic versioned components and an append-only
+development-accepted registry record. Model-agnostic simulation contracts,
+scoreline sampling, table mechanics, vectorized 10,000-run execution and
+aggregate position probabilities are implemented. Step 5.1 has finalized the
+PostgreSQL entity-relationship design without adding connections, Alembic,
+migrations or repositories. The next step is **Step 5.2: configure local and
+test PostgreSQL connections**. The test season remains sealed and has not
+contributed a fit, tuning decision, acceptance decision or metric.

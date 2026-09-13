@@ -10,6 +10,9 @@ Registry and Simulation
 
 **Current milestone:** F — PostgreSQL Persistence
 
+**Completed Milestone F steps:** 5.1 — PostgreSQL entity-relationship model
+finalized against produced data and artifacts
+
 **Completed Milestone E steps:** 4.1 — deterministic model artifact layout and
 manifest; 4.2 — canonical model serialization, checksums and reload; 4.3 —
 append-only registry states and development-promotion rules; 4.4 — simulator
@@ -25,8 +28,8 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 5.1 — finalize the entity-relationship
-model against produced data.
+**Exact next implementation step:** 5.2 — configure local and test PostgreSQL
+connections.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -141,6 +144,15 @@ acceptance and explanations
   probabilities; and champion, top-four, top-six and relegation probabilities.
 - Content-derived aggregate summary identities and league-wide unit-mass,
   threshold-total, conservation and reproducibility invariants.
+- PostgreSQL-aligned entity-relationship model covering exact artifact bytes,
+  stable identities, canonical fixture revisions, point-in-time features,
+  training/evaluation lineage, semantic and physical model records,
+  append-only registry events, explicit distribution provenance, deterministic
+  simulation inputs/runs and complete aggregate summaries.
+- Explicit persistence ownership, primary and foreign keys, uniqueness,
+  canonical order, immutability, restrictive deletion and fail-closed immediate
+  and deferred constraint responsibilities without a database connection or
+  migration.
 
 ## Historical dataset status
 
@@ -213,7 +225,7 @@ acceptance and explanations
 
 ## Last verified quality result
 
-The completed Milestone E implementation passed the complete local suite:
+The implementation through Step 5.1 passed the complete local suite:
 
 - pytest: 343 passed.
 - branch-aware coverage: 90.86% (minimum required: 90%).
@@ -221,6 +233,8 @@ The completed Milestone E implementation passed the complete local suite:
 - Ruff format check: passed.
 - strict mypy: passed.
 - package dependency check: passed.
+- documentation diff check: passed with no whitespace errors.
+- all local Markdown links resolve.
 - raw manifest verification returned `already_present` for all 11 seasons.
 - canonical materialization returned `already_current` for all 11 seasons.
 - all 4,180 canonical fixtures produced feature rows; rebuilding from reversed
@@ -312,7 +326,7 @@ The completed Milestone E implementation passed the complete local suite:
 - Persistence and current-provider production of fixture score distributions.
 - Simulation artifact serialization or database storage.
 - Final-test evidence and active model promotion.
-- PostgreSQL persistence or migrations.
+- PostgreSQL connections, tables, repositories or migrations.
 - Current-season provider integration.
 - FastAPI endpoints.
 - Deployment or frontend code.
@@ -333,11 +347,9 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 5.1 may finalize the entity-relationship model against the canonical
-fixtures, feature and training lineage, evaluations, model artifacts, append-only
-registry events, explicit simulation inputs and aggregate summaries already
-produced. It is a schema-design step only. Database connection configuration is
-Step 5.2, Alembic initialization is Step 5.3 and migrations begin in Step 5.4.
-Step 5.1 must not invent a production source for fixture score distributions,
-open the one-time 2025–26 test target, activate a model or weaken immutable
-source and evaluation lineage.
+Step 5.2 may add typed local and test PostgreSQL connection settings and verify
+connectivity. It must follow the finalized
+[entity-relationship model](architecture/postgresql-entity-relationship-model.md)
+but must not initialize Alembic, create schemas or tables, import artifacts,
+persist simulations, open the one-time 2025–26 test target or activate a model.
+Alembic initialization remains Step 5.3 and migrations begin in Step 5.4.

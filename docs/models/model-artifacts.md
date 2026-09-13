@@ -147,3 +147,31 @@ Failures use stable categories for invalid manifests, identities and paths;
 missing, modified or non-canonical components; runtime, predictor or outcome
 incompatibility; provenance drift; invalid registry transitions; and missing
 final-test evidence.
+
+## PostgreSQL persistence projection
+
+The Step 5.1
+[entity-relationship model](../architecture/postgresql-entity-relationship-model.md)
+keeps semantic model, classifier specification, stateless preprocessing,
+identity calibration, explicit absent-score-model metadata, prediction contract
+and runtime requirements in separate one-to-one relations. The semantic
+`model_id`, physical `artifact_id`, `manifest_id`, component UUIDs and registry
+`entry_id` and event UUIDs remain their existing content-derived identities;
+none receives a database-generated replacement.
+
+Artifact manifests and each component retain their exact immutable bytes,
+external SHA-256 and byte count. Component order, role, relative path and format
+are also normalized with explicit ordinals so relational loading can verify the
+same preprocessor-then-classifier contract without reconstructing bytes from
+database JSON.
+
+Registry entries have no mutable state or active pointer. State is derived from
+the latest event in a gap-free, checksum-linked, append-only sequence. Database
+constraints preserve `candidate`, `development_accepted` and terminal
+`rejected` behavior and reject version-1 activation with
+`final_test_evidence_required`. The currently registered artifact therefore
+remains development-accepted and not active.
+
+Scoreline distributions live in the separate simulation schema with their own
+producer provenance. The current classifier's `produces_scorelines = false`
+contract prevents it from being referenced as a distribution producer.

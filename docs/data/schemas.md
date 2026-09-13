@@ -284,6 +284,35 @@ probabilities. The summary UUID binds the exact aggregate content.
 See [Simulation Domain, Scorelines and Table Rules](../simulation/domain-and-table.md)
 for sampling, ordering and ranking details.
 
+## PostgreSQL persistence projection
+
+Step 5.1 finalizes the relational projection of these contracts in the
+[PostgreSQL entity-relationship model](../architecture/postgresql-entity-relationship-model.md).
+The projection is lossless: normalized rows support queries, while the exact
+raw, canonical JSON Lines, processed JSON Lines and manifest bytes remain
+independently stored and checksum-addressed. PostgreSQL `jsonb` is not used as a
+replacement for canonical bytes.
+
+Existing UUIDv5, textual dataset IDs and content checksums remain primary keys.
+Owner-plus-ordinal composite keys preserve source, season, predictor, fixture,
+component, registry-event and simulation order; the database never invents
+surrogate identities for these records. Stable fixtures are separated from
+immutable dataset-owned revisions so postponement or rescheduling cannot
+overwrite a historical observation.
+
+Predictor values retain their strict null, boolean, integer or float64 type and
+remain separate from feature labels and training targets. Evaluation
+predictions remain target-free and keep three explicit float64 probabilities in
+the fixed `home_win`, `draw`, `away_win` order. The untouched-test freeze has a
+target-free member projection and no target, score or metric fields.
+
+Immediate constraints reject invalid ranges, states, dtypes, identities,
+foreign keys and local inconsistencies. Deferred constraints reject incomplete
+season membership, gaps or reordered records, predictor populations,
+chronology violations, registry checksum-chain errors and incomplete
+probability mass. All provenance-bearing records are immutable and every
+foreign key uses restrictive deletion.
+
 ## Team identity
 
 `data/reference/teams.json` contains 34 stable team records covering every club
