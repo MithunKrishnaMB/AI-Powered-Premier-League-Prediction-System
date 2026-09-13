@@ -10,6 +10,8 @@ REDACTED = "[REDACTED]"
 _SENSITIVE_KEY_PARTS = (
     "api_key",
     "authorization",
+    "database_url",
+    "dsn",
     "password",
     "secret",
     "token",

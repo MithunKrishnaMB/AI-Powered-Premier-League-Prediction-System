@@ -27,6 +27,8 @@ def test_formatter_emits_json_context_and_redacts_secrets() -> None:
     )
     record.__dict__["fixture_id"] = 42
     record.__dict__["api_key"] = "do-not-log"
+    record.__dict__["database_url"] = "postgresql+psycopg://user:secret@host/db"
+    record.__dict__["dsn"] = "host=localhost password=secret"
     record.__dict__["details"] = {"token": "hidden", "rows": [1, 2]}
 
     payload = _payload(JsonFormatter().format(record))
@@ -36,6 +38,8 @@ def test_formatter_emits_json_context_and_redacts_secrets() -> None:
     assert payload["message"] == "processed fixture"
     assert context["fixture_id"] == 42
     assert context["api_key"] == REDACTED
+    assert context["database_url"] == REDACTED
+    assert context["dsn"] == REDACTED
     assert details["token"] == REDACTED
     assert details["rows"] == [1, 2]
 

@@ -255,7 +255,7 @@ content is allowed; collapsing the owning domain entities is not.
   zero.
 
 Historical completed-season datasets additionally require 380 finished
-fixtures, one ordered home/away pairing, and 19 home plus 19 away appearances
+fixtures, one ordered home/away pairing and 19 home plus 19 away appearances
 per member. These are deferred database constraints because they span rows.
 
 ### `football.fixture_batch`
@@ -292,7 +292,7 @@ date-only noon anchor as an actual ordering signal.
 
 - Primary key: a content checksum over the complete policy.
 - Stores chronology, date-only timezone, five-match form window, opening-prior
-  rules and constants, and Elo version and constants.
+  rules and constants and Elo version and constants.
 - Version 1 requires Elo initial rating 1500, home advantage 65, K-factor 20,
   rating scale 400 and season retention 0.75.
 
@@ -441,7 +441,7 @@ test evaluation or target access.
   `(evaluation_dataset_id, evaluation_manifest_sha256, partition_id)`.
 - Owns ordered `reference`, `evaluation` and `excluded` season members.
 - Season groups must be unique and disjoint. Every reference season precedes
-  every evaluation season, and every evaluation season precedes every excluded
+  every evaluation season and every evaluation season precedes every excluded
   season.
 - Row counts and fit diagnostics are immutable partition metadata.
 

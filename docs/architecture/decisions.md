@@ -633,7 +633,7 @@ for querying, while keeping original bytes authoritative.
 
 Separate stable fixtures from immutable fixture revisions so a postponed match
 can retain identity without overwriting history. Keep predictor values and
-training targets in separate relations, and keep classifier, preprocessing,
+training targets in separate relations and keep classifier, preprocessing,
 calibration, score-model, physical-component and registry metadata distinct.
 Registry state is derived from checksum-linked events; schema version 1 rejects
 activation because typed final-test evidence does not exist.
@@ -656,3 +656,56 @@ repository behavior remain later steps, as do connections, Alembic and
 migrations. The design requires explicit database digest, immutability and
 deferred-validation support in those migrations, but it does not configure or
 connect to PostgreSQL in Step 5.1.
+
+## ADR-031 — Isolated unprivileged PostgreSQL connection targets
+
+**Status:** Accepted
+
+**Context:** Development and integration tests need local PostgreSQL access,
+but sharing one database or connecting the application as the cluster
+administrator could let a test destroy development state or give application
+code unnecessary authority. URLs contain credentials and must not enter Git,
+logs, command output or Alembic configuration.
+
+**Decision:** Use SQLAlchemy 2.0 with the psycopg 3 driver on Python 3.14.7.
+Connect to separate `pl_platform_dev` and `pl_platform_test` databases through
+the dedicated `pl_app` login. The role owns those databases but is explicitly
+not a superuser and cannot create databases, roles or replication slots. Keep
+both URLs as `SecretStr` values in the ignored local `.env`, expose only
+password placeholders in `.env.example` and redact URL/DSN logging keys.
+
+Require the `postgresql+psycopg` scheme and explicit host, port, role, password
+and database. Reject URLs that resolve to the same host, port and database even
+when credentials or host casing differ. A read-only connection check must
+validate the reported database and role against the URL, PostgreSQL 16 or
+newer, UTC and the restricted role flags, including row-security bypass.
+Engine creation must remain lazy, bounded and health checked.
+
+**Consequences:** Development and test state are isolated while schema
+migrations remain possible through database ownership. Cluster-level setup
+still requires the existing administrator once. Production credentials and
+topology remain undefined and no database table or artifact persistence is
+introduced by this decision.
+
+## ADR-032 — Secret-free Alembic initialization before schema revisions
+
+**Status:** Accepted
+
+**Context:** Alembic must be initialized in Step 5.3, while the first identity,
+season and fixture migration belongs to Step 5.4. Embedding a URL in
+`alembic.ini` would duplicate secret handling and make accidental target
+selection easier.
+
+**Decision:** Keep `alembic.ini` URL-free and resolve the connection from typed
+`PLP_*` settings inside `migrations/env.py`. Select only development or test
+from `PLP_ENVIRONMENT` and reject production. Use a `NullPool` online, force
+UTC, enable type and server-default comparison, include PostgreSQL schemas and
+run each future revision transactionally. Support an externally supplied
+connection for later integration tests. Initialize the version directory and
+typed revision template without creating a revision, metadata model or database
+object.
+
+**Consequences:** `alembic heads` and `alembic history` are empty after Step
+5.3 by design. Step 5.4 can add the first reviewed revision against the
+finalized ER model without changing credential policy. Autogeneration cannot
+silently invent a schema before explicit metadata is introduced.

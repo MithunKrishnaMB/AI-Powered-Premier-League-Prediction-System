@@ -11,7 +11,9 @@ Registry and Simulation
 **Current milestone:** F — PostgreSQL Persistence
 
 **Completed Milestone F steps:** 5.1 — PostgreSQL entity-relationship model
-finalized against produced data and artifacts
+finalized against produced data and artifacts; 5.2 — typed, isolated local/test
+PostgreSQL connections; 5.3 — secret-free Alembic initialization without a
+schema revision
 
 **Completed Milestone E steps:** 4.1 — deterministic model artifact layout and
 manifest; 4.2 — canonical model serialization, checksums and reload; 4.3 —
@@ -28,8 +30,8 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 5.2 — configure local and test PostgreSQL
-connections.
+**Exact next implementation step:** 5.4 — add identity, season and fixture
+migrations.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -38,6 +40,9 @@ acceptance and explanations
 
 - Installable `pl_platform` package using the `src/` layout.
 - Typed, immutable environment configuration.
+- Secret-backed, explicitly isolated PostgreSQL development/test connection
+  settings and a read-only compatibility and privilege checker.
+- URL-free Alembic initialization with no migration revision or database table.
 - Structured JSON logging with recursive key-based secret redaction.
 - Local Ruff, strict mypy, pytest, branch coverage and dependency checks.
 - Versioned Football-Data manifest with HTTPS host allowlisting.
@@ -225,16 +230,23 @@ acceptance and explanations
 
 ## Last verified quality result
 
-The implementation through Step 5.1 passed the complete local suite:
+The implementation through Step 5.3 passed the complete local suite:
 
-- pytest: 343 passed.
-- branch-aware coverage: 90.86% (minimum required: 90%).
+- pytest: 368 passed, including both live PostgreSQL targets.
+- branch-aware coverage: 90.75% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
 - strict mypy: passed.
 - package dependency check: passed.
 - documentation diff check: passed with no whitespace errors.
 - all local Markdown links resolve.
+- development and test connectivity checks reported PostgreSQL 18.4, `pl_app`,
+  UTC and the exact `pl_platform_dev` and `pl_platform_test` database names.
+- the application role is a login without superuser, database-creation,
+  role-creation, replication or row-security-bypass capability.
+- both databases contained zero non-system tables after Alembic initialization;
+  `alembic heads` and `alembic history` were empty and `alembic current`
+  completed without creating `alembic_version`.
 - raw manifest verification returned `already_present` for all 11 seasons.
 - canonical materialization returned `already_current` for all 11 seasons.
 - all 4,180 canonical fixtures produced feature rows; rebuilding from reversed
@@ -326,7 +338,7 @@ The implementation through Step 5.1 passed the complete local suite:
 - Persistence and current-provider production of fixture score distributions.
 - Simulation artifact serialization or database storage.
 - Final-test evidence and active model promotion.
-- PostgreSQL connections, tables, repositories or migrations.
+- PostgreSQL schema migrations, application tables or repositories.
 - Current-season provider integration.
 - FastAPI endpoints.
 - Deployment or frontend code.
@@ -347,9 +359,10 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 5.2 may add typed local and test PostgreSQL connection settings and verify
-connectivity. It must follow the finalized
-[entity-relationship model](architecture/postgresql-entity-relationship-model.md)
-but must not initialize Alembic, create schemas or tables, import artifacts,
-persist simulations, open the one-time 2025–26 test target or activate a model.
-Alembic initialization remains Step 5.3 and migrations begin in Step 5.4.
+Step 5.4 may add only the first Alembic revision for identity, season and
+fixture entities under the finalized
+[entity-relationship model](architecture/postgresql-entity-relationship-model.md).
+Rating, feature, model, prediction, evaluation, simulation and ingestion/cache
+tables remain Steps 5.5–5.7. Step 5.4 must not add repositories, import
+artifacts, persist simulations, open the one-time 2025–26 test target, activate
+a model or add APIs, deployment, frontend or CI/CD configuration.

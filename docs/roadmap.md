@@ -137,9 +137,13 @@ was activated.
   bytes, ordering, provenance, metadata separation, append-only lifecycle,
   simulation semantics, ownership and fail-closed constraints are fixed without
   database configuration, Alembic or migrations.
-- **Step 5.2 — next:** Configure local and test PostgreSQL connections.
-- **Step 5.3:** Initialize Alembic.
-- **Step 5.4:** Add identity, season and fixture migrations.
+- **Step 5.2 — complete:** Configured secret-safe, typed and explicitly
+  isolated local/test PostgreSQL connections through a restricted application
+  login, with a read-only fail-closed connectivity check.
+- **Step 5.3 — complete:** Initialized a URL-free Alembic environment with
+  explicit development/test selection, production rejection and no schema
+  revision or database object.
+- **Step 5.4 — next:** Add identity, season and fixture migrations.
 - **Step 5.5:** Add rating, feature and model migrations.
 - **Step 5.6:** Add prediction and evaluation migrations.
 - **Step 5.7:** Add simulation and ingestion/cache migrations.

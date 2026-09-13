@@ -3,9 +3,13 @@
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
+from pydantic import SecretStr, ValidationError
 
-from pl_platform.core.config import Settings, get_settings
+from pl_platform.core.config import (
+    DatabaseConfigurationError,
+    Settings,
+    get_settings,
+)
 
 
 def test_settings_use_safe_defaults(
@@ -53,3 +57,56 @@ def test_get_settings_is_cached() -> None:
     assert get_settings() is get_settings()
 
     get_settings.cache_clear()
+
+
+def test_database_urls_are_secret_and_environment_specific() -> None:
+    settings = Settings(
+        database_url=SecretStr(
+            "postgresql+psycopg://pl_app:development@localhost:5432/pl_dev"
+        ),
+        test_database_url=SecretStr(
+            "postgresql+psycopg://pl_app:test@localhost:5432/pl_test"
+        ),
+    )
+
+    assert "development" not in repr(settings.database_url)
+    assert settings.database_url_for("development").endswith("/pl_dev")
+    assert settings.database_url_for("test").endswith("/pl_test")
+
+
+@pytest.mark.parametrize(
+    "database_url",
+    (
+        "postgresql://pl_app:secret@localhost:5432/pl_dev",
+        "postgresql+psycopg://localhost:5432/pl_dev",
+        "postgresql+psycopg://pl_app:secret@localhost/pl_dev",
+        "postgresql+psycopg://pl_app:secret@localhost:5432",
+    ),
+)
+def test_database_urls_reject_incomplete_or_wrong_driver_urls(
+    database_url: str,
+) -> None:
+    with pytest.raises(ValidationError):
+        Settings(database_url=SecretStr(database_url))
+
+
+def test_database_targets_must_not_share_a_database() -> None:
+    development_url = "postgresql+psycopg://pl_app:development@LOCALHOST:5432/pl_shared"
+    test_url = "postgresql+psycopg://test_app:test@localhost:5432/pl_shared"
+
+    with pytest.raises(ValidationError, match="targets must differ"):
+        Settings(
+            database_url=SecretStr(development_url),
+            test_database_url=SecretStr(test_url),
+        )
+
+
+def test_missing_database_target_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    settings = Settings()
+
+    with pytest.raises(DatabaseConfigurationError, match="test database URL"):
+        settings.database_url_for("test")

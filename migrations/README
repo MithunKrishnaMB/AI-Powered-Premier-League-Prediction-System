@@ -1,0 +1,10 @@
+Alembic migration environment for PostgreSQL persistence.
+
+Step 5.3 initializes this environment without adding a revision or creating a
+database object. Schema revisions begin in Step 5.4. Database URLs are never
+stored in alembic.ini or revision files; env.py reads the selected target from
+the typed PLP_* settings at runtime.
+
+Set PLP_ENVIRONMENT=development to use PLP_DATABASE_URL or
+PLP_ENVIRONMENT=test to use PLP_TEST_DATABASE_URL. Production migration access
+fails closed until a production-specific policy is approved.

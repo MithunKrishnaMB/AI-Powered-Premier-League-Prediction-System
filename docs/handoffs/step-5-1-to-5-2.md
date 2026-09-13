@@ -32,7 +32,7 @@ The main boundaries are:
   registry metadata remain separate entities;
 - the selected policy remains CatBoost depth 6 with identity calibration and
   fixed `home_win`, `draw`, `away_win` outcome order;
-- registry state is derived from append-only checksum-linked events, and schema
+- registry state is derived from append-only checksum-linked events and schema
   version 1 continues to reject active promotion;
 - fixture scoreline distributions and their producer provenance are independent
   of the three-way classifier;
