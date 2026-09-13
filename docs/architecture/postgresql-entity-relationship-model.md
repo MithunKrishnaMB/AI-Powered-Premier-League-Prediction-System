@@ -1,5 +1,9 @@
 # PostgreSQL Entity-Relationship Model
 
+**Implementation status:** The model is implemented by the linear Step
+5.4–5.7 Alembic chain ending at revision `f0004_step_5_7`. No artifacts have
+been imported by these schema-only revisions.
+
 ## Status and scope
 
 This document is the normative Step 5.1 persistence design for the data and

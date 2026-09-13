@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 
 
 def test_alembic_configuration_has_no_embedded_database_url() -> None:
@@ -14,14 +15,28 @@ def test_alembic_configuration_has_no_embedded_database_url() -> None:
     assert config.get_main_option("sqlalchemy.url") is None
 
 
-def test_step_5_3_has_no_schema_revisions() -> None:
+def test_steps_5_4_through_5_7_form_one_linear_revision_chain() -> None:
     version_files = {
         path.name
         for path in Path("migrations/versions").iterdir()
         if path.is_file() and path.name != ".gitkeep"
     }
 
-    assert version_files == set()
+    assert version_files == {
+        "f0001_step_5_4_core_identity.py",
+        "f0002_step_5_5_feature_model.py",
+        "f0003_step_5_6_ml_evaluation.py",
+        "f0004_step_5_7_ingestion_simulation.py",
+    }
+
+    script = ScriptDirectory.from_config(Config("alembic.ini"))
+    assert script.get_heads() == ["f0004_step_5_7"]
+    assert [revision.revision for revision in script.walk_revisions()] == [
+        "f0004_step_5_7",
+        "f0003_step_5_6",
+        "f0002_step_5_5",
+        "f0001_step_5_4",
+    ]
 
 
 def test_alembic_files_do_not_embed_local_password() -> None:

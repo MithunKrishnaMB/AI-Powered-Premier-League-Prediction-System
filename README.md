@@ -93,12 +93,15 @@ plp-check-database --target test
 ```
 
 Alembic reads the same typed settings and never stores a URL in `alembic.ini`.
-Step 5.3 intentionally has no revisions, so these commands produce no heads or
-history and do not connect to or change either database:
+Steps 5.4 through 5.7 form one reviewed linear chain. Select the target
+explicitly and apply or inspect it with:
 
 ```powershell
+$env:PLP_ENVIRONMENT = "test" # or development
 alembic heads
 alembic history
+alembic upgrade head
+alembic current
 ```
 
 See [PostgreSQL connections and Alembic](docs/architecture/postgresql-connections-and-alembic.md)
@@ -296,6 +299,7 @@ implementation. Start with:
 - [PostgreSQL connections and Alembic](docs/architecture/postgresql-connections-and-alembic.md)
 - [Step 5.1 to 5.2 handoff](docs/handoffs/step-5-1-to-5-2.md)
 - [Step 5.3 to 5.4 handoff](docs/handoffs/step-5-3-to-5-4.md)
+- [Step 5.7 to 5.8 handoff](docs/handoffs/step-5-7-to-5-8.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -317,8 +321,9 @@ Milestone E is complete and Milestone F is in progress. The selected development
 classifier has deterministic versioned components and an append-only
 development-accepted registry record. Model-agnostic simulation contracts,
 scoreline sampling, table mechanics, vectorized 10,000-run execution and
-aggregate position probabilities are implemented. Steps 5.1 through 5.3 have
+aggregate position probabilities are implemented. Steps 5.1 through 5.7 have
 finalized the PostgreSQL entity-relationship design, configured isolated typed
-local connections and initialized Alembic without a schema revision. The next
-step is **Step 5.4: add identity, season and fixture migrations**. The test season remains sealed and has not
+local connections and implemented the complete schema as four linear Alembic
+revisions. The next step is **Step 5.8: implement typed repositories one
+aggregate at a time**. The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

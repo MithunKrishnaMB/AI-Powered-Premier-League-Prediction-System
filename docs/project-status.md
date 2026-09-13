@@ -13,7 +13,10 @@ Registry and Simulation
 **Completed Milestone F steps:** 5.1 — PostgreSQL entity-relationship model
 finalized against produced data and artifacts; 5.2 — typed, isolated local/test
 PostgreSQL connections; 5.3 — secret-free Alembic initialization without a
-schema revision
+schema revision; 5.4 — exact-content, identity, season and fixture migration;
+5.5 — feature/Elo, model artifact and registry migration; 5.6 — training,
+sealed-test, prediction and evaluation migration; 5.7 — ingestion/cache,
+explicit scoreline-distribution and simulation migration
 
 **Completed Milestone E steps:** 4.1 — deterministic model artifact layout and
 manifest; 4.2 — canonical model serialization, checksums and reload; 4.3 —
@@ -30,8 +33,8 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 5.4 — add identity, season and fixture
-migrations.
+**Exact next implementation step:** 5.8 — implement typed repositories one
+aggregate at a time.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -42,7 +45,15 @@ acceptance and explanations
 - Typed, immutable environment configuration.
 - Secret-backed, explicitly isolated PostgreSQL development/test connection
   settings and a read-only compatibility and privilege checker.
-- URL-free Alembic initialization with no migration revision or database table.
+- URL-free Alembic environment with four linear transactional revisions and
+  head `f0004_step_5_7`.
+- PostgreSQL checked domains, exact-byte SHA-256 verification, application
+  UUIDv5 checks, restrictive provenance foreign keys, deferred aggregate
+  validation and immutable update/delete guards.
+- Relational structures for identity, canonical fixtures, point-in-time
+  features/Elo, training/evaluation artifacts, model components, append-only
+  registry events, raw captures, explicit scoreline distributions and complete
+  10,000-run simulation outputs.
 - Structured JSON logging with recursive key-based secret redaction.
 - Local Ruff, strict mypy, pytest, branch coverage and dependency checks.
 - Versioned Football-Data manifest with HTTPS host allowlisting.
@@ -230,9 +241,10 @@ acceptance and explanations
 
 ## Last verified quality result
 
-The implementation through Step 5.3 passed the complete local suite:
+The implementation through Step 5.7 passed the complete local suite:
 
-- pytest: 368 passed, including both live PostgreSQL targets.
+- pytest: 373 passed, including both live PostgreSQL targets and migration-shape
+  integration checks.
 - branch-aware coverage: 90.75% (minimum required: 90%).
 - Ruff lint: passed.
 - Ruff format check: passed.
@@ -244,9 +256,11 @@ The implementation through Step 5.3 passed the complete local suite:
   UTC and the exact `pl_platform_dev` and `pl_platform_test` database names.
 - the application role is a login without superuser, database-creation,
   role-creation, replication or row-security-bypass capability.
-- both databases contained zero non-system tables after Alembic initialization;
-  `alembic heads` and `alembic history` were empty and `alembic current`
-  completed without creating `alembic_version`.
+- the test database completed a transactional upgrade from base to
+  `f0004_step_5_7`, downgrade to base and second upgrade to head.
+- schema introspection confirmed all 11 bounded application schemas, restrictive
+  update/delete behavior on every provenance foreign key, immutable guards on
+  every application table and the sealed-test and 10,000-run constraints.
 - raw manifest verification returned `already_present` for all 11 seasons.
 - canonical materialization returned `already_current` for all 11 seasons.
 - all 4,180 canonical fixtures produced feature rows; rebuilding from reversed
@@ -338,7 +352,7 @@ The implementation through Step 5.3 passed the complete local suite:
 - Persistence and current-provider production of fixture score distributions.
 - Simulation artifact serialization or database storage.
 - Final-test evidence and active model promotion.
-- PostgreSQL schema migrations, application tables or repositories.
+- Typed repositories and artifact import transactions.
 - Current-season provider integration.
 - FastAPI endpoints.
 - Deployment or frontend code.
@@ -359,10 +373,10 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 5.4 may add only the first Alembic revision for identity, season and
-fixture entities under the finalized
-[entity-relationship model](architecture/postgresql-entity-relationship-model.md).
-Rating, feature, model, prediction, evaluation, simulation and ingestion/cache
-tables remain Steps 5.5–5.7. Step 5.4 must not add repositories, import
-artifacts, persist simulations, open the one-time 2025–26 test target, activate
-a model or add APIs, deployment, frontend or CI/CD configuration.
+Step 5.8 may implement typed repositories one aggregate at a time against the
+completed [migration chain](architecture/postgresql-migrations.md). Import
+must verify exact source before opening a transaction, retain the canonical
+bytes and normalized projection together, use existing UUID/SHA identities and
+reload/compare before commit. It must not add current-provider ingestion,
+perform final-test evaluation, promote an active model, add APIs, deployment,
+frontend code or CI/CD configuration.

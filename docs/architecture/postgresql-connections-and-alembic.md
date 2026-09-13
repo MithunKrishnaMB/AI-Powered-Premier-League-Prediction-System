@@ -81,10 +81,11 @@ comparison, all-schema inspection and per-migration transactions are enabled.
 An externally supplied Alembic connection remains supported for later
 transactional migration tests.
 
-Step 5.3 contains no revision and creates no database object. `alembic heads`
-and `alembic history` are therefore intentionally empty. The first tables and
-revision are Step 5.4 work and must implement the finalized
-[entity-relationship model](postgresql-entity-relationship-model.md).
+Step 5.3 itself introduced no revision or database object. Steps 5.4 through
+5.7 subsequently added one linear, transactional chain implementing the
+finalized [entity-relationship model](postgresql-entity-relationship-model.md).
+The current head is `f0004_step_5_7`; the allocation and reviewed commands are
+documented in the [migration chain](postgresql-migrations.md).
 
 ## Preserved boundaries
 

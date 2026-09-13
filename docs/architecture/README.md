@@ -25,6 +25,7 @@ speculative future complexity.
 - [Architectural decision register](decisions.md)
 - [PostgreSQL entity-relationship model](postgresql-entity-relationship-model.md)
 - [PostgreSQL connections and Alembic boundary](postgresql-connections-and-alembic.md)
+- [PostgreSQL migration chain](postgresql-migrations.md)
 - [Point-in-time feature processing](../features/point-in-time.md)
 - [Probabilistic development evaluation](../models/probabilistic-evaluation.md)
 - [Simulation domain, scorelines and table rules](../simulation/domain-and-table.md)
@@ -36,3 +37,4 @@ speculative future complexity.
 - [Milestone E to F handoff](../handoffs/milestone-e-to-f.md)
 - [Step 5.1 to 5.2 handoff](../handoffs/step-5-1-to-5-2.md)
 - [Step 5.3 to 5.4 handoff](../handoffs/step-5-3-to-5-4.md)
+- [Step 5.7 to 5.8 handoff](../handoffs/step-5-7-to-5-8.md)

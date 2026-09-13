@@ -143,11 +143,15 @@ was activated.
 - **Step 5.3 — complete:** Initialized a URL-free Alembic environment with
   explicit development/test selection, production rejection and no schema
   revision or database object.
-- **Step 5.4 — next:** Add identity, season and fixture migrations.
-- **Step 5.5:** Add rating, feature and model migrations.
-- **Step 5.6:** Add prediction and evaluation migrations.
-- **Step 5.7:** Add simulation and ingestion/cache migrations.
-- **Step 5.8:** Implement repositories one aggregate at a time.
+- **Step 5.4 — complete:** Added checked domains, exact-content lineage,
+  identity/reference, season and canonical-fixture migrations.
+- **Step 5.5 — complete:** Added predictor schema, feature/Elo, semantic-model,
+  artifact-component and append-only registry migrations.
+- **Step 5.6 — complete:** Added training, sealed-test, chronological prediction
+  and evaluation migrations.
+- **Step 5.7 — complete:** Added raw-capture, future provider-cache, explicit
+  scoreline-distribution, simulation-input/run and aggregate-summary migrations.
+- **Step 5.8 — next:** Implement repositories one aggregate at a time.
 - **Step 5.9:** Add transaction and PostgreSQL integration tests.
 
 ## Milestone G — Current-Season Integration — planned

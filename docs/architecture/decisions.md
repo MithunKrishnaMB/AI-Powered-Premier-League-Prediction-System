@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 5.1 of Milestone F.
+These decisions describe implemented behavior through Step 5.7 of Milestone F.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -709,3 +709,36 @@ object.
 5.3 by design. Step 5.4 can add the first reviewed revision against the
 finalized ER model without changing credential policy. Autogeneration cannot
 silently invent a schema before explicit metadata is introduced.
+
+## ADR-033 — Linear, fail-closed PostgreSQL schema revisions
+
+**Status:** Accepted
+
+**Context:** The Step 5.1 ER design spans immutable byte lineage, stable
+identity, point-in-time features, training/evaluation evidence, model artifacts,
+append-only registry history and simulation contracts. Referential dependencies
+cross roadmap steps, while downgrade behavior must remain deterministic and no
+revision may import artifacts or expose the sealed final-test targets.
+
+**Decision:** Implement Steps 5.4 through 5.7 as four explicit, linear,
+transactional Alembic revisions. Use PostgreSQL domains, named checks,
+content/UUIDv5 identity checks, restrictive foreign keys, deferred constraint
+triggers and immutable update/delete guards. Add later cross-schema foreign
+keys only after their parent relations exist and remove those links first on
+downgrade. Preserve exact bytes in `lineage.stored_object`; normalized tables
+remain query projections rather than replacements for canonical artifacts.
+
+Keep the 2025–26 freeze membership target-free, reject registry activation in
+schema version 1 and require scoreline-capable provenance for model-produced
+simulation distributions. The current CatBoost artifact explicitly lacks that
+capability. Require exactly 10,000 simulations, unsigned 64-bit seeds, exact
+NumPy dtype/shape roles, whole-date batches for date-only fixtures and complete
+20-by-20 position probability mass. The provider cache is only a schema shape;
+no provider is configured. Revisions create structures only and do not import,
+persist or evaluate repository artifacts.
+
+**Consequences:** A fresh database can upgrade to one head and downgrade to an
+empty application schema without losing migration history correctness. Invalid
+identity, provenance, chronology, runtime, registry or probability state fails
+at the database boundary. Typed import repositories and transaction-focused
+integration tests remain Steps 5.8 and 5.9 respectively.
