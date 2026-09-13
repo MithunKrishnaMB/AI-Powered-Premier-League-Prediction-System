@@ -797,4 +797,63 @@ schema-introspection tests.
 database enforcement without importing the production artifact corpus or
 modifying development data. The 2025–26 target stays sealed, the registry has no
 active model and current-provider, API, deployment, frontend and CI/CD work
-remain outside Milestone F.
+remain outside Milestone F. The final Python 3.14.7 suite contains 389 passing
+tests with 90.53% branch coverage; both isolated databases finish at migration
+head with zero application rows. Commit `22e595a` records this boundary.
+
+## ADR-036 — Provider-neutral current-season capability boundary
+
+**Status:** Accepted
+
+**Context:** Milestone G needs current-season teams, fixtures, state changes,
+official results and standings without selecting a provider before its
+capabilities and semantics are understood. Provider IDs, timestamps and status
+codes cannot be allowed to leak into canonical identity or predictors. Exact
+responses also need a future cache projection without authorizing network or
+database behavior in Step 6.1.
+
+**Decision:** Define five provider-neutral capabilities: current-season teams,
+current-season fixtures, fixture status, completed results and standings.
+Separate provider availability (`supported`, `unsupported` and
+`temporarily_unavailable`) from the platform's required/optional classification;
+standings are optional and the other four operations are required.
+
+Use distinct source-scoped types for provider competition, season, team and
+fixture identifiers. Pair provider scope with an explicit canonical competition
+and season, but never treat an external ID as a canonical UUID. Require reviewed
+exact team aliases or external-ID mappings, reject unknown identities and
+prohibit fuzzy matching.
+
+Preserve provider kickoff source timezone, local date, UTC instant and exact or
+date-only precision. Local noon is only the date-only anchor, and a date
+containing a date-only fixture remains one simultaneous batch. Make
+`retrieved_at` the conservative knowledge boundary; provider timestamps cannot
+backdate feature availability.
+
+Represent scheduled, in-progress, postponed, cancelled, abandoned and finished
+states explicitly. Only finished records with a consistent official full-time
+score are completed. Status observations are score-free, and abandoned or
+cancelled records cannot become results. Add `abandoned` to the in-memory
+canonical status contract without changing the existing migration in Step 6.1.
+
+Use strict immutable request, response, pagination, quota, compatibility,
+provenance and sanitized-error contracts. Hash canonical credential-free
+request identity bytes and exact provider response bytes separately. Map the
+five operations onto the existing cache values (`metadata`, `fixtures`,
+`results`, `standings`) while retaining the exact operation and compatibility
+inside request identity. Do not persist a response; cache expiry remains Step
+6.4.
+
+Keep the existing 175-name predictor schema unchanged. Provider identities and
+status are control data, completed scores can update only later rolling state,
+standings require a separately reviewed feature change and unmodeled fields and
+betting odds are retained-only and predictor-prohibited.
+
+**Consequences:** Provider selection can be reviewed later against an explicit
+capability manifest, and adapters have typed fail-closed inputs. Equivalent
+requests and exact responses are content-identifiable and can fit the existing
+cache schema without losing bytes or compatibility. Step 6.1 adds no provider
+implementation, authentication, network call, retry, cache write,
+synchronization, production import, test evaluation, active promotion, API,
+deployment, frontend or CI/CD configuration. Step 6.2 is limited to explicit
+fixture/team transformation and must preserve these boundaries.

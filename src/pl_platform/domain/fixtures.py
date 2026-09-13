@@ -20,6 +20,7 @@ class FixtureStatus(StrEnum):
     SCHEDULED = "scheduled"
     POSTPONED = "postponed"
     CANCELLED = "cancelled"
+    ABANDONED = "abandoned"
     IN_PROGRESS = "in_progress"
     FINISHED = "finished"
 
@@ -107,6 +108,8 @@ class Fixture(BaseModel):
             FixtureStatus.SCHEDULED,
             FixtureStatus.POSTPONED,
             FixtureStatus.CANCELLED,
+            FixtureStatus.ABANDONED,
+            FixtureStatus.IN_PROGRESS,
         }
         if self.status in inactive and any(
             value is not None

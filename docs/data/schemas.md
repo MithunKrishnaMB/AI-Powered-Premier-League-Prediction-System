@@ -18,6 +18,44 @@ Dates and times remain source-local at this boundary. Football-Data's English
 match time is interpreted in the `Europe/London` timezone only when a canonical
 fixture is created.
 
+## Current-provider boundary
+
+Step 6.1 adds a separate provider-neutral, schema-version-1 boundary for
+current-season teams, fixtures, fixture status, completed results and standings.
+It does not choose a provider or parse a provider-specific response.
+
+Provider competition, season, team and fixture IDs are distinct immutable types
+identified by source and opaque external ID. `CurrentSeasonScope` carries both
+the expected canonical competition/season and explicit provider scope. Provider
+IDs never replace canonical team or fixture UUIDs. Team resolution requires a
+reviewed exact alias or external-ID mapping; unknown identities fail and fuzzy
+matching is prohibited.
+
+Provider fixture observations are score-free. Status observations are also
+score-free. Only `CompletedFixtureResult`, whose status is fixed to `finished`,
+accepts an official full-time score and matching outcome. `cancelled` and
+`abandoned` are distinct non-completions and cannot carry canonical result data.
+A postponed fixture retains its provider ID and, after explicit team resolution,
+the existing stable canonical fixture UUID while kickoff and status become a new
+revision.
+
+All instants are timezone-aware UTC. Provider kickoffs also retain an IANA
+source timezone, source-local date and `exact` or `date_only` precision.
+Date-only values use local noon only as a deterministic anchor. If one fixture
+on a source-local date is date-only, the complete date remains a simultaneous
+batch. Provider retrieval time is the conservative knowledge boundary for
+later point-in-time processing.
+
+Every typed response preserves exact request identity bytes, exact provider
+response bytes, their independent SHA-256 values, retrieval and optional
+provider-generation timestamps, compatibility versions, HTTP metadata,
+pagination and quota state. Parsed observations never replace exact bytes.
+Unmodeled fields, especially betting odds and bookmaker markets, are retained
+only in those bytes and are prohibited from the predictor schema.
+
+The full contract, field-governance table and provider-cache projection are in
+[Current-Provider Capability and Domain Contracts](current-provider-contracts.md).
+
 ## Canonical fixture model
 
 `Fixture` is provider-independent. It uses:

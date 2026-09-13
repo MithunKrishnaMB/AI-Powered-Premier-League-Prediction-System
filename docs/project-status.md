@@ -10,6 +10,9 @@ Registry and Simulation; F — PostgreSQL Persistence
 
 **Current milestone:** G — Current-Season Integration
 
+**Completed Milestone G steps:** 6.1 — current-provider capability and
+provider-neutral domain contracts
+
 **Completed Milestone F steps:** 5.1 — PostgreSQL entity-relationship model
 finalized against produced data and artifacts; 5.2 — typed, isolated local/test
 PostgreSQL connections; 5.3 — secret-free Alembic initialization without a
@@ -35,11 +38,14 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 6.1 — define current-provider capability
-and domain contracts.
+**Exact next implementation step:** 6.2 — implement fixture/team adapter
+transformation.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
+
+**Milestone F closeout commit:** `22e595a` — complete PostgreSQL repositories
+and transaction verification
 
 ## Implemented capabilities
 
@@ -62,6 +68,16 @@ acceptance and explanations
   exact-byte-first writes, forced deferred constraints and reload comparison.
 - Stable non-secret repository failure categories, retry idempotency and
   rollback on any conflict or invalid later projection.
+- Strict provider-neutral current-season team, fixture, status, completed-result
+  and standings observations with external identities kept separate from
+  canonical platform identities.
+- Complete capability declarations separating required/optional operations from
+  supported, unsupported and temporarily unavailable provider state.
+- Deterministic credential-free request identity, exact provider response bytes
+  and checksums, typed pagination/quota/compatibility metadata and sanitized
+  provider error vocabulary.
+- Explicit abandonment and completion semantics, fail-closed score/standing
+  reconciliation and retrieval-time knowledge boundaries.
 - Structured JSON logging with recursive key-based secret redaction.
 - Local Ruff, strict mypy, pytest, branch coverage and dependency checks.
 - Versioned Football-Data manifest with HTTPS host allowlisting.
@@ -249,7 +265,18 @@ acceptance and explanations
 
 ## Last verified quality result
 
-The implementation through Step 5.9 passed the complete local suite:
+The implementation through Step 6.1 passed the complete local suite:
+
+- Runtime: 64-bit Python 3.14.7.
+- pytest: 409 passed, including live PostgreSQL migration and repository
+  transaction checks.
+- Branch coverage: 90.76%, above the required 90% threshold.
+- Ruff format and lint: passed.
+- Strict mypy: passed for all 58 source files.
+- No current-provider network request, provider response persistence, production
+  artifact import, final-test access or model activation occurred.
+
+The preserved Milestone F closeout result was:
 
 - pytest: 389 passed, including live PostgreSQL migration and repository
   transaction checks.
@@ -367,7 +394,7 @@ The implementation through Step 5.9 passed the complete local suite:
 - Simulation artifact serialization or database storage.
 - Final-test evidence and active model promotion.
 - Production artifact-corpus import through the typed repositories.
-- Current-season provider integration.
+- Current-provider fixture/team transformation, client and synchronization.
 - FastAPI endpoints.
 - Deployment or frontend code.
 
@@ -387,10 +414,11 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 6.1 may define current-provider capability and domain contracts against
-the completed [Milestone F handoff](handoffs/milestone-f-to-g.md). It may name
-supported operations, payloads, identity and timestamp rules and typed
-quota/error vocabulary, but must not implement provider transformation,
-network retries, response caching, production artifact import, final-test
+Step 6.2 may transform the provider-neutral observations defined by
+[Step 6.1](data/current-provider-contracts.md) into canonical fixture/team
+records. It must use reviewed exact identity mappings, preserve response
+provenance and time/status semantics and fail on unknown identities. It must not
+add network clients, authentication, retries, response caching,
+synchronization, standings ingestion, production artifact import, final-test
 evaluation, active promotion, APIs, deployment, frontend code or CI/CD
 configuration.

@@ -23,6 +23,7 @@ speculative future complexity.
 ## Current records
 
 - [Architectural decision register](decisions.md)
+- [Current-provider capability and domain contracts](../data/current-provider-contracts.md)
 - [PostgreSQL entity-relationship model](postgresql-entity-relationship-model.md)
 - [PostgreSQL connections and Alembic boundary](postgresql-connections-and-alembic.md)
 - [PostgreSQL migration chain](postgresql-migrations.md)

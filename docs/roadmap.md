@@ -157,10 +157,24 @@ was activated.
 - **Step 5.9 — complete:** Added live PostgreSQL transaction, rollback,
   idempotency, conflict, checksum, immutable-guard and migration-contract tests.
 
-## Milestone G — Current-Season Integration — next
+**Closeout evidence:** Commit `22e595a` closes the implementation. The complete
+Python 3.14.7 suite passes with 389 tests and 90.53% branch coverage. Ruff lint,
+Ruff formatting, strict mypy, dependency consistency, whitespace and local
+Markdown-link checks pass. PostgreSQL 18.4 development and test targets connect
+as restricted `pl_app` in UTC, complete clean base-to-head migration cycles and
+end at `f0004_step_5_7` with zero application rows. Raw-manifest verification
+passes for all 11 captures. No production corpus was imported, the 2025–26
+target remained sealed, no final-test metric was calculated, no scoreline was
+inferred from classifier probabilities and no model was activated.
 
-- **Step 6.1 — next:** Define provider capability and domain contracts.
-- **Step 6.2:** Implement fixture/team adapter transformation.
+## Milestone G — Current-Season Integration — current
+
+- **Step 6.1 — complete:** Defined provider-neutral capability declarations,
+  explicit provider identities, strict team/fixture/status/result/standings
+  payloads, UTC and date-only chronology, completion rules, field governance,
+  typed pagination/quota/metadata/errors and an exact-byte provider-cache fit
+  without selecting a provider or performing I/O.
+- **Step 6.2 — next:** Implement fixture/team adapter transformation.
 - **Step 6.3:** Add quota handling, retries and sanitized logging.
 - **Step 6.4:** Add PostgreSQL response caching.
 - **Step 6.5:** Synchronize fixtures idempotently.

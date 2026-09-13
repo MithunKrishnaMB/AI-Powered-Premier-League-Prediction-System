@@ -215,6 +215,36 @@ content is allowed; collapsing the owning domain entities is not.
 - A provider correction creates another reviewed capture or manifest revision;
   it never updates the row or replaces bytes.
 
+### `provider_cache.response`
+
+Step 5.7 created this future cache shape and Step 6.1 now defines its
+provider-neutral compatibility mapping without writing a row.
+
+- Primary key: `cache_key_sha256`, deterministically derived from contract
+  version, source, mapped cache capability, exact request checksum and UTC
+  retrieval timestamp.
+- `request_identity_sha256` references compact canonical credential-free
+  request bytes in `lineage.stored_object` with profile `identity_json_v1`.
+- `response_sha256` references the exact unmodified provider response body;
+  parsed observations never replace it.
+- `fetched_at` is the response retrieval and point-in-time knowledge boundary.
+- `http_status`, `media_type`, `etag` and `last_modified` preserve transport
+  metadata without storing headers or credentials.
+- The response object's `format_id` pins current-provider contract, provider API
+  and parser-schema compatibility. The same values are included in the exact
+  request identity, so a compatibility change creates a new identity.
+- `expires_at` is deliberately left to the Step 6.4 freshness policy and must
+  remain later than `fetched_at` when a row is eventually written.
+
+The existing cache capability values map current-season teams to `metadata`,
+fixtures and fixture status to `fixtures`, completed results to `results` and
+standings to `standings`. The exact operation remains inside request identity,
+so operations sharing a broad cache value cannot collide.
+
+Step 6.1 performs no repository call. A future cache write remains an immutable
+`PROVIDER_CACHE` aggregate containing both exact stored objects before the
+normalized response row.
+
 ### `football.canonical_dataset`
 
 - Primary key: `(dataset_id, manifest_sha256)`. The first component is the

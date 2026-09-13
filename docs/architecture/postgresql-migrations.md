@@ -12,6 +12,14 @@ not import existing files, persist simulation matrices, evaluate the sealed
 | `f0003_step_5_6` | 5.6 | Training datasets and targets; target-free 2025–26 freeze membership; chronological partitions, predictions and metrics; CatBoost candidates; calibration and score-model evaluations; accepted development assessment |
 | `f0004_step_5_7` | 5.7 | Verified raw captures; future provider-cache responses; explicit scoreline distributions and provenance; canonical simulation inputs and batches; 10,000-run result components; complete aggregate summaries |
 
+Step 6.1 adds provider-neutral executable contracts only and introduces no
+Alembic revision or database write. Its five operations map onto the existing
+Step 5.7 cache vocabulary: teams use `metadata`, fixtures and fixture status use
+`fixtures`, completed results use `results` and standings use `standings`.
+Although the domain status vocabulary now distinguishes `abandoned`, the Step
+5.4 fixture-revision constraint is unchanged; a later reviewed migration must
+add persistence support before synchronization may store that state.
+
 The chain preserves application-supplied UUIDv5 and SHA-256 identities. Exact
 canonical bytes remain authoritative in `lineage.stored_object`; relational
 projections have explicit ordinals, restrictive foreign keys and immutable-row

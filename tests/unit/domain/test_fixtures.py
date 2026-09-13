@@ -112,3 +112,33 @@ def test_accepts_postponed_fixture_without_score() -> None:
     fixture = Fixture.model_validate(payload)
 
     assert fixture.status == FixtureStatus.POSTPONED
+
+
+@pytest.mark.parametrize(
+    "status",
+    [FixtureStatus.IN_PROGRESS, FixtureStatus.ABANDONED],
+)
+def test_non_finished_current_states_reject_official_scores(
+    status: FixtureStatus,
+) -> None:
+    payload = _fixture_payload()
+    payload["status"] = status
+
+    with pytest.raises(ValidationError, match="cannot contain"):
+        Fixture.model_validate(payload)
+
+
+def test_accepts_abandoned_fixture_without_score() -> None:
+    payload = _fixture_payload()
+    payload.update(
+        {
+            "status": FixtureStatus.ABANDONED,
+            "full_time_score": None,
+            "half_time_score": None,
+            "outcome": None,
+        }
+    )
+
+    fixture = Fixture.model_validate(payload)
+
+    assert fixture.status is FixtureStatus.ABANDONED
