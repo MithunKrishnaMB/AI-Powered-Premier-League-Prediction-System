@@ -1,6 +1,8 @@
-"""Transactional PostgreSQL repository tests for Steps 5.8 and 5.9."""
+"""Transactional PostgreSQL repository tests for Steps 5.8, 5.9 and 6.4."""
 
+import hashlib
 from collections.abc import Iterator
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -8,7 +10,24 @@ from sqlalchemy import Engine, text
 from sqlalchemy.exc import DBAPIError
 
 from pl_platform.core.config import Settings
+from pl_platform.domain.current import (
+    CurrentSeasonScope,
+    ProviderCompetitionIdentifier,
+    ProviderSeasonIdentifier,
+)
+from pl_platform.ingestion.current import (
+    CurrentProviderCapability,
+    CurrentSeasonFixturesRequest,
+    ExactProviderResponse,
+    PageMetadata,
+    ProviderCompatibility,
+    ProviderResponseCapture,
+    QuotaMetadata,
+    QuotaStatus,
+    provider_request_identity,
+)
 from pl_platform.persistence.database import create_database_engine
+from pl_platform.persistence.provider_cache import ProviderCacheRepository
 from pl_platform.persistence.repositories import (
     AggregateKind,
     AggregateWritePlan,
@@ -23,6 +42,50 @@ from pl_platform.persistence.repositories import (
     RepositoryError,
     StoredObject,
 )
+
+SOURCE = "current-cache-test-provider"
+NOW = datetime(2026, 9, 14, 10, tzinfo=UTC)
+
+
+def _current_capture() -> ProviderResponseCapture:
+    compatibility = ProviderCompatibility(
+        provider_api_version="api-v1",
+        parser_schema_version="parser-v1",
+    )
+    scope = CurrentSeasonScope(
+        competition_id="eng-premier-league",
+        season_id="2026-2027",
+        provider_competition_id=ProviderCompetitionIdentifier(
+            source_id=SOURCE,
+            external_id="PL",
+        ),
+        provider_season_id=ProviderSeasonIdentifier(
+            source_id=SOURCE,
+            external_id="2026",
+        ),
+    )
+    request = CurrentSeasonFixturesRequest(
+        scope=scope,
+        compatibility=compatibility,
+    )
+    body = b'{"ok":true}\n'
+    return ProviderResponseCapture(
+        source_id=SOURCE,
+        capability=CurrentProviderCapability.FIXTURES,
+        request_identity=provider_request_identity(request),
+        retrieved_at=NOW,
+        provider_generated_at=NOW - timedelta(seconds=1),
+        compatibility=compatibility,
+        page=PageMetadata(returned_count=0, has_more=False),
+        quota=QuotaMetadata(status=QuotaStatus.UNKNOWN),
+        response=ExactProviderResponse(
+            body=body,
+            sha256=hashlib.sha256(body).hexdigest(),
+            http_status=200,
+            media_type="application/json",
+            encoding="utf-8",
+        ),
+    )
 
 
 @pytest.fixture(scope="module")
@@ -247,3 +310,70 @@ def test_verified_raw_lineage_must_match_before_transaction(
             {"sha": item.sha256},
         ).scalar_one()
     assert count == 0
+
+
+@pytest.mark.postgresql
+def test_provider_cache_round_trip_is_exact_fresh_and_idempotent(
+    repository: PostgresAggregateRepository,
+    test_engine: Engine,
+) -> None:
+    source = ImmutableRow.build(
+        PersistenceTable.SOURCE,
+        {
+            "source_id": SOURCE,
+            "provider_name": "Current Test Provider",
+            "homepage_url": "https://api.example.test",
+            "attribution": "Synthetic test provider",
+            "usage_notice": "Tests only",
+        },
+        identity_columns=("source_id",),
+    )
+    repository.persist(
+        AggregateWritePlan(
+            kind=AggregateKind.IDENTITY_REFERENCE,
+            identity=SOURCE,
+            rows=(source,),
+        )
+    )
+    cache = ProviderCacheRepository(
+        test_engine,
+        FilesystemRawManifestVerifier(
+            manifest_path=Path("data/manifests/football-data.json"),
+            data_root=Path("data"),
+        ),
+    )
+    capture = _current_capture()
+    expires_at = NOW + timedelta(minutes=5)
+
+    first = cache.store(capture, expires_at=expires_at)
+    second = cache.store(capture, expires_at=expires_at)
+    loaded = cache.get_latest_fresh(
+        source_id=SOURCE,
+        capability=CurrentProviderCapability.FIXTURES,
+        request_identity_sha256=capture.request_identity.sha256,
+        at=NOW + timedelta(minutes=1),
+    )
+
+    assert first.inserted_rows + first.existing_rows == 1
+    assert second.inserted_objects == second.inserted_rows == 0
+    assert loaded is not None
+    assert loaded.response.body == capture.response.body
+    assert loaded.response.sha256 == capture.response.sha256
+    assert loaded.request_identity.payload == capture.request_identity.payload
+    assert loaded.compatibility_format_id == capture.compatibility.format_id
+    with pytest.raises(ValueError, match="lowercase SHA-256"):
+        cache.get_latest_fresh(
+            source_id=SOURCE,
+            capability=CurrentProviderCapability.FIXTURES,
+            request_identity_sha256="invalid",
+            at=NOW,
+        )
+    assert (
+        cache.get_latest_fresh(
+            source_id=SOURCE,
+            capability=CurrentProviderCapability.FIXTURES,
+            request_identity_sha256=capture.request_identity.sha256,
+            at=expires_at,
+        )
+        is None
+    )

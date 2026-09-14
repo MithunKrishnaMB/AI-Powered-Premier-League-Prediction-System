@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from pl_platform.domain.teams import (
     CanonicalTeam,
     TeamAlias,
+    TeamIdentityConflictError,
     TeamRegistry,
     TeamRegistryDocument,
     TeamRegistryValidationError,
@@ -78,3 +79,80 @@ def test_document_rejects_duplicate_slugs() -> None:
 
     with pytest.raises(ValidationError, match="slugs must be unique"):
         TeamRegistryDocument(schema_version=1, teams=(first, second))
+
+
+def test_reviewed_external_ids_resolve_exactly_and_conflicts_fail() -> None:
+    first = CanonicalTeam(
+        id=UUID("00000000-0000-0000-0000-000000000001"),
+        slug="first",
+        name="First",
+        country_code="ENG",
+        aliases=(
+            TeamAlias(
+                source_id="source",
+                external_name="First Provider Name",
+                external_id="provider-1",
+            ),
+        ),
+    )
+    second = CanonicalTeam(
+        id=UUID("00000000-0000-0000-0000-000000000002"),
+        slug="second",
+        name="Second",
+        country_code="ENG",
+        aliases=(
+            TeamAlias(
+                source_id="source",
+                external_name="Second Provider Name",
+                external_id="provider-2",
+            ),
+        ),
+    )
+    registry = TeamRegistry(
+        TeamRegistryDocument(schema_version=2, teams=(first, second))
+    )
+
+    assert registry.resolve_external_id("source", "provider-1") is first
+    assert (
+        registry.resolve_provider_team("source", "provider-1", "Unknown Name") is first
+    )
+    with pytest.raises(TeamIdentityConflictError, match="identity conflict"):
+        registry.resolve_provider_team("source", "provider-1", "Second Provider Name")
+    with pytest.raises(UnknownTeamAliasError, match="external ID"):
+        registry.resolve_external_id("source", "missing")
+
+
+def test_registry_rejects_duplicate_reviewed_external_ids() -> None:
+    first = _team("00000000-0000-0000-0000-000000000001", "first", "First").model_copy(
+        update={
+            "aliases": (
+                TeamAlias(
+                    source_id="source",
+                    external_name="First",
+                    external_id="same-id",
+                ),
+            )
+        }
+    )
+    second = _team(
+        "00000000-0000-0000-0000-000000000002", "second", "Second"
+    ).model_copy(
+        update={
+            "aliases": (
+                TeamAlias(
+                    source_id="source",
+                    external_name="Second",
+                    external_id="same-id",
+                ),
+            )
+        }
+    )
+
+    with pytest.raises(TeamRegistryValidationError, match="duplicate external ID"):
+        TeamRegistry(TeamRegistryDocument(schema_version=2, teams=(first, second)))
+    with pytest.raises(ValidationError, match="trimmed and printable"):
+        TeamAlias(
+            source_id="source",
+            external_name="First",
+            external_id=" padded-id ",
+        )

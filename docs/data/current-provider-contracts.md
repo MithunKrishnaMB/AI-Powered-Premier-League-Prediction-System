@@ -33,8 +33,8 @@ Availability and platform requirement are separate:
 
 Unsupported and temporarily unavailable capabilities require a reason.
 Unsupported capabilities cannot claim pagination or retry timing. Temporary
-unavailability may identify when a later Step 6.3 policy could retry, but Step
-6.1 performs no retry.
+unavailability may identify when the Step 6.3 policy can retry; the capability
+contract itself performs no retry.
 
 ## Provider and canonical identities
 
@@ -57,7 +57,8 @@ Team resolution must use an exact reviewed source alias or reviewed external
 ID. Existing harmless Unicode, case and whitespace normalization remains
 permitted. Similarity, fuzzy matching, guessed aliases and provider-ID-to-UUID
 coercion are prohibited. Unknown provider or canonical identities fail closed.
-Step 6.2 will implement this resolution against exact registry evidence.
+Step 6.2 implements this resolution against exact registry evidence and rejects
+conflicting ID/name mappings.
 
 ## Request and response boundaries
 
@@ -121,7 +122,7 @@ The provider-neutral status vocabulary is:
 
 Postponement changes kickoff and status revision facts, not stable fixture
 identity. Cancellation and abandonment are distinct. Neither is a completed
-result. Provider status observations are score-free, and only
+result. Provider status observations are score-free and only
 `CompletedFixtureResult` accepts an official full-time score.
 
 Canonical `FixtureStatus` now represents `abandoned`, but the Step 5.4 database
@@ -182,12 +183,13 @@ incompatible responses, integrity failure and unexpected provider failure.
 
 The error contract contains no raw body, URL, request headers or credentials.
 `ProviderOperationError` exposes only its safe message and typed detail. Step
-6.3 will implement authentication, quota decisions, retry behavior and logging.
+6.3 implements secret-header authentication, quota decisions, bounded retry
+behavior and sanitized logging through a provider-neutral HTTPS executor.
 
 ## Existing provider-cache projection
 
-Step 6.1 does not persist a response. It defines this future Step 6.4 mapping to
-the existing `provider_cache.response` table:
+Step 6.1 defined the mapping below and Step 6.4 now persists it through the
+existing `provider_cache.response` table:
 
 | Current capability | Cache capability |
 | --- | --- |
@@ -201,7 +203,7 @@ The exact credential-free request identity will be a
 `lineage.stored_object` using `identity_json_v1`; its checksum maps to
 `request_identity_sha256`. The exact provider body will be an opaque text
 stored object; its checksum maps to `response_sha256`. Retrieval maps to
-`fetched_at`, and response transport metadata maps directly to the existing
+`fetched_at` and response transport metadata maps directly to the existing
 columns.
 
 The response stored object's `format_id` carries the current-provider contract,
@@ -210,8 +212,9 @@ operation is also inside the request identity, teams and status requests cannot
 collide despite their broader cache capability values.
 
 `deterministic_provider_cache_key` hashes schema version, source, mapped cache
-capability, request checksum and retrieval timestamp. Cache expiry and freshness
-policy remain Step 6.4 responsibilities.
+capability, request checksum and retrieval timestamp. Step 6.4 requires explicit
+UTC expiry after retrieval and retrieves only the latest matching row whose
+freshness window contains the lookup instant.
 
 ## Provenance and preserved boundaries
 
@@ -225,5 +228,6 @@ combines with historical state. It cannot access the sealed 2025–26 target,
 import production artifacts, activate a model, infer scorelines from CatBoost
 probabilities or change chronological evaluation and simulation semantics.
 
-The provider protocol is a port only. Step 6.1 contains no implementation that
-can make a network call.
+The provider capability protocol remains a port. Step 6.3 supplies only a
+generic allowlisted HTTPS executor; no provider-specific endpoint, parser or
+vendor configuration is selected.

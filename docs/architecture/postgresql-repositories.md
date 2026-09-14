@@ -75,3 +75,20 @@ The tests preserve the current CatBoost depth-6, identity-calibration and
 They do not read final-test targets, create an active registry event, derive a
 scoreline distribution from classifier probabilities or persist production
 simulation artifacts.
+
+## Step 6.4 provider cache
+
+`ProviderCacheRepository` projects one validated `ProviderResponseCapture` into
+two exact stored objects and one immutable `provider_cache.response` row. The
+credential-free request identity uses `identity_json_v1`; the unmodified
+provider body uses `opaque`; SHA-256 remains the identity of each byte stream.
+The response object's format ID pins contract, provider-API and parser-schema
+compatibility.
+
+Writes use the same raw-manifest verifier, serializable transaction, migration
+head check, conflict comparison and rollback behavior as every other aggregate.
+An identical retry is idempotent, while different metadata under an existing
+checksum or cache identity fails closed. Latest-fresh reads use exact source,
+broad cache capability and request checksum, reject expired rows, reload both
+byte streams and revalidate request operation, source, compatibility, media
+metadata, checksums and deterministic cache key.

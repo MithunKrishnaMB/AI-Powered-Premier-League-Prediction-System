@@ -37,6 +37,7 @@ from pl_platform.domain.fixtures import (
     MatchOutcome,
     SourceFixtureReference,
     TeamMatchStatistics,
+    canonical_fixture_id,
 )
 from pl_platform.domain.ratings import (
     ELO_SCHEMA_VERSION,
@@ -72,6 +73,7 @@ from pl_platform.domain.simulation import (
 )
 from pl_platform.domain.teams import (
     CanonicalTeam,
+    TeamIdentityConflictError,
     TeamRegistry,
     UnknownTeamAliasError,
     load_team_registry,
@@ -135,12 +137,14 @@ __all__ = [
     "SourceArtifactProvenance",
     "SourceFixtureReference",
     "StandingRow",
+    "TeamIdentityConflictError",
     "TeamMatchStatistics",
     "TeamRegistry",
     "TeamTableRow",
     "TrainingExample",
     "TrainingLabel",
     "UnknownTeamAliasError",
+    "canonical_fixture_id",
     "deterministic_feature_row_id",
     "deterministic_sampled_fixture_result_id",
     "deterministic_scoreline_distribution_id",

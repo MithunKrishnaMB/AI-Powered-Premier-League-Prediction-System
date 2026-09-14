@@ -217,8 +217,8 @@ content is allowed; collapsing the owning domain entities is not.
 
 ### `provider_cache.response`
 
-Step 5.7 created this future cache shape and Step 6.1 now defines its
-provider-neutral compatibility mapping without writing a row.
+Step 5.7 created this cache shape, Step 6.1 defined its provider-neutral
+compatibility mapping and Step 6.4 now writes and reads it.
 
 - Primary key: `cache_key_sha256`, deterministically derived from contract
   version, source, mapped cache capability, exact request checksum and UTC
@@ -233,17 +233,18 @@ provider-neutral compatibility mapping without writing a row.
 - The response object's `format_id` pins current-provider contract, provider API
   and parser-schema compatibility. The same values are included in the exact
   request identity, so a compatibility change creates a new identity.
-- `expires_at` is deliberately left to the Step 6.4 freshness policy and must
-  remain later than `fetched_at` when a row is eventually written.
+- `expires_at` is supplied explicitly by the Step 6.4 freshness caller, must
+  remain later than `fetched_at` and is excluded at or after expiry.
 
 The existing cache capability values map current-season teams to `metadata`,
 fixtures and fixture status to `fixtures`, completed results to `results` and
 standings to `standings`. The exact operation remains inside request identity,
 so operations sharing a broad cache value cannot collide.
 
-Step 6.1 performs no repository call. A future cache write remains an immutable
-`PROVIDER_CACHE` aggregate containing both exact stored objects before the
-normalized response row.
+Step 6.4 writes an immutable `PROVIDER_CACHE` aggregate containing both exact
+stored objects before the normalized response row. The established repository
+verifies the reviewed historical raw manifest before opening its serializable
+transaction, then reloads and compares every byte and projected value.
 
 ### `football.canonical_dataset`
 

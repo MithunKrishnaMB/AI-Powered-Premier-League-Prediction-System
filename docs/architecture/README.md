@@ -24,6 +24,7 @@ speculative future complexity.
 
 - [Architectural decision register](decisions.md)
 - [Current-provider capability and domain contracts](../data/current-provider-contracts.md)
+- [Current-provider transformations, transport and caching](../data/current-provider-integration.md)
 - [PostgreSQL entity-relationship model](postgresql-entity-relationship-model.md)
 - [PostgreSQL connections and Alembic boundary](postgresql-connections-and-alembic.md)
 - [PostgreSQL migration chain](postgresql-migrations.md)
@@ -41,3 +42,4 @@ speculative future complexity.
 - [Step 5.3 to 5.4 handoff](../handoffs/step-5-3-to-5-4.md)
 - [Step 5.7 to 5.8 handoff](../handoffs/step-5-7-to-5-8.md)
 - [Milestone F to G handoff](../handoffs/milestone-f-to-g.md)
+- [Step 6.4 to 6.5 handoff](../handoffs/step-6-4-to-6-5.md)

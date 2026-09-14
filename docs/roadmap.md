@@ -174,10 +174,16 @@ inferred from classifier probabilities and no model was activated.
   payloads, UTC and date-only chronology, completion rules, field governance,
   typed pagination/quota/metadata/errors and an exact-byte provider-cache fit
   without selecting a provider or performing I/O.
-- **Step 6.2 — next:** Implement fixture/team adapter transformation.
-- **Step 6.3:** Add quota handling, retries and sanitized logging.
-- **Step 6.4:** Add PostgreSQL response caching.
-- **Step 6.5:** Synchronize fixtures idempotently.
+- **Step 6.2 — complete:** Added pure fixture/team transformations using only
+  reviewed exact aliases or external IDs, stable canonical fixture UUIDs,
+  complete capture provenance and provider-local date-only batching.
+- **Step 6.3 — complete:** Added credential-free allowlisted HTTPS request
+  specifications, secret-header authentication, redirect-disabled transport,
+  conservative quota gating, bounded deterministic retries and sanitized logs.
+- **Step 6.4 — complete:** Added raw-manifest-gated immutable PostgreSQL cache
+  writes and latest-fresh reads preserving exact request/response bytes,
+  checksums, retrieval time, compatibility and transport metadata.
+- **Step 6.5 — next:** Synchronize fixtures idempotently.
 - **Step 6.6:** Reconcile completed results.
 - **Step 6.7:** Synchronize standings.
 - **Step 6.8:** Add squads and players only after match ingestion passes.

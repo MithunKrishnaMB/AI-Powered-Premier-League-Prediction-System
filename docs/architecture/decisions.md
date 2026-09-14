@@ -825,14 +825,14 @@ exact team aliases or external-ID mappings, reject unknown identities and
 prohibit fuzzy matching.
 
 Preserve provider kickoff source timezone, local date, UTC instant and exact or
-date-only precision. Local noon is only the date-only anchor, and a date
+date-only precision. Local noon is only the date-only anchor and a date
 containing a date-only fixture remains one simultaneous batch. Make
 `retrieved_at` the conservative knowledge boundary; provider timestamps cannot
 backdate feature availability.
 
 Represent scheduled, in-progress, postponed, cancelled, abandoned and finished
 states explicitly. Only finished records with a consistent official full-time
-score are completed. Status observations are score-free, and abandoned or
+score are completed. Status observations are score-free and abandoned or
 cancelled records cannot become results. Add `abandoned` to the in-memory
 canonical status contract without changing the existing migration in Step 6.1.
 
@@ -850,10 +850,50 @@ standings require a separately reviewed feature change and unmodeled fields and
 betting odds are retained-only and predictor-prohibited.
 
 **Consequences:** Provider selection can be reviewed later against an explicit
-capability manifest, and adapters have typed fail-closed inputs. Equivalent
+capability manifest and adapters have typed fail-closed inputs. Equivalent
 requests and exact responses are content-identifiable and can fit the existing
 cache schema without losing bytes or compatibility. Step 6.1 adds no provider
 implementation, authentication, network call, retry, cache write,
 synchronization, production import, test evaluation, active promotion, API,
 deployment, frontend or CI/CD configuration. Step 6.2 is limited to explicit
 fixture/team transformation and must preserve these boundaries.
+
+## ADR-037 — Current transformation, safe transport and immutable cache
+
+**Status:** Accepted
+
+**Context:** The provider-neutral contracts need executable transformation and
+transport behavior before fixture synchronization. External identities must not
+alter canonical UUID rules, secrets must not enter request identity or logs,
+and cache freshness must not weaken exact-byte provenance or immutable
+repository behavior.
+
+**Decision:** Resolve current teams only through reviewed exact external IDs or
+aliases, reject conflicts and unknown identities, verify canonical season
+membership and derive current fixture UUIDs with the same competition/season/
+home/away UUIDv5 function used by historical ingestion. Retain the full capture
+and provider-local kickoff semantics. Reject finished observations until the
+separate completed-result reconciliation step and group any date containing a
+date-only fixture as one simultaneous batch.
+
+Provide a vendor-neutral HTTPS executor with exact host allowlisting,
+credential-free URLs and request identities, `SecretStr` header authentication,
+disabled redirects, bounded bodies/timeouts, a process-local conservative quota
+ledger and at most five deterministic retry attempts. Log typed identifiers and
+decisions only—never URLs, headers, bodies, credentials or raw exception text.
+
+Project successful captures into the existing provider-cache schema without a
+new migration. Persist canonical request identity bytes and exact response bytes
+as separate checksum-keyed objects, then link retrieval, expiry and HTTP
+metadata through one immutable cache row using the established raw-manifest-
+gated serializable repository. A cache read returns only the latest exact
+request match that is fresh at the explicit lookup instant and revalidates
+operation, source, checksums, key, media metadata and compatibility.
+
+**Consequences:** Steps 6.2 through 6.4 remain provider-neutral and do not
+synchronize football tables, parse a vendor payload or select credentials.
+Retries are bounded and permanent errors fail immediately. Exact responses can
+be replayed and reparsed under pinned compatibility without losing their bytes.
+Step 6.5 can consume deterministic transformed fixtures and cached provenance,
+but must first add persistence support for `abandoned`. Predictor/target,
+sealed-test, model-promotion and simulation boundaries remain unchanged.

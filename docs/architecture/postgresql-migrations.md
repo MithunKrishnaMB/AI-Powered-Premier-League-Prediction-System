@@ -20,6 +20,13 @@ Although the domain status vocabulary now distinguishes `abandoned`, the Step
 5.4 fixture-revision constraint is unchanged; a later reviewed migration must
 add persistence support before synchronization may store that state.
 
+Step 6.4 uses the existing `lineage.stored_object` and
+`provider_cache.response` structures and therefore adds no migration. Cache
+writes retain exact request identity and response bytes as separate stored
+objects and an immutable response row links their checksums to retrieval,
+expiry and HTTP metadata. Step 6.5 remains responsible for any migration needed
+by fixture synchronization, including persistence of `abandoned`.
+
 The chain preserves application-supplied UUIDv5 and SHA-256 identities. Exact
 canonical bytes remain authoritative in `lineage.stored_object`; relational
 projections have explicit ordinals, restrictive foreign keys and immutable-row

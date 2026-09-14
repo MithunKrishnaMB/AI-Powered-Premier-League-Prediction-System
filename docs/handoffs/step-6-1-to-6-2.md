@@ -15,9 +15,9 @@ explicit and reviewed; unknown identities fail and fuzzy matching is
 prohibited.
 
 Fixture status now distinguishes cancellation from abandonment. Only
-`finished` is completion, and only an official completed result may contain a
+`finished` is completion and only an official completed result may contain a
 full-time score. Date-only kickoff precision retains the whole-local-date
-simultaneous-batch boundary, and retrieval time is the conservative knowledge
+simultaneous-batch boundary and retrieval time is the conservative knowledge
 cutoff.
 
 ## Verification boundary

@@ -3,11 +3,29 @@
 from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Annotated, Self
-from uuid import UUID
+from uuid import NAMESPACE_URL, UUID, uuid5
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 NonNegativeInt = Annotated[int, Field(ge=0)]
+
+
+def canonical_fixture_id(
+    competition_id: str,
+    season_id: str,
+    home_team_id: UUID,
+    away_team_id: UUID,
+) -> UUID:
+    """Derive the stable fixture identity shared by every ingestion adapter."""
+
+    if not competition_id or not season_id:
+        raise ValueError("fixture identity scope cannot be empty")
+    if home_team_id == away_team_id:
+        raise ValueError("fixture identity teams must differ")
+    identity = "|".join(
+        (competition_id, season_id, str(home_team_id), str(away_team_id))
+    )
+    return uuid5(NAMESPACE_URL, f"pl-platform:fixture:{identity}")
 
 
 class MatchOutcome(StrEnum):

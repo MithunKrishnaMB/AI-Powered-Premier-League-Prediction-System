@@ -6,6 +6,11 @@ from pl_platform.persistence.database import (
     check_database_connection,
     create_database_engine,
 )
+from pl_platform.persistence.provider_cache import (
+    ProviderCacheEntry,
+    ProviderCacheRepository,
+    provider_cache_write_plan,
+)
 from pl_platform.persistence.repositories import (
     AggregateKind,
     AggregateWritePlan,
@@ -36,6 +41,8 @@ __all__ = [
     "PersistenceResult",
     "PersistenceTable",
     "PostgresAggregateRepository",
+    "ProviderCacheEntry",
+    "ProviderCacheRepository",
     "RawManifestEvidence",
     "RawManifestVerificationError",
     "RawManifestVerifier",
@@ -44,4 +51,5 @@ __all__ = [
     "StoredObject",
     "check_database_connection",
     "create_database_engine",
+    "provider_cache_write_plan",
 ]

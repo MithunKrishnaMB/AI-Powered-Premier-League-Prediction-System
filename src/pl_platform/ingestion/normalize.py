@@ -1,7 +1,6 @@
 """Transform provider rows into canonical football-domain records."""
 
 from datetime import UTC, datetime, time
-from uuid import NAMESPACE_URL, uuid5
 from zoneinfo import ZoneInfo
 
 from pl_platform.domain.fixtures import (
@@ -13,6 +12,7 @@ from pl_platform.domain.fixtures import (
     MatchOutcome,
     SourceFixtureReference,
     TeamMatchStatistics,
+    canonical_fixture_id,
 )
 from pl_platform.domain.teams import TeamRegistry
 from pl_platform.ingestion.football_data import (
@@ -61,15 +61,6 @@ def canonicalize_football_data_match(
     )
     kickoff_at = local_kickoff.astimezone(UTC)
     season_id = f"{match.season_start:04d}-{match.season_end:04d}"
-    fixture_identity = "|".join(
-        (
-            PREMIER_LEAGUE_COMPETITION_ID,
-            season_id,
-            str(home_team.id),
-            str(away_team.id),
-        )
-    )
-
     half_time_score = None
     if (
         match.half_time_home_goals is not None
@@ -81,7 +72,12 @@ def canonicalize_football_data_match(
         )
 
     return Fixture(
-        id=uuid5(NAMESPACE_URL, f"pl-platform:fixture:{fixture_identity}"),
+        id=canonical_fixture_id(
+            PREMIER_LEAGUE_COMPETITION_ID,
+            season_id,
+            home_team.id,
+            away_team.id,
+        ),
         competition_id=PREMIER_LEAGUE_COMPETITION_ID,
         season_id=season_id,
         kickoff_at=kickoff_at,

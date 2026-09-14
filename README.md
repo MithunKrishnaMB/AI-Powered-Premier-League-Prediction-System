@@ -65,8 +65,10 @@ idempotent exact-byte and normalized-projection writes with reload comparison.
 Provider-neutral current-season contracts define teams, fixtures, fixture
 status, completed results and standings together with explicit external
 identities, kickoff and completion semantics, capability availability,
-pagination, quota, exact-response provenance and sanitized errors. No external
-provider, network client or cache write has been configured.
+pagination, quota, exact-response provenance and sanitized errors. Pure
+fixture/team transformations, a provider-neutral HTTPS/authentication/retry
+executor and immutable exact-byte PostgreSQL response caching are implemented.
+No external provider has been selected or configured.
 Production artifact import, current score-distribution integration and the
 frontend have not been created. CI/CD automation is intentionally not
 configured.
@@ -311,6 +313,8 @@ implementation. Start with:
 - [Milestone F to G handoff](docs/handoffs/milestone-f-to-g.md)
 - [Step 6.1 to 6.2 handoff](docs/handoffs/step-6-1-to-6-2.md)
 - [current-provider capability and domain contracts](docs/data/current-provider-contracts.md)
+- [current-provider transformations, transport and caching](docs/data/current-provider-integration.md)
+- [Step 6.4 to 6.5 handoff](docs/handoffs/step-6-4-to-6-5.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -336,8 +340,9 @@ aggregate position probabilities are implemented. Steps 5.1 through 5.9 have
 finalized the PostgreSQL entity-relationship design, configured isolated typed
 local connections, implemented the complete schema as four linear Alembic
 revisions and added raw-manifest-gated atomic repositories with PostgreSQL
-transaction tests. Step 6.1 adds the strict provider-neutral current-season
-boundary without selecting a provider or performing I/O. The next step is
-**Step 6.2: implement fixture/team adapter transformation**. The test season
-remains sealed and has not
+transaction tests. Steps 6.1 through 6.4 add strict current-season contracts,
+deterministic team/fixture transformation, bounded secret-safe HTTPS execution
+and exact immutable response caching without selecting a provider. The next
+step is **Step 6.5: synchronize fixtures idempotently**. The test season remains
+sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

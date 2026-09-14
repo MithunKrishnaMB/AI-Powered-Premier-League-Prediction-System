@@ -1,6 +1,6 @@
 # Project Status
 
-**Status date:** 2026-09-13
+**Status date:** 2026-09-14
 
 **Runtime:** 64-bit Python 3.14.7
 
@@ -11,7 +11,9 @@ Registry and Simulation; F — PostgreSQL Persistence
 **Current milestone:** G — Current-Season Integration
 
 **Completed Milestone G steps:** 6.1 — current-provider capability and
-provider-neutral domain contracts
+provider-neutral domain contracts; 6.2 — fixture/team transformation; 6.3 —
+quota, retry, authentication and sanitized transport; 6.4 — PostgreSQL exact
+response caching
 
 **Completed Milestone F steps:** 5.1 — PostgreSQL entity-relationship model
 finalized against produced data and artifacts; 5.2 — typed, isolated local/test
@@ -38,8 +40,7 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 6.2 — implement fixture/team adapter
-transformation.
+**Exact next implementation step:** 6.5 — synchronize fixtures idempotently.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -78,6 +79,15 @@ and transaction verification
   provider error vocabulary.
 - Explicit abandonment and completion semantics, fail-closed score/standing
   reconciliation and retrieval-time knowledge boundaries.
+- Reviewed external-ID or alias resolution with disagreement rejection, stable
+  historical/current fixture UUID derivation and provider-local simultaneous
+  fixture batches.
+- Credential-free HTTPS endpoint specifications, secret-header authentication,
+  disabled redirects, bounded response sizes, deterministic bounded retries,
+  process-local quota gating and URL/credential-free failure logs.
+- Raw-manifest-gated provider-cache writes and latest-fresh reads that preserve
+  exact request and response bytes, independent checksums, retrieval/expiry,
+  compatibility and HTTP metadata.
 - Structured JSON logging with recursive key-based secret redaction.
 - Local Ruff, strict mypy, pytest, branch coverage and dependency checks.
 - Versioned Football-Data manifest with HTTPS host allowlisting.
@@ -265,16 +275,17 @@ and transaction verification
 
 ## Last verified quality result
 
-The implementation through Step 6.1 passed the complete local suite:
+The implementation through Step 6.4 passed the complete local suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 409 passed, including live PostgreSQL migration and repository
-  transaction checks.
-- Branch coverage: 90.76%, above the required 90% threshold.
+- pytest: 431 passed, including live PostgreSQL migration, repository and
+  provider-cache round-trip transaction checks.
+- Branch coverage: 90.69%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed for all 58 source files.
-- No current-provider network request, provider response persistence, production
-  artifact import, final-test access or model activation occurred.
+- Strict mypy: passed across all 136 source, test and migration Python files.
+- No external provider was selected or contacted. Only synthetic exact bytes
+  were persisted to the isolated test database; no production artifact import,
+  final-test access or model activation occurred.
 
 The preserved Milestone F closeout result was:
 
@@ -394,7 +405,8 @@ The preserved Milestone F closeout result was:
 - Simulation artifact serialization or database storage.
 - Final-test evidence and active model promotion.
 - Production artifact-corpus import through the typed repositories.
-- Current-provider fixture/team transformation, client and synchronization.
+- Current-provider fixture synchronization, result reconciliation, standings
+  synchronization, squads and players.
 - FastAPI endpoints.
 - Deployment or frontend code.
 
@@ -414,11 +426,10 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 6.2 may transform the provider-neutral observations defined by
-[Step 6.1](data/current-provider-contracts.md) into canonical fixture/team
-records. It must use reviewed exact identity mappings, preserve response
-provenance and time/status semantics and fail on unknown identities. It must not
-add network clients, authentication, retries, response caching,
-synchronization, standings ingestion, production artifact import, final-test
-evaluation, active promotion, APIs, deployment, frontend code or CI/CD
-configuration.
+Step 6.5 may synchronize transformed fixtures through the immutable PostgreSQL
+fixture/revision/source-reference model using cached exact-response provenance.
+It must be idempotent, preserve stable fixture UUIDs and status/kickoff history,
+and add reviewed database support for `abandoned` before storing that state. It
+must not reconcile completed results, ingest standings, squads or players,
+import production artifacts, access final-test targets, activate a model, add
+APIs, deploy, create frontend code or configure CI/CD.

@@ -55,6 +55,8 @@ only in those bytes and are prohibited from the predictor schema.
 
 The full contract, field-governance table and provider-cache projection are in
 [Current-Provider Capability and Domain Contracts](current-provider-contracts.md).
+The implemented transformation, HTTPS execution and cache behavior are in
+[Current-Provider Transformations, Transport and Caching](current-provider-integration.md).
 
 ## Canonical fixture model
 
