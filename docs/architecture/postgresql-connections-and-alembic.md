@@ -82,9 +82,9 @@ An externally supplied Alembic connection remains supported for later
 transactional migration tests.
 
 Step 5.3 itself introduced no revision or database object. Steps 5.4 through
-5.7 subsequently added one linear, transactional chain implementing the
-finalized [entity-relationship model](postgresql-entity-relationship-model.md).
-The current head is `f0004_step_5_7`; the allocation and reviewed commands are
+5.7 subsequently added the baseline schema and Steps 6.7–6.8 extend the same
+linear transactional chain with current-season and squad structures.
+The current head is `f0006_step_6_8`; the allocation and reviewed commands are
 documented in the [migration chain](postgresql-migrations.md).
 
 ## Preserved boundaries

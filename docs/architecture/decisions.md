@@ -897,3 +897,82 @@ be replayed and reparsed under pinned compatibility without losing their bytes.
 Step 6.5 can consume deterministic transformed fixtures and cached provenance,
 but must first add persistence support for `abandoned`. Predictor/target,
 sealed-test, model-promotion and simulation boundaries remain unchanged.
+
+## ADR-038 — Separate current facts, observations and reconciled snapshots
+
+**Status:** Accepted
+
+**Context:** Historical fixture revisions are immutable canonical-dataset
+members, while current providers can revise kickoff and state and repeat the
+same fact in many responses. Completed scores must become a single official
+ledger without losing repeated provenance. Provider tables can disagree with
+or lead locally available result evidence, so standings cannot silently become
+derived truth or predictor input.
+
+**Decision:** Share only stable `football.fixture` UUIDs with historical data.
+Persist current fixture facts as content-derived immutable revisions and record
+each exact provider response separately as an observation referencing the
+existing cache. Keep provider fixture IDs in a dedicated exact mapping. Persist
+batches with all contributing cache keys and UUID-ordered members, enforcing
+whole-provider-local-date membership whenever any fixture is date-only.
+
+Persist one immutable, score/outcome-consistent completed result per canonical
+fixture, plus repeatable cache-provenanced observations. Require a prior valid
+fixture observation and fail on provider-reference conflict, terminal cancelled
+or abandoned state, completion before kickoff or a conflicting official score.
+
+Persist standings only as complete 20-team snapshots with separate provider
+team references. Reconcile every row first in the typed application boundary
+and again in a deferred database trigger against official results known by the
+snapshot retrieval instant. Keep standings outside the approved predictor
+schema. Add `abandoned` to the historical score-free fixture status constraint
+without rewriting historical rows.
+
+**Consequences:** Identical writes are idempotent, later re-observation retains
+full provenance and genuine fact changes do not overwrite history. UUIDv5 and
+SHA-256 content identities, exact cache bytes, compatibility and retrieval-time
+leakage boundaries remain intact. The design remains provider-neutral and does
+not ingest squads or players, import artifacts, access the sealed target,
+promote a model, add APIs or change simulation behavior.
+
+## ADR-039 — Reviewed current squads and offline response recordings
+
+**Status:** Accepted
+
+**Context:** Optional player and squad data introduces identity ambiguity,
+transfer/loan chronology and a risk of allowing post-cutoff membership into
+features. Provider contracts also need reproducible verification before any
+vendor parser or live endpoint is selected.
+
+**Decision:** Extend the provider-neutral manifest with optional player and
+squad capabilities and distinct provider player/squad identifiers. Resolve a
+player only from a reviewed exact external ID or normalized exact alias; reject
+unknown, duplicate or conflicting evidence and prohibit fuzzy matching.
+
+Represent squad membership with explicit effective and registration windows,
+an as-of date and an exact loan parent when applicable. Persist only complete
+simultaneous 20-team snapshots with one active registration per player. Derive
+canonical squad UUIDs from competition, season and canonical team. Bind player
+observations and squad snapshots to exact cached responses and use response
+retrieval as their conservative knowledge cutoff. Repeat all completeness,
+ordering, provenance and chronology checks in deferred PostgreSQL validation.
+
+Add a synthetic credential-free recording for every declared capability. A
+strict canonical-order manifest binds safe relative paths, canonical request
+identity, exact response checksum, compatibility, timestamps, pagination,
+quota and media metadata. Offline replay returns the existing typed capture and
+fails on any drift. The recordings are contract evidence, not a provider
+selection or vendor parser.
+
+Keep player descriptive metadata outside the approved predictor schema unless
+a later version is explicitly reviewed. Shirt number, response-only fields and
+betting odds are prohibited. Squad membership can affect only later fixture
+batches after separate feature work.
+
+**Consequences:** Current match synchronization remains independent of optional
+player feeds. Transfers and loans retain point-in-time provenance without
+overwriting identity or history and all seven boundaries can be tested without
+network access or credentials. Revision `f0006_step_6_8` becomes the migration
+head; Step 6.9 needs no schema. No production provider, artifact import,
+final-test access, active model, prediction lifecycle, API, deployment,
+frontend or CI/CD behavior is introduced.

@@ -7,6 +7,7 @@ from uuid import NAMESPACE_URL, uuid5
 from pl_platform.domain.current import (
     CurrentSeasonScope,
     ProviderCompetitionIdentifier,
+    ProviderFixtureIdentifier,
     ProviderSeasonIdentifier,
 )
 from pl_platform.domain.seasons import (
@@ -21,16 +22,21 @@ from pl_platform.domain.teams import (
     TeamRegistryDocument,
 )
 from pl_platform.ingestion.current import (
+    CompletedResultsRequest,
     CurrentProviderCapability,
     CurrentProviderRequest,
     CurrentSeasonFixturesRequest,
+    CurrentSeasonPlayersRequest,
+    CurrentSeasonSquadsRequest,
     CurrentSeasonTeamsRequest,
     ExactProviderResponse,
+    FixtureStatusRequest,
     PageMetadata,
     ProviderCompatibility,
     ProviderResponseCapture,
     QuotaMetadata,
     QuotaStatus,
+    StandingsRequest,
     provider_request_identity,
 )
 
@@ -67,6 +73,26 @@ def request_for(capability: CurrentProviderCapability) -> CurrentProviderRequest
         return CurrentSeasonFixturesRequest(
             scope=scope(),
             compatibility=compatibility(),
+        )
+    if capability is CurrentProviderCapability.COMPLETED_RESULTS:
+        return CompletedResultsRequest(scope=scope(), compatibility=compatibility())
+    if capability is CurrentProviderCapability.FIXTURE_STATUS:
+        return FixtureStatusRequest(
+            scope=scope(),
+            compatibility=compatibility(),
+            fixture_ids=(
+                ProviderFixtureIdentifier(source_id=SOURCE, external_id="fixture-1"),
+            ),
+        )
+    if capability is CurrentProviderCapability.STANDINGS:
+        return StandingsRequest(scope=scope(), compatibility=compatibility())
+    if capability is CurrentProviderCapability.PLAYERS:
+        return CurrentSeasonPlayersRequest(scope=scope(), compatibility=compatibility())
+    if capability is CurrentProviderCapability.SQUADS:
+        return CurrentSeasonSquadsRequest(
+            scope=scope(),
+            compatibility=compatibility(),
+            as_of_date=date(2026, 9, 14),
         )
     raise ValueError("test helper supports team and fixture requests only")
 

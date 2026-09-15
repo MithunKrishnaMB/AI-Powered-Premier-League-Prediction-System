@@ -10,8 +10,10 @@ contracts:
 3. immutable PostgreSQL response caching.
 
 No vendor, endpoint, credential or provider-specific payload parser is selected
-by the repository. Fixture synchronization, completed-result reconciliation,
-standings ingestion, squads and players remain later steps.
+by the repository. Fixture synchronization, completed-result reconciliation and
+standings ingestion are implemented separately in Steps 6.5 through 6.7;
+optional squads, players and offline recorded-response contracts are
+implemented separately in Steps 6.8 and 6.9.
 
 ## Step 6.2 transformation
 

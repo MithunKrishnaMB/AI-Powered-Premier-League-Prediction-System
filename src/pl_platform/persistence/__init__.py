@@ -1,5 +1,17 @@
 """PostgreSQL connection and immutable aggregate repositories."""
 
+from pl_platform.persistence.current_squads import (
+    CurrentSquadRepository,
+    current_players_sync_plan,
+    current_squad_sync_plan,
+)
+from pl_platform.persistence.current_sync import (
+    CURRENT_SYNC_SCHEMA_VERSION,
+    CurrentSeasonRepository,
+    current_fixture_sync_plan,
+    current_results_sync_plan,
+    current_standings_sync_plan,
+)
 from pl_platform.persistence.database import (
     DatabaseConnectionError,
     DatabaseConnectionInfo,
@@ -30,9 +42,12 @@ from pl_platform.persistence.repositories import (
 )
 
 __all__ = [
+    "CURRENT_SYNC_SCHEMA_VERSION",
     "AggregateKind",
     "AggregateWritePlan",
     "CanonicalizationProfile",
+    "CurrentSeasonRepository",
+    "CurrentSquadRepository",
     "DatabaseConnectionError",
     "DatabaseConnectionInfo",
     "FilesystemRawManifestVerifier",
@@ -51,5 +66,10 @@ __all__ = [
     "StoredObject",
     "check_database_connection",
     "create_database_engine",
+    "current_fixture_sync_plan",
+    "current_players_sync_plan",
+    "current_results_sync_plan",
+    "current_squad_sync_plan",
+    "current_standings_sync_plan",
     "provider_cache_write_plan",
 ]

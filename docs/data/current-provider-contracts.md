@@ -16,20 +16,25 @@ remain platform UUIDs.
 ## Capability declaration
 
 `ProviderCapabilityManifest` contains exactly one declaration, in this order,
-for each operation:
+for each operation. Step 6.8 additively extends the original Step 6.1
+five-operation boundary with the final two optional operations:
 
 1. `current_season_teams`
 2. `current_season_fixtures`
 3. `fixture_status`
 4. `completed_results`
 5. `standings`
+6. `current_season_players`
+7. `current_season_squads`
 
 Availability and platform requirement are separate:
 
 - availability is `supported`, `unsupported` or `temporarily_unavailable`;
 - teams, fixtures, fixture status and completed results are `required`; and
 - standings are `optional` because the platform can reconstruct a table from
-  reconciled completed results.
+  reconciled completed results; and
+- players and squads are `optional` because match synchronization does not
+  depend on player-level data.
 
 Unsupported and temporarily unavailable capabilities require a reason.
 Unsupported capabilities cannot claim pagination or retry timing. Temporary
@@ -38,12 +43,14 @@ contract itself performs no retry.
 
 ## Provider and canonical identities
 
-The four provider identifier types are deliberately distinct:
+The six provider identifier types are deliberately distinct:
 
 - `ProviderCompetitionIdentifier`
 - `ProviderSeasonIdentifier`
 - `ProviderTeamIdentifier`
 - `ProviderFixtureIdentifier`
+- `ProviderPlayerIdentifier`
+- `ProviderSquadIdentifier`
 
 Each value is identified by `(source_id, external_id)`. It cannot substitute
 for a canonical identity or participate directly in canonical fixture UUID
@@ -68,7 +75,9 @@ filters are limited to:
 
 - optional UTC `updated_since` for fixture observations;
 - a unique, sorted tuple of known provider fixture IDs for status reads; and
-- optional UTC `completed_since` for result observations.
+- optional UTC `completed_since` for result observations;
+- optional UTC `updated_since` for player observations; and
+- an explicit squad as-of date plus optional unique, sorted provider team IDs.
 
 Request identity uses compact, sorted, BOM-free UTF-8 JSON and SHA-256. It
 contains no endpoint URL, authentication header, token, password or other
@@ -125,9 +134,9 @@ identity. Cancellation and abandonment are distinct. Neither is a completed
 result. Provider status observations are score-free and only
 `CompletedFixtureResult` accepts an official full-time score.
 
-Canonical `FixtureStatus` now represents `abandoned`, but the Step 5.4 database
-constraint has not been changed. A later reviewed migration must support that
-value before fixture synchronization can persist it.
+Canonical `FixtureStatus` represents `abandoned`; revision `f0005_step_6_7`
+extended the database constraint before current synchronization could persist
+that value.
 
 ## Score and standings consistency
 
@@ -158,6 +167,10 @@ Representability never grants predictor eligibility.
 | Fixture status | Authoritative status fact | Prohibited as same-fixture predictor |
 | Official completed score | Authoritative result | Prior state only after knowledge cutoff |
 | Standings snapshot | Authoritative reconciliation snapshot | Requires a future reviewed predictor schema |
+| Player IDs and names | Authoritative external identity | Exact reviewed resolution/control only |
+| Player descriptive metadata | Optional | Requires a future reviewed predictor schema |
+| Squad registration membership | Authoritative point-in-time state | Prior state only after knowledge cutoff and reviewed feature work |
+| Squad shirt number | Optional | Prohibited |
 | Round, venue, referee, codes and provider timestamps | Optional | Requires a future reviewed predictor schema |
 | Unmodeled provider fields | Retained-only exact bytes | Prohibited |
 | Betting odds and bookmaker markets | Retained-only exact bytes | Prohibited |
@@ -198,6 +211,8 @@ existing `provider_cache.response` table:
 | `fixture_status` | `fixtures` |
 | `completed_results` | `results` |
 | `standings` | `standings` |
+| `current_season_players` | `metadata` |
+| `current_season_squads` | `metadata` |
 
 The exact credential-free request identity will be a
 `lineage.stored_object` using `identity_json_v1`; its checksum maps to
@@ -218,7 +233,7 @@ freshness window contains the lookup instant.
 
 ## Provenance and preserved boundaries
 
-Future canonical fixture revisions must retain the provider fixture reference,
+Canonical fixture revisions retain the provider fixture reference,
 request identity, exact response checksum, retrieval time and compatibility
 metadata. Later feature artifacts must preserve that lineage alongside the
 complete verified historical context.

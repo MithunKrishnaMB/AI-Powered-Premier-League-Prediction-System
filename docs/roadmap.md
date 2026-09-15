@@ -167,7 +167,7 @@ passes for all 11 captures. No production corpus was imported, the 2025–26
 target remained sealed, no final-test metric was calculated, no scoreline was
 inferred from classifier probabilities and no model was activated.
 
-## Milestone G — Current-Season Integration — current
+## Milestone G — Current-Season Integration — complete
 
 - **Step 6.1 — complete:** Defined provider-neutral capability declarations,
   explicit provider identities, strict team/fixture/status/result/standings
@@ -183,11 +183,28 @@ inferred from classifier probabilities and no model was activated.
 - **Step 6.4 — complete:** Added raw-manifest-gated immutable PostgreSQL cache
   writes and latest-fresh reads preserving exact request/response bytes,
   checksums, retrieval time, compatibility and transport metadata.
-- **Step 6.5 — next:** Synchronize fixtures idempotently.
-- **Step 6.6:** Reconcile completed results.
-- **Step 6.7:** Synchronize standings.
-- **Step 6.8:** Add squads and players only after match ingestion passes.
-- **Step 6.9:** Add recorded-response contract tests.
+- **Step 6.5 — complete:** Added content-derived fixture revisions, exact
+  provider-reference mappings, cache-provenanced observations and validated
+  simultaneous batches with idempotent raw-manifest-gated persistence.
+- **Step 6.6 — complete:** Added exact team/fixture resolution and an immutable
+  one-result-per-fixture ledger with score/outcome, completion and prior-state
+  consistency checks.
+- **Step 6.7 — complete:** Added complete 20-team standings snapshots with
+  separate provider-team references and point-in-time reconciliation against
+  the official result ledger.
+- **Step 6.8 — complete:** Added optional provider-neutral players and squads,
+  reviewed exact player resolution, explicit registration/transfer/loan
+  chronology, complete simultaneous 20-team snapshots and immutable
+  exact-cache-provenanced persistence.
+- **Step 6.9 — complete:** Added a credential-free recorded-response manifest
+  and exact-byte replay tests for every declared capability, with fail-closed
+  checksum, request-identity, compatibility, path and capability validation.
+
+**Closeout evidence:** The Python 3.14.7 suite, strict typing, lint, formatting,
+live isolated PostgreSQL migration cycles and current-season transaction tests
+pass with branch coverage above 90%. The recordings are synthetic, no provider
+was selected or contacted and no production data or model artifact was
+imported.
 
 ## Milestone H — Prediction Lifecycle — planned
 

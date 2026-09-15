@@ -1,6 +1,6 @@
 """Pure current-season team and fixture transformation tests."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -8,6 +8,7 @@ import pytest
 from pl_platform.domain.current import (
     CurrentSeasonFixture,
     CurrentSeasonTeam,
+    FixtureStatusObservation,
     ProviderFixtureIdentifier,
     ProviderKickoff,
     ProviderTeamIdentifier,
@@ -18,12 +19,14 @@ from pl_platform.ingestion.current import (
     CurrentProviderCapability,
     CurrentSeasonFixturesResponse,
     CurrentSeasonTeamsResponse,
+    FixtureStatusResponse,
 )
 from pl_platform.ingestion.current_transform import (
     CurrentTransformationError,
     current_fixture_batches,
     transform_current_fixtures,
     transform_current_teams,
+    transform_fixture_statuses,
 )
 from tests.unit.ingestion.current_helpers import (
     NOW,
@@ -308,3 +311,57 @@ def test_transformation_rejects_scope_duplicates_and_mixed_timezones() -> None:
         current_fixture_batches(first)
     with pytest.raises(CurrentTransformationError, match="more than once"):
         current_fixture_batches((first[0], first[0]))
+
+
+def test_fixture_status_transform_uses_exact_known_reference_and_no_batch() -> None:
+    registry, season = registry_and_season()
+    resolution = transform_current_teams(_teams_response(0, 1), registry, season)
+    baseline = transform_current_fixtures(
+        _fixture_response(
+            (
+                _fixture(
+                    "fixture-1",
+                    0,
+                    1,
+                    datetime(2026, 9, 20, 15, tzinfo=UTC),
+                ),
+            )
+        ),
+        resolution,
+        season,
+    )
+    observed_at = NOW + timedelta(seconds=30)
+    response = FixtureStatusResponse(
+        scope=scope(),
+        items=(
+            FixtureStatusObservation(
+                provider_fixture_id=ProviderFixtureIdentifier(
+                    source_id=SOURCE, external_id="fixture-1"
+                ),
+                status=FixtureStatus.POSTPONED,
+                observed_at=observed_at,
+                provider_updated_at=observed_at,
+            ),
+        ),
+        capture=capture_for(
+            CurrentProviderCapability.FIXTURE_STATUS,
+            1,
+            retrieved_at=NOW + timedelta(minutes=1),
+        ),
+    )
+
+    (changed,) = transform_fixture_statuses(response, baseline, season)
+
+    assert changed.fixture.id == baseline[0].fixture.id
+    assert changed.fixture.status is FixtureStatus.POSTPONED
+    assert changed.status_observed_at == observed_at
+
+    finished = response.model_copy(
+        update={
+            "items": (
+                response.items[0].model_copy(update={"status": FixtureStatus.FINISHED}),
+            )
+        }
+    )
+    with pytest.raises(CurrentTransformationError, match="result reconciliation"):
+        transform_fixture_statuses(finished, baseline, season)

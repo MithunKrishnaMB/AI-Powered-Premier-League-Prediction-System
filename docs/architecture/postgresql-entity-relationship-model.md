@@ -1,9 +1,10 @@
 # PostgreSQL Entity-Relationship Model
 
-**Implementation status:** The model is implemented by the linear Step
-5.4–5.7 Alembic chain ending at revision `f0004_step_5_7` and Steps 5.8–5.9
-provide and verify its typed transaction boundary. No production artifact
-corpus has been imported by the migrations or repository tests.
+**Implementation status:** The baseline model is implemented by Steps 5.4–5.7,
+and revisions `f0005_step_6_7` and `f0006_step_6_8` extend its linear chain with
+current-season fixtures, results, standings, players and squads. Steps 5.8–5.9
+provide the typed transaction boundary. No production artifact corpus has been
+imported by migrations or repository tests.
 
 ## Status and scope
 
@@ -70,6 +71,10 @@ fixture -> scoreline_distribution -> simulation_input -> simulation_run
                                               |                 |
                                               +-----------------+
                                                         -> simulation_summary
+
+provider_cache.response -> current_fixture_observation -> current_fixture_revision
+                        -> current_result_observation -> current_completed_result
+                        -> current_standing_snapshot -> current_standing_row
 ```
 
 Arrows mean required provenance references, not permission to cascade-delete
@@ -311,6 +316,66 @@ per member. These are deferred database constraints because they span rows.
 
 This persists the already implemented chronology boundary without treating the
 date-only noon anchor as an actual ordering signal.
+
+### Current-season fixture facts and observations
+
+Revision `f0005_step_6_7` keeps current observations outside dataset-owned
+historical `fixture_revision` rows while sharing the stable `football.fixture`
+identity.
+
+- `current_fixture_source_reference` has primary key `(source_id, external_id)`
+  and maps one exact provider fixture identity to one canonical fixture.
+- `current_fixture_revision` is an immutable fact. Its UUIDv5 is bound to the
+  SHA-256 of canonical identity JSON containing fixture scope, teams, kickoff,
+  precision, source timezone/date, status and retained descriptive fields.
+- `current_fixture_observation` links that fact to an exact cached response.
+  Retrieval time is the knowledge boundary; provider update time cannot follow
+  it. Deferred checks reject chronology and terminal-state regression.
+- `current_fixture_batch`, its cache-provenance rows and UUID-ordered members
+  preserve exact-kickoff or whole-provider-local-date simultaneity. A date-only
+  batch must include every fixture on that date in its response provenance set.
+
+`abandoned` is also a valid score-free historical revision status after this
+migration; no existing historical data is rewritten.
+
+### Current completed results
+
+`current_completed_result` permits one immutable official result per canonical
+fixture. Its score and outcome must agree and its content-derived UUID is backed
+by canonical identity bytes. `current_result_observation` retains every exact
+cached result response and retrieval boundary. A result requires the same exact
+provider fixture mapping and a prior current fixture observation, cannot follow
+cancelled or abandoned state and cannot explicitly complete before kickoff.
+
+Result fields are targets for their fixture. They may update rolling state only
+for later feature cutoffs and never enter that fixture's predictors.
+
+### Current standings snapshots
+
+`current_standing_snapshot` binds one exact standings cache response to a
+content-derived identity. It owns 20 `current_standing_row` records and 20
+separate `current_standing_source_reference` records. Positions are exactly
+1–20; played, outcome, goal-difference and adjusted-points arithmetic is
+checked per row. A deferred trigger requires reviewed season membership and
+reconciles every total against completed results whose first evidence was known
+no later than snapshot retrieval. Standings remain reconciliation data rather
+than approved schema-v2 predictors.
+
+### Current players and squad snapshots
+
+`identity.player` owns reviewed canonical player UUIDs.
+`current_player_source_reference` maps exact provider IDs separately, while
+`current_player_observation` retains provider metadata and the exact cache
+evidence that made it known. Canonical identity is never derived from a
+provider ID or fuzzy name match.
+
+`current_squad` has one provider-independent UUIDv5 per competition, season and
+canonical team. Source references remain separate. A content-derived
+`current_squad_snapshot` owns ordered team rows, active member rows and all
+cache provenance. Deferred validation requires exactly 20 reviewed teams,
+players observed by the retrieval cutoff, in-season registration windows and
+valid distinct loan parents. Membership is eligible only for later reviewed
+features; it does not change predictor schema version 2.
 
 ## Point-in-time features and Elo
 

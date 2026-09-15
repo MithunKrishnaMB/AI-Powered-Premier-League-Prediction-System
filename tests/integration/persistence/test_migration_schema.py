@@ -1,4 +1,4 @@
-"""PostgreSQL migration-shape checks for Steps 5.4 through 5.7."""
+"""PostgreSQL migration-shape checks through current squad synchronization."""
 
 from collections.abc import Iterator
 
@@ -35,9 +35,9 @@ def migrated_test_engine() -> Iterator[Engine]:
         revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one_or_none()
-    if revision != "f0004_step_5_7":
+    if revision != "f0006_step_6_8":
         engine.dispose()
-        pytest.skip("test PostgreSQL database is not at the Step 5.7 head")
+        pytest.skip("test PostgreSQL database is not at the Step 6.8 head")
     try:
         yield engine
     finally:
@@ -139,6 +139,104 @@ def test_sealed_target_and_simulation_constraints_exist(
 
     assert constraints == expected_constraints
     assert triggers == expected_triggers
+
+
+@pytest.mark.postgresql
+def test_current_sync_tables_and_fail_closed_triggers_exist(
+    migrated_test_engine: Engine,
+) -> None:
+    expected_tables = {
+        "current_completed_result",
+        "current_fixture_batch",
+        "current_fixture_batch_member",
+        "current_fixture_batch_provenance",
+        "current_fixture_observation",
+        "current_fixture_revision",
+        "current_fixture_source_reference",
+        "current_result_observation",
+        "current_standing_row",
+        "current_standing_snapshot",
+        "current_standing_source_reference",
+    }
+    expected_triggers = {
+        "validate_current_fixture_batch",
+        "validate_current_fixture_observation",
+        "validate_current_result_observation",
+        "validate_current_standing_snapshot",
+    }
+    with migrated_test_engine.connect() as connection:
+        tables = set(
+            connection.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'football' "
+                    "AND table_name = ANY(:names)"
+                ),
+                {"names": sorted(expected_tables)},
+            ).scalars()
+        )
+        triggers = set(
+            connection.execute(
+                text(
+                    "SELECT tgname FROM pg_trigger "
+                    "WHERE tgname = ANY(:names) AND NOT tgisinternal"
+                ),
+                {"names": sorted(expected_triggers)},
+            ).scalars()
+        )
+
+    assert tables == expected_tables
+    assert triggers == expected_triggers
+
+
+@pytest.mark.postgresql
+def test_current_player_and_squad_tables_and_guards_exist(
+    migrated_test_engine: Engine,
+) -> None:
+    expected_tables = {
+        "current_player_observation",
+        "current_player_source_reference",
+        "current_squad",
+        "current_squad_member",
+        "current_squad_snapshot",
+        "current_squad_snapshot_provenance",
+        "current_squad_snapshot_team",
+        "current_squad_source_reference",
+    }
+    expected_triggers = {
+        "validate_current_player_observation",
+        "validate_current_squad_snapshot",
+    }
+    with migrated_test_engine.connect() as connection:
+        tables = set(
+            connection.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'football' "
+                    "AND table_name = ANY(:names)"
+                ),
+                {"names": sorted(expected_tables)},
+            ).scalars()
+        )
+        triggers = set(
+            connection.execute(
+                text(
+                    "SELECT tgname FROM pg_trigger "
+                    "WHERE tgname = ANY(:names) AND NOT tgisinternal"
+                ),
+                {"names": sorted(expected_triggers)},
+            ).scalars()
+        )
+        player_table = connection.execute(
+            text(
+                "SELECT count(*) FROM information_schema.tables "
+                "WHERE table_schema = 'identity' AND table_name = 'player'"
+            )
+        ).scalar_one()
+
+    assert tables == expected_tables
+    assert triggers == expected_triggers
+    assert player_table == 1
 
 
 @pytest.mark.postgresql

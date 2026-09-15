@@ -1,19 +1,24 @@
 # Project Status
 
-**Status date:** 2026-09-14
+**Status date:** 2026-09-15
 
 **Runtime:** 64-bit Python 3.14.7
 
 **Completed milestones:** A — Repository Foundation; B — Historical Data
 System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
-Registry and Simulation; F — PostgreSQL Persistence
+Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
+Integration
 
-**Current milestone:** G — Current-Season Integration
+**Current milestone:** H — Prediction Lifecycle (planned; Step 7.1 remains
+gated because no active model exists)
 
 **Completed Milestone G steps:** 6.1 — current-provider capability and
 provider-neutral domain contracts; 6.2 — fixture/team transformation; 6.3 —
 quota, retry, authentication and sanitized transport; 6.4 — PostgreSQL exact
-response caching
+response caching; 6.5 — idempotent fixture synchronization; 6.6 — completed
+result reconciliation; 6.7 — standings synchronization; 6.8 — reviewed current
+players and simultaneous squad snapshots; 6.9 — offline exact-byte recorded
+response contract tests
 
 **Completed Milestone F steps:** 5.1 — PostgreSQL entity-relationship model
 finalized against produced data and artifacts; 5.2 — typed, isolated local/test
@@ -40,7 +45,9 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 6.5 — synchronize fixtures idempotently.
+**Exact next implementation step:** 7.1 — load the active model
+deterministically, only after a separately authorized final-test and active
+promotion path creates an active model. No active model currently exists.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -54,8 +61,8 @@ and transaction verification
 - Typed, immutable environment configuration.
 - Secret-backed, explicitly isolated PostgreSQL development/test connection
   settings and a read-only compatibility and privilege checker.
-- URL-free Alembic environment with four linear transactional revisions and
-  head `f0004_step_5_7`.
+- URL-free Alembic environment with six linear transactional revisions and
+  head `f0006_step_6_8`.
 - PostgreSQL checked domains, exact-byte SHA-256 verification, application
   UUIDv5 checks, restrictive provenance foreign keys, deferred aggregate
   validation and immutable update/delete guards.
@@ -88,6 +95,22 @@ and transaction verification
 - Raw-manifest-gated provider-cache writes and latest-fresh reads that preserve
   exact request and response bytes, independent checksums, retrieval/expiry,
   compatibility and HTTP metadata.
+- Immutable content-derived current fixture revisions, separate provider
+  references and response observations, with fail-closed chronology and
+  provider-local simultaneous batches.
+- One official result per canonical fixture, repeatable exact-response
+  provenance and completion/status consistency checks.
+- Complete 20-team standings snapshots reconciled against results known at the
+  standings retrieval boundary, with separate provider-team references.
+- Provider-neutral optional player and squad capabilities with source-scoped
+  external identities, reviewed exact player mappings, explicit registration,
+  transfer and loan windows and complete simultaneous 20-team snapshots.
+- Immutable current player observations and squad snapshots with deterministic
+  UUID/content identities, exact cached-response provenance and deferred
+  PostgreSQL completeness and chronology guards.
+- A synthetic credential-free recorded-response corpus covering all seven
+  capabilities and replay validation for exact bytes, checksums, request
+  identity, compatibility, retrieval time, pagination and quota metadata.
 - Structured JSON logging with recursive key-based secret redaction.
 - Local Ruff, strict mypy, pytest, branch coverage and dependency checks.
 - Versioned Football-Data manifest with HTTPS host allowlisting.
@@ -275,14 +298,20 @@ and transaction verification
 
 ## Last verified quality result
 
-The implementation through Step 6.4 passed the complete local suite:
+The implementation through Step 6.9 passed the complete local suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 431 passed, including live PostgreSQL migration, repository and
-  provider-cache round-trip transaction checks.
-- Branch coverage: 90.69%, above the required 90% threshold.
+- pytest: 460 passed, including live PostgreSQL migration, current fixture,
+  result, standings, player, squad and provider-cache transaction checks plus
+  offline recorded-response contract replay.
+- Branch coverage: 90.50%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 136 source, test and migration Python files.
+- Strict mypy: passed across all 148 source, test and migration Python files.
+- Dependency consistency: passed.
+- Development and test databases completed `f0005_step_6_7` to
+  `f0006_step_6_8` upgrade and the test database completed downgrade and
+  re-upgrade verification while
+  remaining explicitly isolated.
 - No external provider was selected or contacted. Only synthetic exact bytes
   were persisted to the isolated test database; no production artifact import,
   final-test access or model activation occurred.
@@ -405,8 +434,7 @@ The preserved Milestone F closeout result was:
 - Simulation artifact serialization or database storage.
 - Final-test evidence and active model promotion.
 - Production artifact-corpus import through the typed repositories.
-- Current-provider fixture synchronization, result reconciliation, standings
-  synchronization, squads and players.
+- A selected production current-data provider and its vendor-specific parsers.
 - FastAPI endpoints.
 - Deployment or frontend code.
 
@@ -426,10 +454,10 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Step 6.5 may synchronize transformed fixtures through the immutable PostgreSQL
-fixture/revision/source-reference model using cached exact-response provenance.
-It must be idempotent, preserve stable fixture UUIDs and status/kickoff history,
-and add reviewed database support for `abandoned` before storing that state. It
-must not reconcile completed results, ingest standings, squads or players,
-import production artifacts, access final-test targets, activate a model, add
-APIs, deploy, create frontend code or configure CI/CD.
+Milestone G is closed. Step 7.1 must fail closed while the registry has no
+active model; development acceptance is not active promotion. Any final-test
+evaluation, active promotion or production provider selection requires
+separate explicit authorization. The next work must not import production
+artifacts, infer scorelines from classifier probabilities, alter the sealed
+target or simulation semantics, add APIs, deploy, create frontend code or
+configure CI/CD unless its numbered scope is explicitly approved.

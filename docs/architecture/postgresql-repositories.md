@@ -1,8 +1,9 @@
 # PostgreSQL Repositories and Transactions
 
-Steps 5.8 and 5.9 implement and verify the write boundary over Alembic head
-`f0004_step_5_7`. They do not bulk-import the produced artifact corpus, evaluate
-the sealed 2025–26 target, promote a model or configure a current provider.
+Steps 5.8 and 5.9 implement and verify the write boundary, now extended through
+Alembic head `f0006_step_6_8`. They do not bulk-import the produced artifact
+corpus, evaluate the sealed 2025–26 target, promote a model or configure a
+current provider.
 
 ## Typed write contract
 
@@ -40,7 +41,7 @@ unknown or conflicting lineage fails closed.
 
 One repository write uses one serializable PostgreSQL transaction:
 
-1. require exact Alembic head `f0004_step_5_7`;
+1. require exact Alembic head `f0006_step_6_8`;
 2. insert authoritative exact objects;
 3. insert normalized rows in dependency order;
 4. force all deferred constraints to run;
@@ -92,3 +93,41 @@ checksum or cache identity fails closed. Latest-fresh reads use exact source,
 broad cache capability and request checksum, reject expired rows, reload both
 byte streams and revalidate request operation, source, compatibility, media
 metadata, checksums and deterministic cache key.
+
+## Steps 6.5–6.7 current-season writes
+
+`CurrentSeasonRepository` exposes three narrow operations over the same
+raw-manifest-gated aggregate writer. Fixture synchronization writes stable
+canonical fixtures, exact provider-reference mappings, content-derived fact
+revisions, per-cache observations and validated batches. Completed-result
+reconciliation writes one immutable official score per fixture plus any number
+of identical-result response observations. Standings synchronization writes one
+complete 20-row snapshot and separate provider-team references.
+
+The plan builders preserve canonical table and member ordering and create
+identity JSON objects for fixture revisions, fixture batches, results and
+standings. Their SHA-256 values bind UUIDv5 identities. Exact provider request
+and response bytes are not copied: restrictive cache foreign keys retain their
+checksums, retrieval time and pinned compatibility metadata without weakening
+the authoritative byte record.
+
+PostgreSQL repeats the application validation at transaction end. It rejects
+conflicting provider fixture mappings, out-of-order or regressive state,
+incomplete date-only batches, results without a valid prior fixture state,
+conflicting final scores and standings that differ from results known by the
+snapshot retrieval instant. Conflict-ignore remains retry plumbing only;
+reloaded rows must still compare exactly.
+
+## Step 6.8 current player and squad writes
+
+`CurrentSquadRepository` exposes separate player-resolution and complete-squad
+operations. Player writes add reviewed canonical UUIDs, exact source references
+and response observations. Squad writes add stable competition/season/team
+squad UUIDs and one content-derived snapshot with UUID-ordered teams, active
+memberships and every distinct cache key as provenance.
+
+Both operations use the common raw-manifest-gated serializable writer. Deferred
+database checks require cached metadata responses from the same source, prevent
+unobserved or post-cutoff players, enforce exactly the 20 reviewed season teams
+and validate registration and loan chronology. Exact response bytes remain in
+the provider cache and are never replaced by normalized rows.

@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Mapping
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Annotated, Final, Literal, Protocol, Self
@@ -15,10 +15,13 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pl_platform.domain.current import (
     CompletedFixtureResult,
     CurrentSeasonFixture,
+    CurrentSeasonPlayer,
     CurrentSeasonScope,
+    CurrentSeasonSquad,
     CurrentSeasonTeam,
     FixtureStatusObservation,
     ProviderFixtureIdentifier,
+    ProviderTeamIdentifier,
     StandingRow,
 )
 
@@ -45,6 +48,8 @@ class CurrentProviderCapability(StrEnum):
     FIXTURE_STATUS = "fixture_status"
     COMPLETED_RESULTS = "completed_results"
     STANDINGS = "standings"
+    PLAYERS = "current_season_players"
+    SQUADS = "current_season_squads"
 
 
 CAPABILITY_ORDER: Final[tuple[CurrentProviderCapability, ...]] = tuple(
@@ -72,6 +77,8 @@ CAPABILITY_REQUIREMENTS: Final[
         CurrentProviderCapability.FIXTURE_STATUS: CapabilityRequirement.REQUIRED,
         CurrentProviderCapability.COMPLETED_RESULTS: CapabilityRequirement.REQUIRED,
         CurrentProviderCapability.STANDINGS: CapabilityRequirement.OPTIONAL,
+        CurrentProviderCapability.PLAYERS: CapabilityRequirement.OPTIONAL,
+        CurrentProviderCapability.SQUADS: CapabilityRequirement.OPTIONAL,
     }
 )
 
@@ -290,12 +297,44 @@ class StandingsRequest(_SeasonRequest):
     )
 
 
+class CurrentSeasonPlayersRequest(_SeasonRequest):
+    capability: Literal[CurrentProviderCapability.PLAYERS] = (
+        CurrentProviderCapability.PLAYERS
+    )
+    updated_since: datetime | None = None
+
+    @model_validator(mode="after")
+    def update_boundary_must_be_utc(self) -> Self:
+        if self.updated_since is not None:
+            _must_be_utc(self.updated_since, "updated_since")
+        return self
+
+
+class CurrentSeasonSquadsRequest(_SeasonRequest):
+    capability: Literal[CurrentProviderCapability.SQUADS] = (
+        CurrentProviderCapability.SQUADS
+    )
+    as_of_date: date
+    team_ids: tuple[ProviderTeamIdentifier, ...] = ()
+
+    @model_validator(mode="after")
+    def team_filter_must_be_unique_ordered_and_scoped(self) -> Self:
+        if any(item.source_id != self.scope.source_id for item in self.team_ids):
+            raise ValueError("squad team identifiers do not match request source")
+        keys = tuple(item.external_id for item in self.team_ids)
+        if keys != tuple(sorted(set(keys))):
+            raise ValueError("squad team identifiers must be unique and ordered")
+        return self
+
+
 type CurrentProviderRequest = (
     CurrentSeasonTeamsRequest
     | CurrentSeasonFixturesRequest
     | FixtureStatusRequest
     | CompletedResultsRequest
     | StandingsRequest
+    | CurrentSeasonPlayersRequest
+    | CurrentSeasonSquadsRequest
 )
 
 
@@ -361,6 +400,8 @@ PROVIDER_CACHE_CAPABILITY_BY_OPERATION: Final[
         CurrentProviderCapability.FIXTURE_STATUS: ProviderCacheCapability.FIXTURES,
         CurrentProviderCapability.COMPLETED_RESULTS: ProviderCacheCapability.RESULTS,
         CurrentProviderCapability.STANDINGS: ProviderCacheCapability.STANDINGS,
+        CurrentProviderCapability.PLAYERS: ProviderCacheCapability.METADATA,
+        CurrentProviderCapability.SQUADS: ProviderCacheCapability.METADATA,
     }
 )
 
@@ -630,6 +671,55 @@ class StandingsResponse(BaseModel):
         return self
 
 
+class CurrentSeasonPlayersResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    scope: CurrentSeasonScope
+    items: tuple[CurrentSeasonPlayer, ...]
+    capture: ProviderResponseCapture
+
+    @model_validator(mode="after")
+    def response_must_be_ordered_and_scoped(self) -> Self:
+        keys = tuple(item.provider_player_id.external_id for item in self.items)
+        if keys != tuple(sorted(set(keys))):
+            raise ValueError("provider players must be unique and ordered")
+        _validate_response_boundary(
+            scope=self.scope,
+            capture=self.capture,
+            expected_capability=CurrentProviderCapability.PLAYERS,
+            item_sources=tuple(
+                item.provider_player_id.source_id for item in self.items
+            ),
+            item_count=len(self.items),
+        )
+        return self
+
+
+class CurrentSeasonSquadsResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    scope: CurrentSeasonScope
+    items: tuple[CurrentSeasonSquad, ...]
+    capture: ProviderResponseCapture
+
+    @model_validator(mode="after")
+    def response_must_be_ordered_and_scoped(self) -> Self:
+        keys = tuple(item.provider_team_id.external_id for item in self.items)
+        if keys != tuple(sorted(set(keys))):
+            raise ValueError("provider squads must be unique and team-ordered")
+        squad_ids = tuple(item.provider_squad_id.external_id for item in self.items)
+        if len(squad_ids) != len(set(squad_ids)):
+            raise ValueError("provider squad identities must be unique")
+        _validate_response_boundary(
+            scope=self.scope,
+            capture=self.capture,
+            expected_capability=CurrentProviderCapability.SQUADS,
+            item_sources=tuple(item.provider_squad_id.source_id for item in self.items),
+            item_count=len(self.items),
+        )
+        return self
+
+
 class ProviderErrorCode(StrEnum):
     UNSUPPORTED_CAPABILITY = "unsupported_capability"
     TEMPORARILY_UNAVAILABLE = "temporarily_unavailable"
@@ -729,3 +819,11 @@ class CurrentSeasonProvider(Protocol):
     ) -> CompletedResultsResponse: ...
 
     def get_standings(self, request: StandingsRequest) -> StandingsResponse: ...
+
+    def get_current_season_players(
+        self, request: CurrentSeasonPlayersRequest
+    ) -> CurrentSeasonPlayersResponse: ...
+
+    def get_current_season_squads(
+        self, request: CurrentSeasonSquadsRequest
+    ) -> CurrentSeasonSquadsResponse: ...

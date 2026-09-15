@@ -340,6 +340,24 @@ surrogate identities for these records. Stable fixtures are separated from
 immutable dataset-owned revisions so postponement or rescheduling cannot
 overwrite a historical observation.
 
+Steps 6.5 through 6.8 add separate current-season projections. A content-derived
+fixture fact is distinct from each exact cached response observation that
+reported it. Provider fixture IDs remain in an explicit source-reference table,
+and exact-kickoff or whole-provider-local-date batches have ordered members and
+complete cache provenance. The official result ledger permits one consistent
+score/outcome per canonical fixture while retaining repeat observations.
+Standings snapshots require all 20 reviewed members and positions and reconcile
+against only results known by the snapshot retrieval time. The detailed schema
+is in [Current-Season Fixture, Result and Standings Synchronization](current-season-synchronization.md).
+
+Step 6.8 adds reviewed canonical players separately from provider player IDs,
+plus provider-independent season/team squads and complete content-derived
+snapshots. Membership carries explicit effective and registration dates and
+loan parent identity; only registrations active at the snapshot date are
+allowed. Player metadata and shirt numbers do not enter predictor schema 2.
+The exact boundary is in [Current Players, Squads and Recorded-Response
+Contracts](current-squads-and-recorded-contracts.md).
+
 Predictor values retain their strict null, boolean, integer or float64 type and
 remain separate from feature labels and training targets. Evaluation
 predictions remain target-free and keep three explicit float64 probabilities in

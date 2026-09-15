@@ -1,0 +1,1 @@
+"""Current-provider contract tests."""

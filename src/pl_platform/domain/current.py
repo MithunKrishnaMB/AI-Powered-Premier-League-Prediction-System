@@ -61,6 +61,14 @@ class ProviderFixtureIdentifier(_ProviderIdentifier):
     """Provider-owned fixture identity."""
 
 
+class ProviderPlayerIdentifier(_ProviderIdentifier):
+    """Provider-owned player identity, separate from reviewed canonical UUIDs."""
+
+
+class ProviderSquadIdentifier(_ProviderIdentifier):
+    """Provider-owned squad identity, separate from canonical season/team scope."""
+
+
 class CurrentSeasonScope(BaseModel):
     """Explicit canonical expectation paired with provider-owned scope identity."""
 
@@ -237,6 +245,103 @@ class StandingRow(BaseModel):
         return self
 
 
+class SquadMembershipKind(StrEnum):
+    PERMANENT = "permanent"
+    LOAN = "loan"
+    ACADEMY = "academy"
+
+
+class CurrentSeasonPlayer(BaseModel):
+    """Unresolved current player metadata; identity resolution is explicit."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    provider_player_id: ProviderPlayerIdentifier
+    provider_name: str = Field(min_length=1)
+    date_of_birth: date | None = None
+    nationality_code: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
+    provider_position: str | None = Field(default=None, min_length=1)
+
+
+class CurrentSquadMembership(BaseModel):
+    """One current registration with explicit employment and eligibility dates."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    provider_player_id: ProviderPlayerIdentifier
+    provider_player_name: str = Field(min_length=1)
+    kind: SquadMembershipKind
+    effective_from: date
+    effective_to: date | None = None
+    registered_from: date
+    registered_to: date | None = None
+    loan_parent_provider_team_id: ProviderTeamIdentifier | None = None
+    shirt_number: PositiveInt | None = None
+
+    @model_validator(mode="after")
+    def membership_window_must_be_consistent(self) -> Self:
+        if self.effective_to is not None and self.effective_to < self.effective_from:
+            raise ValueError("membership effective range is reversed")
+        if self.registered_from < self.effective_from or (
+            self.registered_to is not None and self.registered_to < self.registered_from
+        ):
+            raise ValueError("registration range is outside chronological order")
+        if (
+            self.effective_to is not None
+            and self.registered_to is not None
+            and self.registered_to > self.effective_to
+        ):
+            raise ValueError("registration cannot outlive effective membership")
+        if self.kind is SquadMembershipKind.LOAN:
+            if self.loan_parent_provider_team_id is None:
+                raise ValueError("loan membership requires its parent team")
+        elif self.loan_parent_provider_team_id is not None:
+            raise ValueError("only loan membership may declare a parent team")
+        return self
+
+
+class CurrentSeasonSquad(BaseModel):
+    """Provider squad snapshot for one team at one explicit source-local date."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    provider_squad_id: ProviderSquadIdentifier
+    provider_team_id: ProviderTeamIdentifier
+    as_of_date: date
+    memberships: tuple[CurrentSquadMembership, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def squad_must_be_scoped_ordered_and_current(self) -> Self:
+        sources = {self.provider_squad_id.source_id, self.provider_team_id.source_id}
+        sources.update(
+            membership.provider_player_id.source_id for membership in self.memberships
+        )
+        sources.update(
+            membership.loan_parent_provider_team_id.source_id
+            for membership in self.memberships
+            if membership.loan_parent_provider_team_id is not None
+        )
+        if len(sources) != 1:
+            raise ValueError("squad, team and player identifiers must use one source")
+        keys = tuple(
+            membership.provider_player_id.external_id for membership in self.memberships
+        )
+        if keys != tuple(sorted(set(keys))):
+            raise ValueError("squad memberships must be unique and ordered")
+        for membership in self.memberships:
+            if membership.registered_from > self.as_of_date or (
+                membership.registered_to is not None
+                and membership.registered_to < self.as_of_date
+            ):
+                raise ValueError("squad membership is not registered on as-of date")
+            if (
+                membership.loan_parent_provider_team_id is not None
+                and membership.loan_parent_provider_team_id == self.provider_team_id
+            ):
+                raise ValueError("loan parent and registered team must differ")
+        return self
+
+
 class FieldAuthority(StrEnum):
     AUTHORITATIVE = "authoritative"
     OPTIONAL = "optional"
@@ -287,6 +392,18 @@ CURRENT_PROVIDER_FIELD_POLICIES: Final[tuple[ProviderFieldPolicy, ...]] = (
         notes="Round, venue, referee, codes and timestamps require schema review.",
     ),
     ProviderFieldPolicy(
+        field_path="player.descriptive_metadata",
+        authority=FieldAuthority.OPTIONAL,
+        predictor_use=PredictorUsePolicy.REVIEWED_SCHEMA_REQUIRED,
+        notes="Birth date, nationality and provider position are not predictors.",
+    ),
+    ProviderFieldPolicy(
+        field_path="player.identifiers_and_name",
+        authority=FieldAuthority.AUTHORITATIVE,
+        predictor_use=PredictorUsePolicy.CONTROL_OR_IDENTITY_ONLY,
+        notes="Player identity requires an exact reviewed registry mapping.",
+    ),
+    ProviderFieldPolicy(
         field_path="provider.identifiers",
         authority=FieldAuthority.AUTHORITATIVE,
         predictor_use=PredictorUsePolicy.CONTROL_OR_IDENTITY_ONLY,
@@ -303,6 +420,18 @@ CURRENT_PROVIDER_FIELD_POLICIES: Final[tuple[ProviderFieldPolicy, ...]] = (
         authority=FieldAuthority.RETAINED_ONLY,
         predictor_use=PredictorUsePolicy.PROHIBITED,
         notes="Unmodeled fields survive only in exact response bytes.",
+    ),
+    ProviderFieldPolicy(
+        field_path="squad.registration_membership",
+        authority=FieldAuthority.AUTHORITATIVE,
+        predictor_use=PredictorUsePolicy.PRIOR_STATE_AFTER_KNOWLEDGE_CUTOFF,
+        notes="Membership may affect only later batches after reviewed feature work.",
+    ),
+    ProviderFieldPolicy(
+        field_path="squad.shirt_number",
+        authority=FieldAuthority.OPTIONAL,
+        predictor_use=PredictorUsePolicy.PROHIBITED,
+        notes="Shirt number is retained context and not an approved predictor.",
     ),
     ProviderFieldPolicy(
         field_path="standings.snapshot",

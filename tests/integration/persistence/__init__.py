@@ -1,1 +1,1 @@
-"""PostgreSQL persistence integration tests."""
+"""Persistence integration tests."""

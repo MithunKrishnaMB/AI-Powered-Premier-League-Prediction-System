@@ -1,4 +1,4 @@
-"""Transactional PostgreSQL repository tests for Steps 5.8, 5.9 and 6.4."""
+"""Transactional PostgreSQL repository tests through Step 6.8."""
 
 import hashlib
 from collections.abc import Iterator
@@ -98,9 +98,9 @@ def test_engine() -> Iterator[Engine]:
         revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one_or_none()
-    if revision != "f0004_step_5_7":
+    if revision != "f0006_step_6_8":
         engine.dispose()
-        pytest.skip("test PostgreSQL database is not at the Step 5.7 head")
+        pytest.skip("test PostgreSQL database is not at the Step 6.8 head")
     try:
         yield engine
     finally:

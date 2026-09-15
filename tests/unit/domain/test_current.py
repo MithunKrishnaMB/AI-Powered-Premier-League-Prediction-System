@@ -10,13 +10,18 @@ from pl_platform.domain.current import (
     CompletedFixtureResult,
     CurrentSeasonFixture,
     CurrentSeasonScope,
+    CurrentSeasonSquad,
     CurrentSeasonTeam,
+    CurrentSquadMembership,
     PredictorUsePolicy,
     ProviderCompetitionIdentifier,
     ProviderFixtureIdentifier,
     ProviderKickoff,
+    ProviderPlayerIdentifier,
     ProviderSeasonIdentifier,
+    ProviderSquadIdentifier,
     ProviderTeamIdentifier,
+    SquadMembershipKind,
     StandingRow,
 )
 from pl_platform.domain.fixtures import (
@@ -227,6 +232,77 @@ def test_field_policy_is_canonical_and_keeps_odds_prohibited() -> None:
 
     assert paths == tuple(sorted(set(paths)))
     assert odds.predictor_use is PredictorUsePolicy.PROHIBITED
-    assert not any(
-        "player" in item.field_path for item in CURRENT_PROVIDER_FIELD_POLICIES
+    player_fields = {
+        item.field_path: item.predictor_use
+        for item in CURRENT_PROVIDER_FIELD_POLICIES
+        if item.field_path.startswith("player.")
+    }
+    assert player_fields == {
+        "player.descriptive_metadata": PredictorUsePolicy.REVIEWED_SCHEMA_REQUIRED,
+        "player.identifiers_and_name": PredictorUsePolicy.CONTROL_OR_IDENTITY_ONLY,
+    }
+
+
+def test_squad_membership_requires_consistent_registration_and_loan_windows() -> None:
+    base = CurrentSquadMembership(
+        provider_player_id=ProviderPlayerIdentifier(
+            source_id=SOURCE,
+            external_id="player-1",
+        ),
+        provider_player_name="Player One",
+        kind=SquadMembershipKind.PERMANENT,
+        effective_from=date(2026, 7, 1),
+        effective_to=date(2027, 6, 30),
+        registered_from=date(2026, 8, 1),
+        registered_to=date(2027, 5, 31),
     )
+
+    for update, message in (
+        ({"effective_to": date(2026, 6, 30)}, "effective range"),
+        ({"registered_from": date(2026, 6, 30)}, "chronological order"),
+        ({"registered_to": date(2026, 7, 31)}, "chronological order"),
+        ({"registered_to": date(2027, 7, 1)}, "outlive"),
+        ({"kind": SquadMembershipKind.LOAN}, "requires its parent"),
+        ({"loan_parent_provider_team_id": _team("parent")}, "only loan"),
+    ):
+        with pytest.raises(ValidationError, match=message):
+            CurrentSquadMembership.model_validate({**base.model_dump(), **update})
+
+
+def test_squad_requires_ordered_active_memberships_and_distinct_loan_parent() -> None:
+    membership = CurrentSquadMembership(
+        provider_player_id=ProviderPlayerIdentifier(
+            source_id=SOURCE,
+            external_id="player-1",
+        ),
+        provider_player_name="Player One",
+        kind=SquadMembershipKind.PERMANENT,
+        effective_from=date(2026, 7, 1),
+        registered_from=date(2026, 8, 1),
+    )
+    squad = CurrentSeasonSquad(
+        provider_squad_id=ProviderSquadIdentifier(
+            source_id=SOURCE,
+            external_id="squad-1",
+        ),
+        provider_team_id=_team("team-1"),
+        as_of_date=date(2026, 9, 14),
+        memberships=(membership,),
+    )
+    payload = squad.model_dump()
+
+    assert squad.memberships == (membership,)
+    with pytest.raises(ValidationError, match="not registered"):
+        CurrentSeasonSquad.model_validate({**payload, "as_of_date": date(2026, 7, 31)})
+    with pytest.raises(ValidationError, match="unique and ordered"):
+        CurrentSeasonSquad.model_validate(
+            {**payload, "memberships": (membership, membership)}
+        )
+    loan = membership.model_copy(
+        update={
+            "kind": SquadMembershipKind.LOAN,
+            "loan_parent_provider_team_id": _team("team-1"),
+        }
+    )
+    with pytest.raises(ValidationError, match="parent and registered"):
+        CurrentSeasonSquad.model_validate({**payload, "memberships": (loan,)})

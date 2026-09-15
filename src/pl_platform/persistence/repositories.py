@@ -20,7 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from pl_platform.ingestion.download import DownloadError, verify_existing_file
 from pl_platform.ingestion.manifest import load_manifest
 
-MIGRATION_HEAD: Final = "f0004_step_5_7"
+MIGRATION_HEAD: Final = "f0006_step_6_8"
 _IDENTIFIER: Final = re.compile(r"^[a-z][a-z0-9_]*$")
 _FORMAT_ID: Final = re.compile(r"^[a-z0-9][a-z0-9._+-]*$")
 _SHA256: Final = re.compile(r"^[0-9a-f]{64}$")
@@ -65,6 +65,11 @@ class AggregateKind(StrEnum):
     MODEL_ARTIFACT = "model_artifact"
     REGISTRY = "registry"
     PROVIDER_CACHE = "provider_cache"
+    CURRENT_FIXTURES = "current_fixtures"
+    CURRENT_RESULTS = "current_results"
+    CURRENT_STANDINGS = "current_standings"
+    CURRENT_PLAYERS = "current_players"
+    CURRENT_SQUADS = "current_squads"
     SCORELINE_DISTRIBUTION = "scoreline_distribution"
     SIMULATION_INPUT = "simulation_input"
     SIMULATION_RUN = "simulation_run"
@@ -79,6 +84,7 @@ class PersistenceTable(StrEnum):
     SOURCE_ALLOWED_HOST = "identity.source_allowed_host"
     REFERENCE_DOCUMENT = "identity.reference_document"
     TEAM = "identity.team"
+    PLAYER = "identity.player"
     TEAM_REGISTRY_MEMBER = "identity.team_registry_member"
     TEAM_ALIAS = "identity.team_alias"
     SEASON = "identity.season"
@@ -91,6 +97,25 @@ class PersistenceTable(StrEnum):
     FIXTURE_SOURCE_REFERENCE = "football.fixture_source_reference"
     FIXTURE_BATCH = "football.fixture_batch"
     FIXTURE_BATCH_MEMBER = "football.fixture_batch_member"
+    CURRENT_FIXTURE_SOURCE_REFERENCE = "football.current_fixture_source_reference"
+    CURRENT_FIXTURE_REVISION = "football.current_fixture_revision"
+    CURRENT_FIXTURE_OBSERVATION = "football.current_fixture_observation"
+    CURRENT_FIXTURE_BATCH = "football.current_fixture_batch"
+    CURRENT_FIXTURE_BATCH_PROVENANCE = "football.current_fixture_batch_provenance"
+    CURRENT_FIXTURE_BATCH_MEMBER = "football.current_fixture_batch_member"
+    CURRENT_COMPLETED_RESULT = "football.current_completed_result"
+    CURRENT_RESULT_OBSERVATION = "football.current_result_observation"
+    CURRENT_STANDING_SNAPSHOT = "football.current_standing_snapshot"
+    CURRENT_STANDING_ROW = "football.current_standing_row"
+    CURRENT_STANDING_SOURCE_REFERENCE = "football.current_standing_source_reference"
+    CURRENT_PLAYER_SOURCE_REFERENCE = "football.current_player_source_reference"
+    CURRENT_PLAYER_OBSERVATION = "football.current_player_observation"
+    CURRENT_SQUAD = "football.current_squad"
+    CURRENT_SQUAD_SOURCE_REFERENCE = "football.current_squad_source_reference"
+    CURRENT_SQUAD_SNAPSHOT = "football.current_squad_snapshot"
+    CURRENT_SQUAD_SNAPSHOT_PROVENANCE = "football.current_squad_snapshot_provenance"
+    CURRENT_SQUAD_SNAPSHOT_TEAM = "football.current_squad_snapshot_team"
+    CURRENT_SQUAD_MEMBER = "football.current_squad_member"
     PREDICTOR_SCHEMA = "feature.predictor_schema"
     PREDICTOR_DEFINITION = "feature.predictor_definition"
     PROCESSING_POLICY = "feature.processing_policy"
@@ -203,6 +228,49 @@ _KIND_TABLES: Final[dict[AggregateKind, frozenset[PersistenceTable]]] = {
         table for table in PersistenceTable if table.value.startswith("registry.")
     ),
     AggregateKind.PROVIDER_CACHE: frozenset({PersistenceTable.PROVIDER_RESPONSE}),
+    AggregateKind.CURRENT_FIXTURES: frozenset(
+        {
+            PersistenceTable.FIXTURE,
+            PersistenceTable.CURRENT_FIXTURE_SOURCE_REFERENCE,
+            PersistenceTable.CURRENT_FIXTURE_REVISION,
+            PersistenceTable.CURRENT_FIXTURE_OBSERVATION,
+            PersistenceTable.CURRENT_FIXTURE_BATCH,
+            PersistenceTable.CURRENT_FIXTURE_BATCH_PROVENANCE,
+            PersistenceTable.CURRENT_FIXTURE_BATCH_MEMBER,
+        }
+    ),
+    AggregateKind.CURRENT_RESULTS: frozenset(
+        {
+            PersistenceTable.FIXTURE,
+            PersistenceTable.CURRENT_FIXTURE_SOURCE_REFERENCE,
+            PersistenceTable.CURRENT_COMPLETED_RESULT,
+            PersistenceTable.CURRENT_RESULT_OBSERVATION,
+        }
+    ),
+    AggregateKind.CURRENT_STANDINGS: frozenset(
+        {
+            PersistenceTable.CURRENT_STANDING_SNAPSHOT,
+            PersistenceTable.CURRENT_STANDING_ROW,
+            PersistenceTable.CURRENT_STANDING_SOURCE_REFERENCE,
+        }
+    ),
+    AggregateKind.CURRENT_PLAYERS: frozenset(
+        {
+            PersistenceTable.PLAYER,
+            PersistenceTable.CURRENT_PLAYER_SOURCE_REFERENCE,
+            PersistenceTable.CURRENT_PLAYER_OBSERVATION,
+        }
+    ),
+    AggregateKind.CURRENT_SQUADS: frozenset(
+        {
+            PersistenceTable.CURRENT_SQUAD,
+            PersistenceTable.CURRENT_SQUAD_SOURCE_REFERENCE,
+            PersistenceTable.CURRENT_SQUAD_SNAPSHOT,
+            PersistenceTable.CURRENT_SQUAD_SNAPSHOT_PROVENANCE,
+            PersistenceTable.CURRENT_SQUAD_SNAPSHOT_TEAM,
+            PersistenceTable.CURRENT_SQUAD_MEMBER,
+        }
+    ),
     AggregateKind.SCORELINE_DISTRIBUTION: frozenset(
         {
             PersistenceTable.SCORELINE_DISTRIBUTION,

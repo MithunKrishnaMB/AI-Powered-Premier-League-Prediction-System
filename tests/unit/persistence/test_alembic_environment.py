@@ -15,7 +15,7 @@ def test_alembic_configuration_has_no_embedded_database_url() -> None:
     assert config.get_main_option("sqlalchemy.url") is None
 
 
-def test_steps_5_4_through_5_7_form_one_linear_revision_chain() -> None:
+def test_steps_5_4_through_6_8_form_one_linear_revision_chain() -> None:
     version_files = {
         path.name
         for path in Path("migrations/versions").iterdir()
@@ -27,11 +27,15 @@ def test_steps_5_4_through_5_7_form_one_linear_revision_chain() -> None:
         "f0002_step_5_5_feature_model.py",
         "f0003_step_5_6_ml_evaluation.py",
         "f0004_step_5_7_ingestion_simulation.py",
+        "f0005_step_6_7_current_sync.py",
+        "f0006_step_6_8_squads_players.py",
     }
 
     script = ScriptDirectory.from_config(Config("alembic.ini"))
-    assert script.get_heads() == ["f0004_step_5_7"]
+    assert script.get_heads() == ["f0006_step_6_8"]
     assert [revision.revision for revision in script.walk_revisions()] == [
+        "f0006_step_6_8",
+        "f0005_step_6_7",
         "f0004_step_5_7",
         "f0003_step_5_6",
         "f0002_step_5_5",
