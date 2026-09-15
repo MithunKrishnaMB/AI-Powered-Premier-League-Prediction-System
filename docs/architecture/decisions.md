@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 7.7.
+These decisions describe implemented behavior through Step 7.9.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -1117,5 +1117,29 @@ regeneration tables and closes the cross-row chains with deferred checks. The
 raw-manifest gate, sealed 2025–26 prohibition, canonical ordering, exact bytes,
 restrictive foreign keys and retry comparison remain in force. The actual
 no-active registry produces no real prediction or simulation regeneration;
-synthetic fixtures exercise successful paths. Whole-workflow idempotent
-orchestration and recovery remain Steps 7.8 and 7.9.
+synthetic fixtures exercise successful paths.
+
+## ADR-044: Derive resumable workflow progress from immutable checkpoints
+
+**Status:** Accepted
+
+**Decision:** Bind completed-result evaluations, one state advancement,
+affected prediction regenerations and one season-simulation regeneration into a
+canonical workflow manifest. Record progress only through the fixed,
+hash-linked append-only event order: planned, evaluations persisted, state
+advancement persisted, predictions regenerated, simulation regenerated and
+completed. Never store a mutable status or current-workflow pointer.
+
+Each stage delegates to its existing exact-byte idempotent repository before
+appending its checkpoint. Recovery validates the entire event prefix and
+executes only its missing suffix. An interrupted child may be re-invoked, but
+the child's deterministic identity makes that invocation a verified retry, not
+a second logical application.
+
+**Consequences:** Revision `f0009_step_7_9` adds immutable workflow and event
+tables, UUIDv5 identities, exact canonical objects, predecessor checks and
+deferred stage/lineage validation. Stable workflow failures distinguish payload
+mismatch, manifest conflict, malformed history and retryable stage
+interruption. Tests inject failures after child writes and after journal commits
+at every stage. The active-model, sealed-test, scoreline-provenance and
+historical raw-manifest boundaries are unchanged.

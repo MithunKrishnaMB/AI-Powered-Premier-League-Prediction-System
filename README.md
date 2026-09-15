@@ -70,7 +70,7 @@ active fixtures verify the successful prediction path.
 The PostgreSQL entity-relationship model fixes stable identities, exact-byte
 lineage, ownership, lifecycle and fail-closed constraints for the produced data
 and artifacts. Separate local development and test connections use a restricted
-application login through typed secret settings. Seven linear Alembic revisions
+application login through typed secret settings. Nine linear Alembic revisions
 implement the schema and raw-manifest-gated repositories provide atomic,
 idempotent exact-byte and normalized-projection writes with reload comparison.
 Provider-neutral current-season contracts define teams, fixtures, fixture
@@ -334,6 +334,7 @@ implementation. Start with:
 - [Step 7.1 to 7.2 handoff](docs/handoffs/step-7-1-to-7-2.md)
 - [Step 7.4 to 7.5 handoff](docs/handoffs/step-7-4-to-7-5.md)
 - [Step 7.7 to 7.8 handoff](docs/handoffs/step-7-7-to-7-8.md)
+- [Milestone H to I handoff](docs/handoffs/milestone-h-to-i.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -357,18 +358,19 @@ development-accepted registry record. Model-agnostic simulation contracts,
 scoreline sampling, table mechanics, vectorized 10,000-run execution and
 aggregate position probabilities are implemented. Steps 5.1 through 5.9 have
 finalized the PostgreSQL entity-relationship design, configured isolated typed
-local connections, implemented the schema as eight linear Alembic
+local connections, implemented the schema as nine linear Alembic
 revisions and added raw-manifest-gated atomic repositories with PostgreSQL
 transaction tests. Steps 6.1 through 6.9 add strict current-season contracts,
 deterministic team/fixture transformation, bounded secret-safe HTTPS execution
 and exact immutable response caching, fixture synchronization, completed-result
 reconciliation, standings, reviewed player/squad snapshots and offline
 exact-byte contract replay without selecting a provider. Milestone G is
-complete. Steps 7.1 through 7.7 implement deterministic active-model loading,
+complete. Steps 7.1 through 7.9 implement deterministic active-model loading,
 upcoming-fixture features, immutable predictions and evaluations, exactly-once
 result/Elo state advancement, affected prediction regeneration and
-provenance-bound season-simulation regeneration. The actual registry correctly
-fails closed because no active model exists. Complete post-match orchestration
-idempotency is next.
+provenance-bound season-simulation regeneration. A canonical post-match
+manifest and hash-linked append-only checkpoints make the complete workflow
+retry-safe and recoverable across partial failures. The actual registry
+correctly fails closed because no active model exists.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

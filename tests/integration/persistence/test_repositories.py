@@ -4,6 +4,7 @@ import hashlib
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from uuid import UUID
 
 import pytest
 from sqlalchemy import Engine, text
@@ -27,6 +28,7 @@ from pl_platform.ingestion.current import (
     provider_request_identity,
 )
 from pl_platform.persistence.database import create_database_engine
+from pl_platform.persistence.post_match_workflow import PostMatchWorkflowRepository
 from pl_platform.persistence.provider_cache import ProviderCacheRepository
 from pl_platform.persistence.repositories import (
     AggregateKind,
@@ -41,6 +43,12 @@ from pl_platform.persistence.repositories import (
     RawManifestVerificationError,
     RepositoryError,
     StoredObject,
+)
+from pl_platform.prediction import (
+    PostMatchWorkflow,
+    WorkflowChildReference,
+    next_post_match_workflow_event,
+    post_match_workflow_identity,
 )
 
 SOURCE = "current-cache-test-provider"
@@ -98,7 +106,7 @@ def test_engine() -> Iterator[Engine]:
         revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one_or_none()
-    if revision != "f0008_step_7_7":
+    if revision != "f0009_step_7_9":
         engine.dispose()
         pytest.skip("test PostgreSQL database is not at the Step 6.8 head")
     try:
@@ -165,6 +173,45 @@ def test_atomic_repository_is_exact_and_idempotent(
     )
     assert loaded is not None
     assert loaded["country_code"] == "TST"
+
+
+@pytest.mark.postgresql
+def test_post_match_journal_append_and_retry_are_exact(
+    repository: PostgresAggregateRepository,
+) -> None:
+    evaluations = (
+        WorkflowChildReference(id=UUID(int=81001), identity_sha256="1" * 64),
+    )
+    advancement = WorkflowChildReference(id=UUID(int=81002), identity_sha256="2" * 64)
+    predictions = (
+        WorkflowChildReference(id=UUID(int=81003), identity_sha256="3" * 64),
+    )
+    simulation = WorkflowChildReference(id=UUID(int=81004), identity_sha256="4" * 64)
+    workflow_id, checksum, _ = post_match_workflow_identity(
+        season_id="2026-2027",
+        evaluations=evaluations,
+        advancement=advancement,
+        prediction_regenerations=predictions,
+        simulation_regeneration=simulation,
+    )
+    workflow = PostMatchWorkflow(
+        id=workflow_id,
+        identity_sha256=checksum,
+        season_id="2026-2027",
+        evaluations=evaluations,
+        advancement=advancement,
+        prediction_regenerations=predictions,
+        simulation_regeneration=simulation,
+    )
+    journal = PostMatchWorkflowRepository(repository)
+
+    history = journal.create(workflow)
+    while not history.is_complete:
+        event = next_post_match_workflow_event(workflow, history.events[-1])
+        history = journal.append(workflow, event)
+
+    assert history.is_complete
+    assert journal.create(workflow) == history
 
 
 @pytest.mark.postgresql

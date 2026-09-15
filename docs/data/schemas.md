@@ -417,6 +417,12 @@ Scoreline inputs carry separate explicit approval, runtime, numerical and input-
 checksum provenance; CatBoost outcome probabilities are never a scoreline
 schema.
 
+Revision `f0009_step_7_9` adds schema-version-1 post-match workflow manifests
+and events. A manifest canonically orders and checksum-binds the evaluation,
+state-advancement, prediction-regeneration and simulation-regeneration child
+identities. Its six immutable events form a predecessor-checksummed prefix;
+derived progress replaces any mutable workflow status or current pointer.
+
 Immediate constraints reject invalid ranges, states, dtypes, identities,
 foreign keys and local inconsistencies. Deferred constraints reject incomplete
 season membership, gaps or reordered records, predictor populations,

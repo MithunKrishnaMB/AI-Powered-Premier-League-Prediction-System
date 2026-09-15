@@ -7,16 +7,18 @@
 **Completed milestones:** A — Repository Foundation; B — Historical Data
 System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
 Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
-Integration
+Integration; H — Prediction Lifecycle
 
-**Current milestone:** H — Prediction Lifecycle (in progress)
+**Current milestone:** I — FastAPI (planned; not started)
 
 **Completed Milestone H steps:** 7.1 — deterministic read-only active-model
 resolution and complete registry-to-runtime artifact loading; 7.2 — unlabeled
 current-evidence upcoming features; 7.3 — immutable active-model predictions;
 7.4 — completed-result prediction evaluation; 7.5 — exactly-once operational
 team-state and Elo advancement; 7.6 — affected future-prediction regeneration;
-7.7 — provenance-bound season-simulation regeneration
+7.7 — provenance-bound season-simulation regeneration; 7.8 — deterministic
+append-only post-match orchestration; 7.9 — recovery and partial-failure
+verification
 
 **Completed Milestone G steps:** 6.1 — current-provider capability and
 provider-neutral domain contracts; 6.2 — fixture/team transformation; 6.3 —
@@ -51,9 +53,8 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 7.8 — make the complete post-match workflow
-idempotent across result evaluation, state advancement, prediction regeneration
-and simulation regeneration.
+**Exact next implementation step:** 8.1 — create the FastAPI app factory and
+health endpoints, subject to explicit user approval.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -70,8 +71,8 @@ integration
 - Typed, immutable environment configuration.
 - Secret-backed, explicitly isolated PostgreSQL development/test connection
   settings and a read-only compatibility and privilege checker.
-- URL-free Alembic environment with eight linear transactional revisions and
-  head `f0008_step_7_7`.
+- URL-free Alembic environment with nine linear transactional revisions and
+  head `f0009_step_7_9`.
 - PostgreSQL checked domains, exact-byte SHA-256 verification, application
   UUIDv5 checks, restrictive provenance foreign keys, deferred aggregate
   validation and immutable update/delete guards.
@@ -335,20 +336,20 @@ integration
 
 ## Last verified quality result
 
-The implementation through Step 7.7 passes the complete local suite (final
-counts recorded after the Step 7.7 verification run):
+The implementation through Step 7.9 passes the complete local suite (final
+counts recorded after the Step 7.9 verification run):
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 502 passed, including active-model fail-closed and synthetic-success
-  paths, exactly-once state and prediction/simulation regeneration checks, live
-  PostgreSQL migration/current-season transaction checks and offline recorded-
-  response contract replay.
-- Branch coverage: 90.14%, above the required 90% threshold.
+- pytest: 520 passed, including active-model fail-closed and synthetic-success
+  paths, exactly-once state and prediction/simulation regeneration checks,
+  post-match recovery fault injection, live PostgreSQL journal/current-season
+  transaction checks and offline recorded-response contract replay.
+- Branch coverage: 90.13%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 173 source, test and migration Python files.
+- Strict mypy: passed across all 177 source, test and migration Python files.
 - Dependency consistency: passed.
-- Development and test databases are at exact head `f0008_step_7_7`; the test
-  database completed an `f0008` to `f0007` downgrade and re-upgrade while the
+- Development and test databases are at exact head `f0009_step_7_9`; the test
+  database completed an `f0009` to `f0008` downgrade and re-upgrade while the
   two targets remained explicitly isolated.
 - No external provider was selected or contacted. Only synthetic exact bytes
   were persisted to the isolated test database; no production artifact import,
@@ -493,10 +494,10 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Steps 7.1 through 7.7 are complete and the actual registry still has no active
-model, so no real current prediction or derived simulation corpus exists. Step
-7.8 may compose the implemented post-match operations into one retry-safe
-workflow with a deterministic workflow identity and resumable no-op behavior.
-It must not weaken exactly-once result application, mutate immutable history,
-derive scorelines from CatBoost, access the sealed target, select a provider,
-add APIs or change deployment/frontend/CI/CD configuration.
+Steps 7.1 through 7.9 and Milestone H are complete. The actual registry still
+has no active model, so no real current prediction or derived simulation corpus
+exists. The post-match workflow now binds every immutable child under one
+deterministic manifest and derives progress from a hash-linked event prefix.
+Retries resume only the missing suffix; committed child writes and checkpoint
+acknowledgement loss are safe. Milestone I begins at Step 8.1 with a separately
+approved FastAPI app-factory and health-endpoint boundary.

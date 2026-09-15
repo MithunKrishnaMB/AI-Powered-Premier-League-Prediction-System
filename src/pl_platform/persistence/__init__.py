@@ -18,6 +18,12 @@ from pl_platform.persistence.database import (
     check_database_connection,
     create_database_engine,
 )
+from pl_platform.persistence.post_match_workflow import (
+    PostMatchWorkflowRepository,
+    RepositoryWorkflowStageExecutor,
+    post_match_workflow_event_write_plan,
+    post_match_workflow_write_plan,
+)
 from pl_platform.persistence.prediction import (
     PredictionLifecycleRepository,
     completed_evaluations_write_plan,
@@ -67,6 +73,7 @@ __all__ = [
     "PersistenceFailureCategory",
     "PersistenceResult",
     "PersistenceTable",
+    "PostMatchWorkflowRepository",
     "PostgresAggregateRepository",
     "PredictionLifecycleRepository",
     "PredictionOperationsRepository",
@@ -77,6 +84,7 @@ __all__ = [
     "RawManifestVerifier",
     "RepositoryContractError",
     "RepositoryError",
+    "RepositoryWorkflowStageExecutor",
     "StoredObject",
     "check_database_connection",
     "completed_evaluations_write_plan",
@@ -86,6 +94,8 @@ __all__ = [
     "current_results_sync_plan",
     "current_squad_sync_plan",
     "current_standings_sync_plan",
+    "post_match_workflow_event_write_plan",
+    "post_match_workflow_write_plan",
     "prediction_regeneration_write_plan",
     "predictions_write_plan",
     "provider_cache_write_plan",

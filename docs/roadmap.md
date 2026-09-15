@@ -212,7 +212,7 @@ remained sealed and no model was activated.
 
 **Implementation commit:** `f34c349` — complete current-season integration.
 
-## Milestone H — Prediction Lifecycle — in progress
+## Milestone H — Prediction Lifecycle — complete
 
 - **Step 7.1 — complete:** Implemented a strict read-only active-model boundary
   that deterministically verifies all append-only registry histories, requires
@@ -249,8 +249,13 @@ remained sealed and no model was activated.
   explicit scoreline distributions. Exact NumPy components, summaries and the
   prior/replacement run relationship are retained without deriving scorelines
   from CatBoost probabilities.
-- **Step 7.8 — next:** Make the complete post-match workflow idempotent.
-- **Step 7.9:** Add recovery and partial-failure tests.
+- **Step 7.8 — complete:** Composes evaluation, state advancement, affected
+  prediction regeneration and simulation regeneration under one canonical
+  workflow identity. Append-only, hash-linked checkpoint history makes an
+  identical retry a verified no-op and never replaces a mutable status row.
+- **Step 7.9 — complete:** Covers child-write and journal-acknowledgement crash
+  windows at every stage, malformed/gapped history, payload conflicts and
+  completed-workflow retry behavior. Recovery resumes only the missing suffix.
 
 ## Milestone I — FastAPI — planned
 

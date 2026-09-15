@@ -198,6 +198,13 @@ calibration means the three CatBoost probabilities are stored unchanged in
 `home_win`, `draw`, `away_win` order. A development-accepted artifact cannot
 enter this path and no classifier probability is interpreted as a scoreline.
 
+Steps 7.8 and 7.9 only orchestrate already verified lifecycle children. Their
+workflow manifest retains the active-model-bound prediction identities and the
+explicit-scoreline simulation identity; it neither reloads a weaker artifact
+contract nor turns `development_accepted` into `active`. Recovery therefore
+preserves CatBoost depth 6, identity calibration and `home_win`, `draw`,
+`away_win` ordering without creating or mutating any registry event.
+
 ## PostgreSQL persistence projection
 
 The Step 5.1

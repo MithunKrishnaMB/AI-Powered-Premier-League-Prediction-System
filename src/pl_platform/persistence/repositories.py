@@ -20,7 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from pl_platform.ingestion.download import DownloadError, verify_existing_file
 from pl_platform.ingestion.manifest import load_manifest
 
-MIGRATION_HEAD: Final = "f0008_step_7_7"
+MIGRATION_HEAD: Final = "f0009_step_7_9"
 _IDENTIFIER: Final = re.compile(r"^[a-z][a-z0-9_]*$")
 _FORMAT_ID: Final = re.compile(r"^[a-z0-9][a-z0-9._+-]*$")
 _SHA256: Final = re.compile(r"^[0-9a-f]{64}$")
@@ -43,6 +43,7 @@ class PersistenceFailureCategory(StrEnum):
     NUMERICAL_CONTRACT_MISMATCH = "numerical_contract_mismatch"
     INVALID_PROBABILITY_MASS = "invalid_probability_mass"
     REGISTRY_TRANSITION_INVALID = "registry_transition_invalid"
+    WORKFLOW_HISTORY_MALFORMED = "workflow_history_malformed"
     FINAL_TEST_EVIDENCE_REQUIRED = "final_test_evidence_required"
     IMMUTABLE_RECORD_VIOLATION = "immutable_record_violation"
     EXISTING_RECORD_CONFLICT = "existing_record_conflict"
@@ -76,6 +77,7 @@ class AggregateKind(StrEnum):
     TEAM_STATE_ADVANCEMENTS = "team_state_advancements"
     PREDICTION_REGENERATIONS = "prediction_regenerations"
     SIMULATION_REGENERATIONS = "simulation_regenerations"
+    POST_MATCH_WORKFLOWS = "post_match_workflows"
     SCORELINE_DISTRIBUTION = "scoreline_distribution"
     SIMULATION_INPUT = "simulation_input"
     SIMULATION_RUN = "simulation_run"
@@ -192,6 +194,8 @@ class PersistenceTable(StrEnum):
     TEAM_STATE_ADVANCEMENT_RESULT = "prediction.team_state_advancement_result"
     PREDICTION_REGENERATION = "prediction.prediction_regeneration"
     SEASON_SIMULATION_REGENERATION = "prediction.season_simulation_regeneration"
+    POST_MATCH_WORKFLOW = "prediction.post_match_workflow"
+    POST_MATCH_WORKFLOW_EVENT = "prediction.post_match_workflow_event"
 
 
 _TABLE_ORDER: Final = {table: ordinal for ordinal, table in enumerate(PersistenceTable)}
@@ -362,6 +366,12 @@ _KIND_TABLES: Final[dict[AggregateKind, frozenset[PersistenceTable]]] = {
             PersistenceTable.TEAM_SUMMARY,
             PersistenceTable.POSITION_PROBABILITY,
             PersistenceTable.SEASON_SIMULATION_REGENERATION,
+        }
+    ),
+    AggregateKind.POST_MATCH_WORKFLOWS: frozenset(
+        {
+            PersistenceTable.POST_MATCH_WORKFLOW,
+            PersistenceTable.POST_MATCH_WORKFLOW_EVENT,
         }
     ),
 }

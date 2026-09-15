@@ -1,7 +1,7 @@
 # PostgreSQL Repositories and Transactions
 
 Steps 5.8 and 5.9 implement and verify the write boundary, now extended through
-Alembic head `f0008_step_7_7`. They do not bulk-import the produced artifact
+Alembic head `f0009_step_7_9`. They do not bulk-import the produced artifact
 corpus, evaluate the sealed 2025–26 target, promote a model or configure a
 current provider.
 
@@ -41,7 +41,7 @@ unknown or conflicting lineage fails closed.
 
 One repository write uses one serializable PostgreSQL transaction:
 
-1. require exact Alembic head `f0008_step_7_7`;
+1. require exact Alembic head `f0009_step_7_9`;
 2. insert authoritative exact objects;
 3. insert normalized rows in dependency order;
 4. force all deferred constraints to run;
@@ -166,5 +166,22 @@ their supersession records in one transaction. Simulation regeneration writes
 independently approved explicit distributions, provenance, canonical input,
 six deterministic NumPy arrays, aggregate summary and prior/replacement run
 lineage. All three operations retain the historical raw-manifest gate. No write
-updates prior state, feature, prediction, evaluation or simulation rows, and no
+updates prior state, feature, prediction, evaluation or simulation rows and no
 repository converts three-way CatBoost probabilities into scorelines.
+
+## Steps 7.8–7.9 post-match workflow journal
+
+`PostMatchWorkflowRepository` stores one canonical manifest followed by a
+fixed six-event checkpoint chain: planned, evaluations persisted, state
+advancement persisted, predictions regenerated, simulation regenerated and
+completed. Each event pins the prior event identity and the manifest-selected
+child lineage checksum. Progress is always derived from the complete immutable
+prefix; there is no mutable status or current-workflow pointer.
+
+The runner invokes the existing exact-byte child repositories before appending
+the corresponding checkpoint. If a child succeeds and acknowledgement is
+lost, its identical retry is reloaded and compared. If an event commits and
+acknowledgement is lost, recovery observes that event and starts at the next
+stage. Gaps, reordered events, altered payloads and manifest conflicts fail
+closed. The manifest, every event and both identity payloads remain canonical
+stored objects behind the historical raw-manifest gate.

@@ -28,7 +28,7 @@ relationship.
 Revision `f0008_step_7_7` adds seven immutable lifecycle tables. Deferred
 checks enforce complete 20-team state, one-time result/evaluation application,
 one successor per state, applied-result inclusion in replacement features and
-simulations, and stale prior-output evidence. Every aggregate remains behind
+simulations and stale prior-output evidence. Every aggregate remains behind
 the historical raw-manifest verifier and serializable exact-byte comparison.
 
 ## Preserved state
@@ -49,7 +49,7 @@ the historical raw-manifest verifier and serializable exact-byte comparison.
 - Ruff lint and format, strict mypy across 173 Python files and dependency
   consistency passed.
 - The isolated test database completed an `f0008_step_7_7` to
-  `f0007_step_7_4` downgrade and re-upgrade, and all migration/current
+  `f0007_step_7_4` downgrade and re-upgrade and all migration/current
   persistence checks passed. Development and test targets are at exact `f0008`
   head.
 - The actual registry still returns `no_active_model`; all registry and model-

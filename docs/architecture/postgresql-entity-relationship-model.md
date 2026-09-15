@@ -1,8 +1,9 @@
 # PostgreSQL Entity-Relationship Model
 
 **Implementation status:** The baseline model is implemented by Steps 5.4–5.7,
-and revisions through `f0008_step_7_7` extend its linear chain with current-
-season synchronization and prediction-lifecycle records. Steps 5.8–5.9 provide
+and revisions through `f0009_step_7_9` extend its linear chain with current-
+season synchronization, prediction-lifecycle records and the immutable
+post-match workflow journal. Steps 5.8–5.9 provide
 the typed transaction boundary. No production artifact corpus has been imported
 by migrations or repository tests.
 
@@ -25,7 +26,8 @@ The design covers:
 - semantic models, artifact manifests and physical components;
 - append-only registry entries and events;
 - explicit fixture scoreline distributions and their provenance;
-- deterministic 10,000-run simulation inputs, results and aggregate summaries.
+- deterministic 10,000-run simulation inputs, results and aggregate summaries;
+- canonical post-match workflow manifests and hash-linked progress events.
 
 Database settings, credentials and connections begin in Step 5.2. Alembic
 initialization is Step 5.3. This document remains the normative design rather
@@ -908,7 +910,10 @@ Logical ownership determines validation boundaries:
 - a distribution owns its score masses but not its independent provenance;
 - a simulation input owns ordered teams, completed fixtures and remaining
   fixture selections; and
-- a summary owns team and position aggregates.
+- a summary owns team and position aggregates; and
+- a post-match workflow owns its canonical child-identity manifest and ordered
+  checkpoint events, while the referenced children retain independent
+  ownership and idempotency.
 
 Ownership does not authorize cascading deletion. Every provenance foreign key
 uses `ON UPDATE RESTRICT ON DELETE RESTRICT`. Archival, rejection, retirement or

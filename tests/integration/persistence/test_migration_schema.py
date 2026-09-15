@@ -36,7 +36,7 @@ def migrated_test_engine() -> Iterator[Engine]:
         revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one_or_none()
-    if revision != "f0008_step_7_7":
+    if revision != "f0009_step_7_9":
         engine.dispose()
         pytest.skip("test PostgreSQL database is not at the current migration head")
     try:
@@ -335,6 +335,47 @@ def test_post_match_state_and_regeneration_guards_exist(
     assert tables == expected_tables
     assert constraints == expected_constraints
     assert triggers == expected_triggers
+
+
+@pytest.mark.postgresql
+def test_post_match_workflow_journal_and_chain_guard_exist(
+    migrated_test_engine: Engine,
+) -> None:
+    expected_tables = {"post_match_workflow", "post_match_workflow_event"}
+    expected_constraints = {
+        "uq_post_match_workflow_event_sequence",
+        "uq_post_match_workflow_event_stage",
+    }
+    with migrated_test_engine.connect() as connection:
+        tables = set(
+            connection.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'prediction' "
+                    "AND table_name = ANY(:names)"
+                ),
+                {"names": sorted(expected_tables)},
+            ).scalars()
+        )
+        constraints = set(
+            connection.execute(
+                text("SELECT conname FROM pg_constraint WHERE conname = ANY(:names)"),
+                {"names": sorted(expected_constraints)},
+            ).scalars()
+        )
+        triggers = set(
+            connection.execute(
+                text(
+                    "SELECT tgname FROM pg_trigger "
+                    "WHERE tgname = 'validate_post_match_workflow_event' "
+                    "AND NOT tgisinternal"
+                )
+            ).scalars()
+        )
+
+    assert tables == expected_tables
+    assert constraints == expected_constraints
+    assert triggers == {"validate_post_match_workflow_event"}
 
 
 @pytest.mark.postgresql
