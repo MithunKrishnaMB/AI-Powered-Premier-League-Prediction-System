@@ -148,6 +148,48 @@ missing, modified or non-canonical components; runtime, predictor or outcome
 incompatibility; provenance drift; invalid registry transitions; and missing
 final-test evidence.
 
+## Active-model read boundary
+
+Step 7.1 adds a stateless, read-only resolver over this existing layout. It
+enumerates every canonical registry entry in deterministic UUID order and calls
+the complete entry/event-history validator before considering current state.
+No state column, marker file, symlink or mutable active pointer is consulted or
+created. `development_accepted` remains non-active.
+
+The resolver requires exactly one history whose final event derives `active`.
+Zero active histories return the typed `no_active_model` failure; multiple
+active histories return `ambiguous_active_models` before any artifact is loaded.
+Malformed registry history is never skipped merely because another entry looks
+usable.
+
+For one active entry, loading verifies this chain in order:
+
+1. canonical registry layout, entry bytes and complete event/checksum history;
+2. manifest containment below the explicit artifact root and exact registry
+   manifest SHA-256;
+3. registry entry, semantic model, artifact and manifest identities;
+4. canonical manifest bytes and complete embedded training, assessment,
+   evaluation and target-free freeze provenance;
+5. exact CPython, CatBoost, NumPy, Pydantic, tzdata, CPU/thread and float64
+   compatibility;
+6. required preprocessor/classifier paths, byte counts, SHA-256 values and
+   canonical bytes;
+7. stateless preprocessor and exact 175-name schema-version-2 predictor order;
+8. CatBoost multiclass depth-6 structure, identity calibration, explicit absent
+   score model, no scoreline capability and outcome order `home_win`, `draw`,
+   `away_win`.
+
+The returned value contains the immutable verified registry head and the loaded
+artifact. Loading does not call the classifier's prediction method. Stable
+active-boundary failures distinguish no active model, ambiguity, malformed
+history, missing artifacts, checksum drift, schema/runtime incompatibility,
+unsupported components, provenance disagreement and noncanonical bytes.
+
+Synthetic tests inject a typed active registry snapshot and use real temporary
+artifact bytes to verify the successful path. They do not append an active
+event. The actual registry still ends at `development_accepted` and therefore
+correctly returns `no_active_model`.
+
 ## PostgreSQL persistence projection
 
 The Step 5.1

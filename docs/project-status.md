@@ -9,8 +9,10 @@ System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
 Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
 Integration
 
-**Current milestone:** H — Prediction Lifecycle (planned; Step 7.1 remains
-gated because no active model exists)
+**Current milestone:** H — Prediction Lifecycle (in progress)
+
+**Completed Milestone H steps:** 7.1 — deterministic read-only active-model
+resolution and complete registry-to-runtime artifact loading
 
 **Completed Milestone G steps:** 6.1 — current-provider capability and
 provider-neutral domain contracts; 6.2 — fixture/team transformation; 6.3 —
@@ -45,15 +47,19 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 7.1 — load the active model
-deterministically, only after a separately authorized final-test and active
-promotion path creates an active model. No active model currently exists.
+**Exact next implementation step:** 7.2 — generate leakage-safe upcoming-match
+features from current fixture/state evidence using the established predictor
+schema and retrieval-time cutoffs. It must not generate predictions or consume
+the sealed test target.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
 
 **Milestone F closeout commit:** `22e595a` — complete PostgreSQL repositories
 and transaction verification
+
+**Milestone G implementation commit:** `f34c349` — complete current-season
+integration
 
 ## Implemented capabilities
 
@@ -197,6 +203,16 @@ and transaction verification
   candidate and development-accepted transitions.
 - Fail-closed active promotion until a future typed, explicitly authorized
   one-time final-test evidence contract exists.
+- Deterministic read-only registry enumeration with state derived only from the
+  complete canonical event history and no mutable active pointer.
+- Exactly-one active-model resolution with stable failures for absent or
+  ambiguous active state, malformed history, missing or changed artifacts,
+  incompatible schemas or runtimes, unsupported components and provenance
+  drift.
+- Complete registry-to-artifact loading that rechecks manifest identity and
+  checksum, canonical component bytes, CatBoost depth 6, stateless
+  preprocessing, identity calibration, 175 predictors and fixed home/draw/away
+  outcome order before returning the model.
 - Strict version-1 simulator contracts for canonical 20-team inputs, explicit
   scoreline distributions, sampled results and immutable table state.
 - Date-only simulation fixtures conservatively batched with every fixture on
@@ -298,15 +314,15 @@ and transaction verification
 
 ## Last verified quality result
 
-The implementation through Step 6.9 passed the complete local suite:
+The implementation through Step 7.1 passed the complete local suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 460 passed, including live PostgreSQL migration, current fixture,
-  result, standings, player, squad and provider-cache transaction checks plus
+- pytest: 478 passed, including active-model failure and synthetic-success
+  paths, live PostgreSQL migration/current-season transaction checks and
   offline recorded-response contract replay.
-- Branch coverage: 90.50%, above the required 90% threshold.
+- Branch coverage: 90.43%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 148 source, test and migration Python files.
+- Strict mypy: passed across all 157 source, test and migration Python files.
 - Dependency consistency: passed.
 - Development and test databases completed `f0005_step_6_7` to
   `f0006_step_6_8` upgrade and the test database completed downgrade and
@@ -314,7 +330,8 @@ The implementation through Step 6.9 passed the complete local suite:
   remaining explicitly isolated.
 - No external provider was selected or contacted. Only synthetic exact bytes
   were persisted to the isolated test database; no production artifact import,
-  final-test access or model activation occurred.
+  final-test access or model activation occurred. The actual filesystem
+  registry returned `no_active_model` and remained byte-identical.
 
 The preserved Milestone F closeout result was:
 
@@ -454,10 +471,10 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Milestone G is closed. Step 7.1 must fail closed while the registry has no
-active model; development acceptance is not active promotion. Any final-test
-evaluation, active promotion or production provider selection requires
-separate explicit authorization. The next work must not import production
-artifacts, infer scorelines from classifier probabilities, alter the sealed
-target or simulation semantics, add APIs, deploy, create frontend code or
-configure CI/CD unless its numbered scope is explicitly approved.
+Step 7.1 is complete and the actual registry still has no active model. Step
+7.2 may construct unlabeled point-in-time predictor rows for upcoming fixtures
+using only evidence available at each retrieval/cutoff boundary. It must not
+load `development_accepted` as active, generate predictions, infer scorelines,
+persist prediction records, update Elo from an uncompleted fixture, access the
+sealed target, run simulations, select a provider, add APIs or change
+deployment/frontend/CI/CD configuration.

@@ -200,16 +200,30 @@ inferred from classifier probabilities and no model was activated.
   and exact-byte replay tests for every declared capability, with fail-closed
   checksum, request-identity, compatibility, path and capability validation.
 
-**Closeout evidence:** The Python 3.14.7 suite, strict typing, lint, formatting,
-live isolated PostgreSQL migration cycles and current-season transaction tests
-pass with branch coverage above 90%. The recordings are synthetic, no provider
+**Closeout evidence:** On Python 3.14.7, all 460 tests pass with 90.50% branch
+coverage. Ruff lint and formatting, strict mypy across 148 Python files,
+dependency consistency, diff whitespace and local Markdown-link checks pass.
+PostgreSQL 18.4 development and test databases connect as restricted `pl_app`
+in UTC and end at exact head `f0006_step_6_8`; the test database completed the
+`f0006` downgrade/re-upgrade cycle. The recordings are synthetic, no provider
 was selected or contacted and no production data or model artifact was
-imported.
+imported. The historical manifest gate remained active, the 2025–26 target
+remained sealed and no model was activated.
 
-## Milestone H — Prediction Lifecycle — planned
+**Implementation commit:** `f34c349` — complete current-season integration.
 
-- **Step 7.1:** Load the active model deterministically.
-- **Step 7.2:** Generate upcoming-match features.
+## Milestone H — Prediction Lifecycle — in progress
+
+- **Step 7.1 — complete:** Implemented a strict read-only active-model boundary
+  that deterministically verifies all append-only registry histories, requires
+  exactly one explicitly `active` entry and validates the registry, manifest,
+  component, provenance, runtime, preprocessor, predictor, outcome, calibration
+  and CatBoost depth-6 chain before returning a loaded model. Stable typed
+  failures cover absent or ambiguous active state and every incompatible or
+  incomplete layer. Synthetic active snapshots verify successful loading while
+  the actual registry remains `development_accepted` and returns
+  `no_active_model`.
+- **Step 7.2 — next:** Generate upcoming-match features.
 - **Step 7.3:** Persist immutable predictions.
 - **Step 7.4:** Evaluate completed predictions.
 - **Step 7.5:** Update Elo and team state exactly once.

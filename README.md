@@ -56,6 +56,11 @@ sampling and immutable Premier League table mechanics implement Steps 4.4
 through 4.6. Fixed 10,000-run vectorized execution, complete position and
 threshold aggregation and reproducibility invariants complete Milestone E. No
 final test metric has been calculated and no model has been activated.
+Step 7.1 adds a strict read-only active-model boundary that derives current
+state from complete append-only registry history, requires exactly one explicit
+active entry and verifies the full registry-to-runtime artifact chain. The
+actual registry correctly returns the typed `no_active_model` failure; its
+development-accepted artifact is never reinterpreted as active.
 The PostgreSQL entity-relationship model fixes stable identities, exact-byte
 lineage, ownership, lifecycle and fail-closed constraints for the produced data
 and artifacts. Separate local development and test connections use a restricted
@@ -320,6 +325,7 @@ implementation. Start with:
 - [Step 6.7 to 6.8 handoff](docs/handoffs/step-6-7-to-6-8.md)
 - [current players, squads and recorded-response contracts](docs/data/current-squads-and-recorded-contracts.md)
 - [Milestone G to H handoff](docs/handoffs/milestone-g-to-h.md)
+- [Step 7.1 to 7.2 handoff](docs/handoffs/step-7-1-to-7-2.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -350,6 +356,8 @@ deterministic team/fixture transformation, bounded secret-safe HTTPS execution
 and exact immutable response caching, fixture synchronization, completed-result
 reconciliation, standings, reviewed player/squad snapshots and offline
 exact-byte contract replay without selecting a provider. Milestone G is
-complete. Step 7.1 remains gated because no active model exists.
+complete. Step 7.1 implements deterministic, read-only active-model loading;
+the actual registry correctly fails closed because no active model exists.
+Step 7.2 upcoming-fixture feature generation is next.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Milestone F.
+These decisions describe implemented behavior through Step 7.1.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -976,3 +976,85 @@ network access or credentials. Revision `f0006_step_6_8` becomes the migration
 head; Step 6.9 needs no schema. No production provider, artifact import,
 final-test access, active model, prediction lifecycle, API, deployment,
 frontend or CI/CD behavior is introduced.
+
+## ADR-040 — Milestone G closeout and active-model loading gate
+
+**Status:** Accepted
+
+**Context:** Milestone G has completed its provider-neutral current-season
+boundary, while Milestone H begins with active-model loading. The registry has
+a development-accepted CatBoost artifact but deliberately has no active entry.
+The next step must be implementable and testable without weakening that state
+or implicitly authorizing final-test evaluation or promotion.
+
+**Decision:** Close Milestone G at schema head `f0006_step_6_8` after 460 tests
+pass on Python 3.14.7 with 90.50% branch coverage, strict typing, lint,
+formatting, dependency, documentation and isolated PostgreSQL checks passing.
+Implementation commit `f34c349` records the completed current-season boundary.
+Keep all seven current-provider capabilities provider-neutral and preserve exact
+response bytes, checksums, content identities, canonical ordering, retrieval-
+time knowledge boundaries and historical raw-manifest verification.
+
+Define Step 7.1 as a deterministic read/load boundary. It must select exactly
+one compatible registry entry whose state is explicitly `active`, verify the
+complete artifact/component checksum and compatibility chain before loading and
+produce a stable typed failure when none or more than one qualifies. Synthetic
+active-state fixtures may exercise the success path. The actual repository's
+no-active result is expected and must not be bypassed.
+
+Step 7.1 cannot consume the sealed 2025–26 target, calculate final-test metrics,
+append an active promotion, reinterpret `development_accepted`, import the
+production artifact corpus, generate match predictions or scoreline
+distributions, run simulations, expose APIs or add deployment/frontend/CI/CD
+work.
+
+**Consequences:** Milestone H can establish and test deterministic runtime
+loading before an active model exists, while production loading remains
+fail-closed. Final-test evaluation and active promotion remain separately
+authorized lifecycle changes rather than hidden prerequisites or side effects
+of model loading.
+
+## ADR-041 — Deterministic read-only active-model resolution
+
+**Status:** Accepted
+
+**Context:** Prediction-lifecycle code needs one typed model-loading boundary,
+but the local registry contains only a development-accepted entry and registry
+schema version 1 cannot create an active event. Selecting by directory order,
+configuration, development acceptance or a mutable pointer would silently
+weaken lifecycle policy. Loading an artifact before validating registry
+cardinality or its complete compatibility chain could also expose an arbitrary
+or partially verified model to downstream code.
+
+**Decision:** Enumerate the canonical filesystem registry in UUID order and
+derive every current state from its complete canonical, checksum-linked event
+history on each read. Reject unexpected registry versions, paths, entry names,
+noncanonical bytes, event gaps, invalid transitions and broken checksum links.
+Select only histories whose final derived state is exactly `active`; zero
+produces `no_active_model` and more than one produces
+`ambiguous_active_models`, without attempting to load any artifact.
+
+For exactly one active history, resolve its declared manifest beneath an
+explicit artifact root, verify the registry's manifest checksum and all model,
+artifact and manifest identities, then use the existing strict artifact loader.
+Before returning, require canonical manifest/component bytes, exact component
+sizes and checksums, the pinned CPython and library runtime, complete embedded
+training/assessment/untouched-test-freeze provenance, the exact 175-name predictor
+schema, stateless preprocessing, CatBoost depth 6, identity calibration, no
+score model or scoreline capability and outcome order `home_win`, `draw`,
+`away_win`. Expose stable typed failures for every resolution layer and return
+an immutable object containing the verified registry head and loaded artifact.
+
+Keep the production implementation read-only: it has no registry transition,
+directory creation, database write, active pointer or fallback state. A typed
+history-source protocol permits tests to supply a synthetic active snapshot and
+exercise the real artifact loader without creating an active event or relaxing
+the version-1 promotion prohibition. Filesystem tests separately prove complete
+event-history validation.
+
+**Consequences:** The actual registry deterministically fails closed with
+`no_active_model`, while the successful load path and all compatibility failures
+are testable without promotion or production corpus import. Step 7.1 does not
+read test targets, calculate metrics, predict fixtures, generate scorelines,
+run simulations or alter PostgreSQL. Step 7.2 can consume this boundary later,
+but upcoming-feature generation remains a separate approved step.

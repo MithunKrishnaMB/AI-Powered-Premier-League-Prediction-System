@@ -291,6 +291,16 @@ verified development policy may become `development_accepted`; eligible entries
 may be rejected. Active promotion is unavailable without a future typed final-
 test evidence contract. Registry state is not stored in the artifact manifest.
 
+Step 7.1 adds a read-only active-model result boundary rather than a new
+persisted schema. It deterministically validates every complete registry event
+history, requires exactly one history ending explicitly in `active` and then
+verifies the registry-to-manifest, component, provenance, runtime,
+preprocessing, predictor, calibration, outcome and model-family chain. Stable
+typed failures distinguish no active model, ambiguity and each incompatible or
+incomplete layer. The actual registry ends at `development_accepted` and
+therefore returns `no_active_model`; synthetic in-memory active snapshots test
+the successful path without changing persisted registry bytes.
+
 See [Model Artifacts and Registry](../models/model-artifacts.md) for byte,
 identity, path, compatibility and transition rules.
 
