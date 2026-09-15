@@ -223,10 +223,20 @@ remained sealed and no model was activated.
   incomplete layer. Synthetic active snapshots verify successful loading while
   the actual registry remains `development_accepted` and returns
   `no_active_model`.
-- **Step 7.2 — next:** Generate upcoming-match features.
-- **Step 7.3:** Persist immutable predictions.
-- **Step 7.4:** Evaluate completed predictions.
-- **Step 7.5:** Update Elo and team state exactly once.
+- **Step 7.2 — complete:** Generates deterministic unlabeled predictor-schema-v2
+  rows from synchronized current fixture and completed-result evidence, with
+  retrieval-time cutoffs, conservative simultaneous batches, exact state/prior/
+  Elo checksums and no persisted team-state mutation.
+- **Step 7.3 — complete:** Generates three-way probabilities only through an
+  explicitly active Step 7.1 model and persists immutable exact-byte predictions
+  with complete feature, registry-event, model, artifact and manifest lineage.
+  The actual no-active registry remains fail-closed; synthetic active fixtures
+  cover the successful path.
+- **Step 7.4 — complete:** Evaluates immutable predictions only after matching
+  official completed-result evidence, storing deterministic per-fixture natural-
+  log loss, multiclass Brier score and normalized ranked probability score.
+  The frozen 2025–26 season is explicitly prohibited.
+- **Step 7.5 — next:** Update Elo and team state exactly once.
 - **Step 7.6:** Regenerate affected future predictions.
 - **Step 7.7:** Regenerate season simulations.
 - **Step 7.8:** Make the complete post-match workflow idempotent.

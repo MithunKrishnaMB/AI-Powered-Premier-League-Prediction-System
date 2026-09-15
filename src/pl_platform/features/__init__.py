@@ -20,6 +20,7 @@ from pl_platform.features.engine import (
     SeasonFeatureBuildResult,
     build_point_in_time_feature_rows,
     build_season_feature_result,
+    build_upcoming_predictor_set,
 )
 from pl_platform.features.materialize import (
     FEATURE_DATASET_SCHEMA_VERSION,
@@ -64,6 +65,7 @@ __all__ = [
     "build_point_in_time_feature_rows",
     "build_season_feature_result",
     "build_season_opening_priors",
+    "build_upcoming_predictor_set",
     "chronological_fixture_batches",
     "initialize_season_ratings",
     "load_feature_dataset",

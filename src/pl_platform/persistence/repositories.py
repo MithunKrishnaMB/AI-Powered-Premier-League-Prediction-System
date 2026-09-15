@@ -20,7 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from pl_platform.ingestion.download import DownloadError, verify_existing_file
 from pl_platform.ingestion.manifest import load_manifest
 
-MIGRATION_HEAD: Final = "f0006_step_6_8"
+MIGRATION_HEAD: Final = "f0007_step_7_4"
 _IDENTIFIER: Final = re.compile(r"^[a-z][a-z0-9_]*$")
 _FORMAT_ID: Final = re.compile(r"^[a-z0-9][a-z0-9._+-]*$")
 _SHA256: Final = re.compile(r"^[0-9a-f]{64}$")
@@ -70,6 +70,9 @@ class AggregateKind(StrEnum):
     CURRENT_STANDINGS = "current_standings"
     CURRENT_PLAYERS = "current_players"
     CURRENT_SQUADS = "current_squads"
+    UPCOMING_FEATURES = "upcoming_features"
+    CURRENT_PREDICTIONS = "current_predictions"
+    COMPLETED_PREDICTION_EVALUATIONS = "completed_prediction_evaluations"
     SCORELINE_DISTRIBUTION = "scoreline_distribution"
     SIMULATION_INPUT = "simulation_input"
     SIMULATION_RUN = "simulation_run"
@@ -174,6 +177,11 @@ class PersistenceTable(StrEnum):
     SIMULATION_SUMMARY = "simulation.simulation_summary"
     TEAM_SUMMARY = "simulation.team_summary"
     POSITION_PROBABILITY = "simulation.position_probability"
+    UPCOMING_FEATURE = "prediction.upcoming_feature"
+    UPCOMING_FEATURE_RESULT_SOURCE = "prediction.upcoming_feature_result_source"
+    UPCOMING_FEATURE_VALUE = "prediction.upcoming_feature_value"
+    CURRENT_MODEL_PREDICTION = "prediction.current_model_prediction"
+    COMPLETED_PREDICTION_EVALUATION = "prediction.completed_prediction_evaluation"
 
 
 _TABLE_ORDER: Final = {table: ordinal for ordinal, table in enumerate(PersistenceTable)}
@@ -270,6 +278,19 @@ _KIND_TABLES: Final[dict[AggregateKind, frozenset[PersistenceTable]]] = {
             PersistenceTable.CURRENT_SQUAD_SNAPSHOT_TEAM,
             PersistenceTable.CURRENT_SQUAD_MEMBER,
         }
+    ),
+    AggregateKind.UPCOMING_FEATURES: frozenset(
+        {
+            PersistenceTable.UPCOMING_FEATURE,
+            PersistenceTable.UPCOMING_FEATURE_RESULT_SOURCE,
+            PersistenceTable.UPCOMING_FEATURE_VALUE,
+        }
+    ),
+    AggregateKind.CURRENT_PREDICTIONS: frozenset(
+        {PersistenceTable.CURRENT_MODEL_PREDICTION}
+    ),
+    AggregateKind.COMPLETED_PREDICTION_EVALUATIONS: frozenset(
+        {PersistenceTable.COMPLETED_PREDICTION_EVALUATION}
     ),
     AggregateKind.SCORELINE_DISTRIBUTION: frozenset(
         {

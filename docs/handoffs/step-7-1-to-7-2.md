@@ -73,3 +73,6 @@ Step 7.2 must not generate probabilities, persist prediction records, infer
 scoreline distributions, run simulations, access the sealed 2025–26 target,
 promote a model, select a provider, add APIs or change deployment, frontend or
 CI/CD configuration.
+
+**Follow-on status:** Steps 7.2 through 7.4 were subsequently implemented. See
+the [Step 7.4 to 7.5 handoff](step-7-4-to-7-5.md).

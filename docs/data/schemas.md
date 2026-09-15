@@ -301,6 +301,30 @@ incomplete layer. The actual registry ends at `development_accepted` and
 therefore returns `no_active_model`; synthetic in-memory active snapshots test
 the successful path without changing persisted registry bytes.
 
+## Current prediction lifecycle
+
+`UpcomingFeatureRow` schema version 1 is a target-free current-season wrapper
+around the exact `epl-pre-match` predictor schema version 2. Its deterministic
+identity binds the synchronized fixture revision/observation/batch, retrieval-
+time knowledge cutoff, ordered official results available before that cutoff,
+historical context, season-opening priors, initial Elo state and canonical
+predictor payload. The 175 predictor values preserve null, boolean, integer and
+float64 types. No training label is representable in this contract.
+
+`CurrentModelPrediction` schema version 1 binds one upcoming feature to one
+explicitly active registry head and its semantic model, artifact and manifest.
+It stores only CatBoost depth-6 three-way probabilities in order `home_win`,
+`draw`, `away_win`; identity calibration adds no fitted or transformed values.
+The same feature/model lineage has one deterministic identity, while exact
+canonical prediction bytes make any changed probability a conflict.
+
+`CompletedPredictionEvaluation` schema version 1 links one immutable prediction
+to one official completed-result observation. It retains the observed outcome,
+the exact three probabilities, actual-outcome probability, natural-log loss,
+three-class Brier score and normalized ranked probability score. Typed
+validation recomputes all metrics. Every lifecycle contract rejects season
+`2025-2026`, so the untouched-test target remains sealed.
+
 See [Model Artifacts and Registry](../models/model-artifacts.md) for byte,
 identity, path, compatibility and transition rules.
 
@@ -373,6 +397,13 @@ remain separate from feature labels and training targets. Evaluation
 predictions remain target-free and keep three explicit float64 probabilities in
 the fixed `home_win`, `draw`, `away_win` order. The untouched-test freeze has a
 target-free member projection and no target, score or metric fields.
+
+Revision `f0007_step_7_4` projects current lifecycle records into a separate
+`prediction` schema. Five immutable tables retain exact feature, state,
+prediction and evaluation bytes plus normalized predictor/result relationships.
+Deferred checks require a complete 175-value population, an explicitly active
+latest registry event and metrics consistent with the referenced prediction and
+official result.
 
 Immediate constraints reject invalid ranges, states, dtypes, identities,
 foreign keys and local inconsistencies. Deferred constraints reject incomplete

@@ -39,7 +39,7 @@ def test_engine() -> Iterator[Engine]:
         revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one_or_none()
-    if revision != "f0006_step_6_8":
+    if revision != "f0007_step_7_4":
         engine.dispose()
         pytest.skip("test PostgreSQL database is not at the Step 6.8 head")
     try:

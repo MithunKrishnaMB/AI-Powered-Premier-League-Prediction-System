@@ -17,6 +17,7 @@ EXPECTED_SCHEMAS = {
     "ml",
     "model",
     "persistence",
+    "prediction",
     "provider_cache",
     "registry",
     "simulation",
@@ -35,7 +36,7 @@ def migrated_test_engine() -> Iterator[Engine]:
         revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one_or_none()
-    if revision != "f0006_step_6_8":
+    if revision != "f0007_step_7_4":
         engine.dispose()
         pytest.skip("test PostgreSQL database is not at the Step 6.8 head")
     try:
@@ -237,6 +238,47 @@ def test_current_player_and_squad_tables_and_guards_exist(
     assert tables == expected_tables
     assert triggers == expected_triggers
     assert player_table == 1
+
+
+@pytest.mark.postgresql
+def test_prediction_lifecycle_tables_and_guards_exist(
+    migrated_test_engine: Engine,
+) -> None:
+    expected_tables = {
+        "completed_prediction_evaluation",
+        "current_model_prediction",
+        "upcoming_feature",
+        "upcoming_feature_result_source",
+        "upcoming_feature_value",
+    }
+    expected_triggers = {
+        "validate_active_prediction",
+        "validate_completed_evaluation",
+        "validate_upcoming_feature",
+    }
+    with migrated_test_engine.connect() as connection:
+        tables = set(
+            connection.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'prediction' "
+                    "AND table_name = ANY(:names)"
+                ),
+                {"names": sorted(expected_tables)},
+            ).scalars()
+        )
+        triggers = set(
+            connection.execute(
+                text(
+                    "SELECT tgname FROM pg_trigger "
+                    "WHERE tgname = ANY(:names) AND NOT tgisinternal"
+                ),
+                {"names": sorted(expected_triggers)},
+            ).scalars()
+        )
+
+    assert tables == expected_tables
+    assert triggers == expected_triggers
 
 
 @pytest.mark.postgresql

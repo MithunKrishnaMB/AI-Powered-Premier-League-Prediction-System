@@ -18,6 +18,12 @@ from pl_platform.persistence.database import (
     check_database_connection,
     create_database_engine,
 )
+from pl_platform.persistence.prediction import (
+    PredictionLifecycleRepository,
+    completed_evaluations_write_plan,
+    predictions_write_plan,
+    upcoming_features_write_plan,
+)
 from pl_platform.persistence.provider_cache import (
     ProviderCacheEntry,
     ProviderCacheRepository,
@@ -56,6 +62,7 @@ __all__ = [
     "PersistenceResult",
     "PersistenceTable",
     "PostgresAggregateRepository",
+    "PredictionLifecycleRepository",
     "ProviderCacheEntry",
     "ProviderCacheRepository",
     "RawManifestEvidence",
@@ -65,11 +72,14 @@ __all__ = [
     "RepositoryError",
     "StoredObject",
     "check_database_connection",
+    "completed_evaluations_write_plan",
     "create_database_engine",
     "current_fixture_sync_plan",
     "current_players_sync_plan",
     "current_results_sync_plan",
     "current_squad_sync_plan",
     "current_standings_sync_plan",
+    "predictions_write_plan",
     "provider_cache_write_plan",
+    "upcoming_features_write_plan",
 ]

@@ -1,7 +1,7 @@
 # PostgreSQL Repositories and Transactions
 
 Steps 5.8 and 5.9 implement and verify the write boundary, now extended through
-Alembic head `f0006_step_6_8`. They do not bulk-import the produced artifact
+Alembic head `f0007_step_7_4`. They do not bulk-import the produced artifact
 corpus, evaluate the sealed 2025–26 target, promote a model or configure a
 current provider.
 
@@ -41,7 +41,7 @@ unknown or conflicting lineage fails closed.
 
 One repository write uses one serializable PostgreSQL transaction:
 
-1. require exact Alembic head `f0006_step_6_8`;
+1. require exact Alembic head `f0007_step_7_4`;
 2. insert authoritative exact objects;
 3. insert normalized rows in dependency order;
 4. force all deferred constraints to run;
@@ -131,3 +131,23 @@ database checks require cached metadata responses from the same source, prevent
 unobserved or post-cutoff players, enforce exactly the 20 reviewed season teams
 and validate registration and loan chronology. Exact response bytes remain in
 the provider cache and are never replaced by normalized rows.
+
+## Steps 7.2–7.4 prediction lifecycle writes
+
+`PredictionLifecycleRepository` exposes three separate immutable aggregates:
+upcoming features, active-model predictions and completed-result evaluations.
+Every operation still passes through the historical raw-manifest verifier before
+opening a serializable transaction.
+
+Feature writes preserve canonical identity, row, predictor, completed-state,
+opening-prior and initial-Elo bytes and normalize all 175 ordered values plus
+every official result observation used. Prediction writes preserve canonical
+bytes and exact feature, latest-active-registry-event, model, artifact and
+manifest snapshots. Evaluation writes preserve canonical bytes and exact
+prediction/result-observation lineage. Identical retries reload and compare;
+changed bytes under an existing deterministic identity fail as conflicts.
+
+Deferred constraints reject incomplete predictor populations, post-cutoff
+results, non-active or stale registry events, mismatched official outcomes and
+incorrect natural-log loss, Brier or normalized RPS values. The frozen
+2025–26 season is rejected at all three boundaries.

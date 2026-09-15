@@ -190,6 +190,14 @@ artifact bytes to verify the successful path. They do not append an active
 event. The actual registry still ends at `development_accepted` and therefore
 correctly returns `no_active_model`.
 
+Steps 7.2 through 7.4 consume this boundary without weakening it. Operational
+prediction accepts only the returned `LoadedActiveModel`, rechecks the exact
+predictor names and records the registry head event checksum plus model,
+artifact and manifest identities with each immutable prediction. Identity
+calibration means the three CatBoost probabilities are stored unchanged in
+`home_win`, `draw`, `away_win` order. A development-accepted artifact cannot
+enter this path and no classifier probability is interpreted as a scoreline.
+
 ## PostgreSQL persistence projection
 
 The Step 5.1

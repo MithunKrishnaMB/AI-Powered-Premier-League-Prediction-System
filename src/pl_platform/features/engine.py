@@ -594,3 +594,76 @@ def build_point_in_time_feature_rows(
         initial_elo_ratings=initial_elo_ratings,
         elo_parameters=elo_parameters,
     ).rows
+
+
+def build_upcoming_predictor_set(
+    completed_fixtures: Sequence[Fixture],
+    fixture: Fixture,
+    season: PremierLeagueSeason,
+    *,
+    opening_priors: Mapping[UUID, SeasonOpeningPrior],
+    initial_elo_ratings: Mapping[UUID, float],
+    elo_parameters: EloParameters = DEFAULT_ELO_PARAMETERS,
+) -> PredictorSet:
+    """Replay completed state and build one unlabelled upcoming predictor set.
+
+    The replay is intentionally in memory. Persisting an Elo/team-state update is
+    a later lifecycle step and is not performed here.
+    """
+
+    if fixture.status is not FixtureStatus.SCHEDULED:
+        raise FeatureBuildError("upcoming predictors require a scheduled fixture")
+    if (
+        fixture.competition_id != season.competition_id
+        or fixture.season_id != season.id
+    ):
+        raise FeatureBuildError("upcoming fixture scope does not match the season")
+    if fixture.home_team_id not in season.team_ids or fixture.away_team_id not in (
+        season.team_ids
+    ):
+        raise FeatureBuildError("upcoming fixture contains a team outside the season")
+    if set(opening_priors) != set(season.team_ids):
+        raise FeatureBuildError(
+            "opening priors must cover exactly the season membership"
+        )
+    if set(initial_elo_ratings) != set(season.team_ids):
+        raise FeatureBuildError(
+            "initial Elo ratings must cover exactly the season membership"
+        )
+    if len({item.id for item in completed_fixtures}) != len(completed_fixtures):
+        raise FeatureBuildError("completed state repeats a fixture")
+
+    state: dict[UUID, list[_TeamObservation]] = {
+        team_id: [] for team_id in season.team_ids
+    }
+    elo_ratings = dict(initial_elo_ratings)
+    season_prior_fixtures = 0
+    for batch in chronological_fixture_batches(completed_fixtures):
+        for completed in batch.fixtures:
+            if (
+                completed.status is not FixtureStatus.FINISHED
+                or completed.full_time_score is None
+                or completed.outcome is None
+            ):
+                raise FeatureBuildError("upcoming state requires completed results")
+            if (
+                completed.competition_id != season.competition_id
+                or completed.season_id != season.id
+                or completed.home_team_id not in season.team_ids
+                or completed.away_team_id not in season.team_ids
+            ):
+                raise FeatureBuildError("completed state does not match the season")
+            state[completed.home_team_id].append(_observation(completed, home=True))
+            state[completed.away_team_id].append(_observation(completed, home=False))
+        elo_ratings = update_elo_batch(elo_ratings, batch.fixtures, elo_parameters)
+        season_prior_fixtures += len(batch.fixtures)
+
+    return _predictors_for_fixture(
+        fixture,
+        state,
+        season,
+        season_prior_fixtures,
+        opening_priors,
+        elo_ratings,
+        elo_parameters,
+    )

@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 7.1.
+These decisions describe implemented behavior through Step 7.4.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -1058,3 +1058,31 @@ are testable without promotion or production corpus import. Step 7.1 does not
 read test targets, calculate metrics, predict fixtures, generate scorelines,
 run simulations or alter PostgreSQL. Step 7.2 can consume this boundary later,
 but upcoming-feature generation remains a separate approved step.
+
+## ADR-042: Separate immutable operational features, predictions and evaluations
+
+**Status:** Accepted
+
+**Decision:** Steps 7.2 through 7.4 use a distinct `prediction` domain and
+PostgreSQL schema rather than coercing current evidence into historical feature
+or development-evaluation tables. Upcoming rows replay only official results
+retrieved no later than their explicit current-batch knowledge boundary, reuse
+the exact `epl-pre-match` version-2 predictor order and never persist a label.
+Opening priors, initial Elo, completed state, predictor payload and every current
+fixture/result observation are content-addressed or explicitly referenced.
+
+Prediction generation accepts only `LoadedActiveModel`; a
+`development_accepted` snapshot is rejected. Each immutable prediction binds
+its feature, the derived active registry head, semantic model, physical artifact
+and manifest and stores probabilities only in `home_win`, `draw`, `away_win`
+order. Completed evaluation is one immutable record per prediction and official
+result, with natural-log loss, three-class Brier and normalized RPS recomputed by
+typed validators and deferred database checks.
+
+**Consequences:** Revision `f0007_step_7_4` adds five guarded tables, complete
+foreign-key snapshots and deferred completeness/active-head/evaluation checks.
+The historical raw-manifest gate remains mandatory for every aggregate write.
+The actual registry has no active head, so no operational prediction can be
+created; synthetic active fixtures test the successful path without a registry
+mutation. The frozen 2025–26 target, scoreline distributions, simulations and
+Step 7.5 state mutation remain outside this decision.

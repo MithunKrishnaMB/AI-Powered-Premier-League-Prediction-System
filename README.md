@@ -61,10 +61,16 @@ state from complete append-only registry history, requires exactly one explicit
 active entry and verifies the full registry-to-runtime artifact chain. The
 actual registry correctly returns the typed `no_active_model` failure; its
 development-accepted artifact is never reinterpreted as active.
+Steps 7.2 through 7.4 add deterministic unlabeled upcoming-fixture features,
+immutable active-model predictions and immutable per-fixture evaluation against
+official completed results. Exact current evidence, state replay, predictor
+values, model lineage and proper scores are checksum-bound. The actual registry
+still has no active model, so the production path remains closed while synthetic
+active fixtures verify the successful prediction path.
 The PostgreSQL entity-relationship model fixes stable identities, exact-byte
 lineage, ownership, lifecycle and fail-closed constraints for the produced data
 and artifacts. Separate local development and test connections use a restricted
-application login through typed secret settings. Six linear Alembic revisions
+application login through typed secret settings. Seven linear Alembic revisions
 implement the schema and raw-manifest-gated repositories provide atomic,
 idempotent exact-byte and normalized-projection writes with reload comparison.
 Provider-neutral current-season contracts define teams, fixtures, fixture
@@ -326,6 +332,7 @@ implementation. Start with:
 - [current players, squads and recorded-response contracts](docs/data/current-squads-and-recorded-contracts.md)
 - [Milestone G to H handoff](docs/handoffs/milestone-g-to-h.md)
 - [Step 7.1 to 7.2 handoff](docs/handoffs/step-7-1-to-7-2.md)
+- [Step 7.4 to 7.5 handoff](docs/handoffs/step-7-4-to-7-5.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -349,15 +356,16 @@ development-accepted registry record. Model-agnostic simulation contracts,
 scoreline sampling, table mechanics, vectorized 10,000-run execution and
 aggregate position probabilities are implemented. Steps 5.1 through 5.9 have
 finalized the PostgreSQL entity-relationship design, configured isolated typed
-local connections, implemented the schema as six linear Alembic
+local connections, implemented the schema as seven linear Alembic
 revisions and added raw-manifest-gated atomic repositories with PostgreSQL
 transaction tests. Steps 6.1 through 6.9 add strict current-season contracts,
 deterministic team/fixture transformation, bounded secret-safe HTTPS execution
 and exact immutable response caching, fixture synchronization, completed-result
 reconciliation, standings, reviewed player/squad snapshots and offline
 exact-byte contract replay without selecting a provider. Milestone G is
-complete. Step 7.1 implements deterministic, read-only active-model loading;
-the actual registry correctly fails closed because no active model exists.
-Step 7.2 upcoming-fixture feature generation is next.
+complete. Steps 7.1 through 7.4 implement deterministic active-model loading,
+upcoming-fixture features, immutable predictions and completed-result
+evaluation. The actual registry correctly fails closed because no active model
+exists. Step 7.5 exactly-once Elo and team-state updates is next.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

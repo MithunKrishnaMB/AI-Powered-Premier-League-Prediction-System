@@ -1,10 +1,10 @@
 # PostgreSQL Entity-Relationship Model
 
 **Implementation status:** The baseline model is implemented by Steps 5.4–5.7,
-and revisions `f0005_step_6_7` and `f0006_step_6_8` extend its linear chain with
-current-season fixtures, results, standings, players and squads. Steps 5.8–5.9
-provide the typed transaction boundary. No production artifact corpus has been
-imported by migrations or repository tests.
+and revisions through `f0007_step_7_4` extend its linear chain with current-
+season synchronization and prediction-lifecycle records. Steps 5.8–5.9 provide
+the typed transaction boundary. No production artifact corpus has been imported
+by migrations or repository tests.
 
 ## Status and scope
 
@@ -75,6 +75,10 @@ fixture -> scoreline_distribution -> simulation_input -> simulation_run
 provider_cache.response -> current_fixture_observation -> current_fixture_revision
                         -> current_result_observation -> current_completed_result
                         -> current_standing_snapshot -> current_standing_row
+
+current_fixture_revision -> upcoming_feature -> current_model_prediction
+current_completed_result -> upcoming_feature -> completed_prediction_evaluation
+registry_event ------------------------------> current_model_prediction
 ```
 
 Arrows mean required provenance references, not permission to cascade-delete
@@ -576,7 +580,46 @@ test evaluation or target access.
   prediction count.
 - Metrics remain development evidence and are not registry state.
 
-### Separate evaluation metadata
+## Operational prediction lifecycle
+
+### `prediction.upcoming_feature`
+
+- Primary key: deterministic `feature_id uuid`, derived from the checksum of
+  complete current evidence and predictor lineage.
+- Exact composite foreign keys retain the current fixture revision,
+  observation, response-cache key, simultaneous batch and member ordinal.
+- Stores the current knowledge cutoff, schema-version-2 predictor identity and
+  checksums of exact row, predictor, completed-state, opening-prior and initial-
+  Elo bytes. Season `2025-2026` is prohibited.
+- `prediction.upcoming_feature_value` stores exactly 175 typed ordered values.
+  `prediction.upcoming_feature_result_source` stores every official result and
+  response observation used by state replay in canonical ordinal order.
+
+### `prediction.current_model_prediction`
+
+- Primary key: deterministic `prediction_id uuid`, binding one upcoming feature
+  to one exact registry head and model artifact chain.
+- The registry event must be the latest event for its entry and must explicitly
+  end in `active`; development acceptance never satisfies the constraint.
+- Stores exact canonical record bytes and three finite probability columns in
+  fixed `home_win`, `draw`, `away_win` order. CatBoost depth-6 configuration and
+  identity-calibration lineage remain fixed; no scoreline column exists.
+
+### `prediction.completed_prediction_evaluation`
+
+- Primary key: deterministic `evaluation_id uuid`; one row is permitted per
+  immutable prediction and official result.
+- Exact foreign keys retain the completed-result identity, the response
+  observation and retrieval boundary used to establish completion.
+- Stores observed outcome, actual-outcome probability, natural-log loss,
+  three-class Brier score and normalized ranked probability score. A deferred
+  trigger recomputes these values from the referenced prediction/result and
+  rejects a result not learned after the prediction cutoff.
+
+All five operational tables have immutable update/delete guards and restrictive
+foreign keys. Exact bytes remain authoritative in `lineage.stored_object`.
+
+## Separate evaluation metadata
 
 The following one-to-one or owned child tables remain distinct:
 

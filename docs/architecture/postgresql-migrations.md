@@ -1,6 +1,6 @@
 # PostgreSQL Migration Chain
 
-Steps 5.4 through 6.8 implement the reviewed entity-relationship model as one
+Steps 5.4 through 7.4 implement the reviewed entity-relationship model as one
 linear, transactional Alembic chain. The revisions contain schema only: they do
 not import existing files, persist simulation matrices, evaluate the sealed
 2025–26 target or promote a model.
@@ -13,6 +13,7 @@ not import existing files, persist simulation matrices, evaluate the sealed
 | `f0004_step_5_7` | 5.7 | Verified raw captures; future provider-cache responses; explicit scoreline distributions and provenance; canonical simulation inputs and batches; 10,000-run result components; complete aggregate summaries |
 | `f0005_step_6_7` | 6.5–6.7 | Current fixture references, content-derived revisions, cache-provenanced observations and batches; official completed-result ledger; complete reconciled standings; `abandoned` fixture persistence |
 | `f0006_step_6_8` | 6.8 | Canonical players; exact player/squad source references; cache-provenanced player observations; canonical season/team squads; complete point-in-time squad snapshots, membership and loan chronology |
+| `f0007_step_7_4` | 7.2–7.4 | Current-evidence upcoming features and ordered predictor values; active-head/model-bound immutable predictions; official-result-bound per-fixture probabilistic evaluations |
 
 Step 6.1 adds provider-neutral executable contracts only and introduces no
 Alembic revision or database write. Its five operations map onto the existing
@@ -42,6 +43,14 @@ canonical ordering, season membership, retrieval-time knowledge, active
 registration windows and loan parents. Step 6.9 adds only offline recordings
 and executable contract tests, so it requires no migration.
 
+Revision `f0007_step_7_4` adds a separate `prediction` schema. It preserves
+current fixture and result facts through exact composite foreign keys, stores
+canonical identity and record bytes, requires all 175 predictor values, requires
+the referenced registry event to be the latest explicit `active` event and
+recomputes completed-evaluation outcome probability, natural-log loss, Brier
+score and normalized RPS. Every new table is immutable and rejects the frozen
+2025–26 season.
+
 The chain preserves application-supplied UUIDv5 and SHA-256 identities. Exact
 canonical bytes remain authoritative in `lineage.stored_object`; relational
 projections have explicit ordinals, restrictive foreign keys and immutable-row
@@ -69,4 +78,4 @@ Step 5.8 now supplies typed aggregate repositories that verify raw manifests
 before opening writes and compare exact bytes and normalized relationships
 before commit. Step 5.9 verifies transaction rollback, idempotency, conflicts,
 checksums and immutable guards. Current-season repository integration tests run
-against exact head `f0006_step_6_8`.
+against exact head `f0007_step_7_4`.
