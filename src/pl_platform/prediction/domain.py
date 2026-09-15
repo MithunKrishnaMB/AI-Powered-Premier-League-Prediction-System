@@ -19,6 +19,9 @@ from pl_platform.registry.artifact_manifest import canonical_json_bytes, sha256_
 UPCOMING_FEATURE_SCHEMA_VERSION: Final = 1
 CURRENT_PREDICTION_SCHEMA_VERSION: Final = 1
 COMPLETED_EVALUATION_SCHEMA_VERSION: Final = 1
+TEAM_STATE_SCHEMA_VERSION: Final = 1
+PREDICTION_REGENERATION_SCHEMA_VERSION: Final = 1
+SIMULATION_REGENERATION_SCHEMA_VERSION: Final = 1
 SEALED_TEST_SEASON_ID: Final = "2025-2026"
 
 Sha256 = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
@@ -39,6 +42,11 @@ class PredictionLifecycleFailureCode(StrEnum):
     PREDICTION_FAILED = "prediction_failed"
     RESULT_MISMATCH = "result_mismatch"
     ZERO_ACTUAL_PROBABILITY = "zero_actual_probability"
+    STATE_CHAIN_INVALID = "state_chain_invalid"
+    RESULT_ALREADY_APPLIED = "result_already_applied"
+    REGENERATION_NOT_REQUIRED = "regeneration_not_required"
+    SCORELINE_PROVENANCE_REQUIRED = "scoreline_provenance_required"
+    SIMULATION_FAILED = "simulation_failed"
 
 
 class PredictionLifecycleError(ValueError):
@@ -504,4 +512,389 @@ class CompletedPredictionEvaluation(BaseModel):
             for left, right in zip(actual, expected, strict=True)
         ):
             raise ValueError("completed evaluation metric values do not match")
+        return self
+
+
+def _identified_payload(
+    namespace: str,
+    schema_version: int,
+    payload: dict[str, object],
+) -> tuple[UUID, str, bytes]:
+    exact = canonical_json_bytes(payload)
+    checksum = sha256_bytes(exact)
+    identity = uuid5(
+        NAMESPACE_URL,
+        f"pl-platform:{namespace}:{schema_version}|{checksum}",
+    )
+    return identity, checksum, exact
+
+
+class TeamEloRating(BaseModel):
+    """One canonical team's finite Elo value in an operational state snapshot."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    team_id: UUID
+    rating: Annotated[float, Field(strict=True, allow_inf_nan=False)]
+
+
+def team_state_identity(
+    *,
+    season_id: str,
+    initial_elo_sha256: str,
+    completed_results: tuple[CompletedResultEvidence, ...],
+    elo_ratings: tuple[TeamEloRating, ...],
+) -> tuple[UUID, str, bytes]:
+    return _identified_payload(
+        "operational-team-state",
+        TEAM_STATE_SCHEMA_VERSION,
+        {
+            "completed_results": [
+                result.model_dump(mode="json") for result in completed_results
+            ],
+            "elo_ratings": [rating.model_dump(mode="json") for rating in elo_ratings],
+            "initial_elo_sha256": initial_elo_sha256,
+            "schema_version": TEAM_STATE_SCHEMA_VERSION,
+            "season_id": season_id,
+        },
+    )
+
+
+class OperationalTeamState(BaseModel):
+    """Append-only result ledger and Elo state used by future feature builds."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal[1] = TEAM_STATE_SCHEMA_VERSION
+    id: UUID
+    identity_sha256: Sha256
+    season_id: str = Field(pattern=r"^\d{4}-\d{4}$")
+    initial_elo_sha256: Sha256
+    completed_results: tuple[CompletedResultEvidence, ...]
+    elo_ratings: tuple[TeamEloRating, ...] = Field(min_length=20, max_length=20)
+
+    @model_validator(mode="after")
+    def state_must_be_canonical(self) -> Self:
+        if self.season_id == SEALED_TEST_SEASON_ID:
+            raise ValueError("sealed 2025-2026 results cannot enter operational state")
+        if tuple(item.team_id for item in self.elo_ratings) != tuple(
+            sorted({item.team_id for item in self.elo_ratings})
+        ):
+            raise ValueError("team-state Elo ratings must be unique and ordered")
+        ordered_results = tuple(
+            sorted(
+                self.completed_results,
+                key=lambda item: (item.fixture.kickoff_at, item.fixture.id),
+            )
+        )
+        if self.completed_results != ordered_results or len(
+            {item.result_id for item in ordered_results}
+        ) != len(ordered_results):
+            raise ValueError("team-state results must be unique and ordered")
+        if any(item.fixture.season_id != self.season_id for item in ordered_results):
+            raise ValueError("team-state result has a different season")
+        expected_id, expected_sha256, _ = team_state_identity(
+            season_id=self.season_id,
+            initial_elo_sha256=self.initial_elo_sha256,
+            completed_results=self.completed_results,
+            elo_ratings=self.elo_ratings,
+        )
+        if self.id != expected_id or self.identity_sha256 != expected_sha256:
+            raise ValueError("team-state identity does not match its contents")
+        return self
+
+
+class AppliedPredictionResult(BaseModel):
+    """One evaluation/result pair applied in a simultaneous state batch."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    evaluation: CompletedPredictionEvaluation
+    result: CompletedResultEvidence
+
+    @model_validator(mode="after")
+    def evaluation_and_result_must_match(self) -> Self:
+        if (
+            self.evaluation.result_id != self.result.result_id
+            or self.evaluation.result_identity_sha256
+            != self.result.result_identity_sha256
+            or self.evaluation.result_observation_id != self.result.observation_id
+            or self.evaluation.result_cache_key_sha256 != self.result.cache_key_sha256
+            or self.evaluation.result_retrieved_at != self.result.retrieved_at
+            or self.evaluation.fixture_id != self.result.fixture.id
+        ):
+            raise ValueError("applied evaluation and result evidence disagree")
+        return self
+
+
+def team_state_advancement_identity(
+    *,
+    prior_advancement_id: UUID | None,
+    pre_state: OperationalTeamState,
+    post_state: OperationalTeamState,
+    applied_results: tuple[AppliedPredictionResult, ...],
+) -> tuple[UUID, str, bytes]:
+    return _identified_payload(
+        "team-state-advancement",
+        TEAM_STATE_SCHEMA_VERSION,
+        {
+            "applied_results": [
+                {
+                    "evaluation_id": str(item.evaluation.id),
+                    "evaluation_identity_sha256": item.evaluation.identity_sha256,
+                    "result_id": str(item.result.result_id),
+                    "result_identity_sha256": item.result.result_identity_sha256,
+                }
+                for item in applied_results
+            ],
+            "post_state_id": str(post_state.id),
+            "post_state_sha256": post_state.identity_sha256,
+            "pre_state_id": str(pre_state.id),
+            "pre_state_sha256": pre_state.identity_sha256,
+            "prior_advancement_id": (
+                None if prior_advancement_id is None else str(prior_advancement_id)
+            ),
+            "schema_version": TEAM_STATE_SCHEMA_VERSION,
+            "season_id": post_state.season_id,
+        },
+    )
+
+
+class TeamStateAdvancement(BaseModel):
+    """One immutable, exactly-once simultaneous result-batch advancement."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal[1] = TEAM_STATE_SCHEMA_VERSION
+    id: UUID
+    identity_sha256: Sha256
+    prior_advancement_id: UUID | None = None
+    pre_state: OperationalTeamState
+    post_state: OperationalTeamState
+    applied_results: tuple[AppliedPredictionResult, ...] = Field(min_length=1)
+    applied_at: datetime
+
+    @field_validator("applied_at")
+    @classmethod
+    def applied_time_must_be_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() != timedelta(0):
+            raise ValueError("state advancement timestamp must be UTC")
+        return value
+
+    @model_validator(mode="after")
+    def advancement_must_match_states(self) -> Self:
+        if self.pre_state.season_id != self.post_state.season_id:
+            raise ValueError("state advancement cannot cross seasons")
+        if self.applied_at != max(
+            item.result.retrieved_at for item in self.applied_results
+        ):
+            raise ValueError("state advancement time must match result evidence")
+        if len({item.result.result_id for item in self.applied_results}) != len(
+            self.applied_results
+        ):
+            raise ValueError("state advancement repeats a result")
+        expected_id, expected_sha256, _ = team_state_advancement_identity(
+            prior_advancement_id=self.prior_advancement_id,
+            pre_state=self.pre_state,
+            post_state=self.post_state,
+            applied_results=self.applied_results,
+        )
+        if self.id != expected_id or self.identity_sha256 != expected_sha256:
+            raise ValueError("state advancement identity does not match")
+        return self
+
+
+def prediction_regeneration_identity(
+    *,
+    advancement_id: UUID,
+    advancement_identity_sha256: str,
+    prior_prediction: CurrentModelPrediction,
+    replacement_prediction: CurrentModelPrediction,
+) -> tuple[UUID, str, bytes]:
+    return _identified_payload(
+        "prediction-regeneration",
+        PREDICTION_REGENERATION_SCHEMA_VERSION,
+        {
+            "advancement_id": str(advancement_id),
+            "advancement_identity_sha256": advancement_identity_sha256,
+            "fixture_id": str(prior_prediction.fixture_id),
+            "prior_prediction_id": str(prior_prediction.id),
+            "prior_prediction_identity_sha256": prior_prediction.identity_sha256,
+            "replacement_prediction_id": str(replacement_prediction.id),
+            "replacement_prediction_identity_sha256": (
+                replacement_prediction.identity_sha256
+            ),
+            "schema_version": PREDICTION_REGENERATION_SCHEMA_VERSION,
+            "season_id": prior_prediction.season_id,
+        },
+    )
+
+
+class PredictionRegeneration(BaseModel):
+    """Immutable supersession lineage for one affected future prediction."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal[1] = PREDICTION_REGENERATION_SCHEMA_VERSION
+    id: UUID
+    identity_sha256: Sha256
+    advancement_id: UUID
+    advancement_identity_sha256: Sha256
+    prior_feature: UpcomingFeatureRow
+    prior_prediction: CurrentModelPrediction
+    replacement_feature: UpcomingFeatureRow
+    replacement_prediction: CurrentModelPrediction
+
+    @model_validator(mode="after")
+    def replacement_must_supersede_same_fixture(self) -> Self:
+        old = self.prior_prediction
+        new = self.replacement_prediction
+        if (
+            self.prior_feature.id != old.feature_id
+            or self.replacement_feature.id != new.feature_id
+            or old.fixture_id != new.fixture_id
+            or old.season_id != new.season_id
+            or new.feature_cutoff_at <= old.feature_cutoff_at
+            or old.id == new.id
+        ):
+            raise ValueError("prediction regeneration does not supersede one fixture")
+        expected_id, expected_sha256, _ = prediction_regeneration_identity(
+            advancement_id=self.advancement_id,
+            advancement_identity_sha256=self.advancement_identity_sha256,
+            prior_prediction=old,
+            replacement_prediction=new,
+        )
+        if self.id != expected_id or self.identity_sha256 != expected_sha256:
+            raise ValueError("prediction regeneration identity does not match")
+        return self
+
+
+def distribution_provenance_identity(
+    *,
+    distribution_id: UUID,
+    input_sha256: str,
+    producer_identity: str,
+    producer_version: str,
+    runtime_contract: str,
+    numerical_contract: str,
+    approval_context: str,
+) -> tuple[UUID, str, bytes]:
+    exact = canonical_json_bytes(
+        {
+            "approval_context": approval_context,
+            "artifact_id": None,
+            "distribution_id": str(distribution_id),
+            "input_sha256": input_sha256,
+            "numerical_contract": numerical_contract,
+            "producer_identity": producer_identity,
+            "producer_kind": "explicit_input",
+            "producer_version": producer_version,
+            "runtime_contract": runtime_contract,
+            "schema_version": 1,
+        }
+    )
+    checksum = sha256_bytes(exact)
+    return (
+        uuid5(NAMESPACE_URL, f"pl-platform:distribution-provenance:{checksum}"),
+        checksum,
+        exact,
+    )
+
+
+class ExplicitScorelineProvenance(BaseModel):
+    """Approval for separately supplied scorelines; never classifier-derived."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal[1] = 1
+    id: UUID
+    identity_sha256: Sha256
+    distribution_id: UUID
+    input_sha256: Sha256
+    producer_kind: Literal["explicit_input"] = "explicit_input"
+    producer_identity: str = Field(min_length=1)
+    producer_version: str = Field(min_length=1)
+    runtime_contract: str = Field(min_length=1)
+    numerical_contract: str = Field(min_length=1)
+    approval_context: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def provenance_identity_must_match(self) -> Self:
+        expected_id, expected_sha256, _ = distribution_provenance_identity(
+            distribution_id=self.distribution_id,
+            input_sha256=self.input_sha256,
+            producer_identity=self.producer_identity,
+            producer_version=self.producer_version,
+            runtime_contract=self.runtime_contract,
+            numerical_contract=self.numerical_contract,
+            approval_context=self.approval_context,
+        )
+        if self.id != expected_id or self.identity_sha256 != expected_sha256:
+            raise ValueError("scoreline provenance identity does not match")
+        return self
+
+
+def season_simulation_regeneration_identity(
+    *,
+    advancement_id: UUID,
+    advancement_identity_sha256: str,
+    previous_simulation_id: UUID,
+    replacement_input_sha256: str,
+    replacement_simulation_id: UUID,
+    replacement_summary_id: UUID,
+    simulation_seed: int,
+    season_id: str,
+) -> tuple[UUID, str, bytes]:
+    return _identified_payload(
+        "season-simulation-regeneration",
+        SIMULATION_REGENERATION_SCHEMA_VERSION,
+        {
+            "advancement_id": str(advancement_id),
+            "advancement_identity_sha256": advancement_identity_sha256,
+            "previous_simulation_id": str(previous_simulation_id),
+            "replacement_input_sha256": replacement_input_sha256,
+            "replacement_simulation_id": str(replacement_simulation_id),
+            "replacement_summary_id": str(replacement_summary_id),
+            "schema_version": SIMULATION_REGENERATION_SCHEMA_VERSION,
+            "season_id": season_id,
+            "simulation_seed": simulation_seed,
+        },
+    )
+
+
+class SeasonSimulationRegeneration(BaseModel):
+    """Immutable lineage from a state advancement to a replacement simulation."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal[1] = SIMULATION_REGENERATION_SCHEMA_VERSION
+    id: UUID
+    identity_sha256: Sha256
+    advancement_id: UUID
+    advancement_identity_sha256: Sha256
+    previous_simulation_id: UUID
+    replacement_input_sha256: Sha256
+    replacement_simulation_id: UUID
+    replacement_summary_id: UUID
+    simulation_seed: Annotated[int, Field(strict=True, ge=0, lt=2**64)]
+    season_id: str = Field(pattern=r"^\d{4}-\d{4}$")
+
+    @model_validator(mode="after")
+    def regeneration_identity_must_match(self) -> Self:
+        if self.season_id == SEALED_TEST_SEASON_ID:
+            raise ValueError("sealed 2025-2026 simulations cannot be regenerated")
+        if self.previous_simulation_id == self.replacement_simulation_id:
+            raise ValueError("replacement simulation must differ from the prior run")
+        expected_id, expected_sha256, _ = season_simulation_regeneration_identity(
+            advancement_id=self.advancement_id,
+            advancement_identity_sha256=self.advancement_identity_sha256,
+            previous_simulation_id=self.previous_simulation_id,
+            replacement_input_sha256=self.replacement_input_sha256,
+            replacement_simulation_id=self.replacement_simulation_id,
+            replacement_summary_id=self.replacement_summary_id,
+            simulation_seed=self.simulation_seed,
+            season_id=self.season_id,
+        )
+        if self.id != expected_id or self.identity_sha256 != expected_sha256:
+            raise ValueError("simulation regeneration identity does not match")
         return self

@@ -1,7 +1,7 @@
 # PostgreSQL Repositories and Transactions
 
 Steps 5.8 and 5.9 implement and verify the write boundary, now extended through
-Alembic head `f0007_step_7_4`. They do not bulk-import the produced artifact
+Alembic head `f0008_step_7_7`. They do not bulk-import the produced artifact
 corpus, evaluate the sealed 2025–26 target, promote a model or configure a
 current provider.
 
@@ -41,7 +41,7 @@ unknown or conflicting lineage fails closed.
 
 One repository write uses one serializable PostgreSQL transaction:
 
-1. require exact Alembic head `f0007_step_7_4`;
+1. require exact Alembic head `f0008_step_7_7`;
 2. insert authoritative exact objects;
 3. insert normalized rows in dependency order;
 4. force all deferred constraints to run;
@@ -151,3 +151,20 @@ Deferred constraints reject incomplete predictor populations, post-cutoff
 results, non-active or stale registry events, mismatched official outcomes and
 incorrect natural-log loss, Brier or normalized RPS values. The frozen
 2025–26 season is rejected at all three boundaries.
+
+## Steps 7.5–7.7 post-match writes
+
+`PredictionOperationsRepository` exposes atomic state advancement, prediction
+regeneration and simulation regeneration writes. State writes preserve exact
+pre/post snapshot and advancement bytes, all 20 ordered Elo ratings and every
+official result/evaluation relationship. Identical retries reload and compare;
+unique result, evaluation and predecessor constraints reject double application
+or state forks.
+
+Prediction regeneration writes replacement feature/prediction aggregates and
+their supersession records in one transaction. Simulation regeneration writes
+independently approved explicit distributions, provenance, canonical input,
+six deterministic NumPy arrays, aggregate summary and prior/replacement run
+lineage. All three operations retain the historical raw-manifest gate. No write
+updates prior state, feature, prediction, evaluation or simulation rows, and no
+repository converts three-way CatBoost probabilities into scorelines.

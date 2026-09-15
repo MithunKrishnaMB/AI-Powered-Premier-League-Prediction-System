@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 7.4.
+These decisions describe implemented behavior through Step 7.7.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -1086,3 +1086,36 @@ The actual registry has no active head, so no operational prediction can be
 created; synthetic active fixtures test the successful path without a registry
 mutation. The frozen 2025–26 target, scoreline distributions, simulations and
 Step 7.5 state mutation remain outside this decision.
+
+## ADR-043: Append-only post-match state and derived-output regeneration
+
+**Status:** Accepted
+
+**Decision:** Apply official completed results only as one conservative
+simultaneous batch backed by an immutable prediction evaluation. Each operation
+creates content-derived pre/post operational state snapshots containing the
+complete result-evidence ledger and all 20 Elo ratings. State is derived from
+the append-only advancement chain: no mutable current-state pointer exists.
+Database uniqueness permits only one successor per season/pre-state and only
+one application of each result and evaluation.
+
+A state advancement makes a future prediction stale only when its feature
+omits at least one newly applied result. Regeneration requires refreshed
+pre-kickoff fixture evidence and the verified active-model boundary, then stores
+new immutable feature and prediction records plus explicit prior/replacement
+lineage. Existing records are never updated or deleted.
+
+Season simulation regeneration consumes the advanced official-result ledger
+and separately supplied scoreline distributions with explicit approval,
+runtime, numerical and input-checksum provenance. CatBoost's three-way
+probabilities are not accepted as scoreline input. The existing deterministic
+10,000-run engine is retained; all six NumPy matrices, the complete aggregate
+summary and old/new run lineage are stored exactly.
+
+**Consequences:** Revision `f0008_step_7_7` adds guarded operational-state and
+regeneration tables and closes the cross-row chains with deferred checks. The
+raw-manifest gate, sealed 2025–26 prohibition, canonical ordering, exact bytes,
+restrictive foreign keys and retry comparison remain in force. The actual
+no-active registry produces no real prediction or simulation regeneration;
+synthetic fixtures exercise successful paths. Whole-workflow idempotent
+orchestration and recovery remain Steps 7.8 and 7.9.

@@ -127,6 +127,11 @@ bytes, shapes and `int64`, `int16` or `float64` dtypes. Aggregate summaries use
 their existing UUID and normalized team and 20-position rows with deferred
 league-wide mass constraints.
 
-A later integration step must still define how a current provider and an
-approved score model produce provenance-bound fixture distributions. The
-registered CatBoost artifact alone remains insufficient for that purpose.
+Step 7.7 now accepts already supplied scoreline distributions only through an
+explicit immutable approval record containing producer identity/version, exact
+input checksum, runtime contract, numerical contract and approval context. It
+uses the advanced official-result ledger to rebuild and persist the canonical
+10,000-run input, six exact NumPy result components and aggregate summary while
+retaining the prior run as supersession lineage. It does not select a provider
+or score model. The registered CatBoost artifact remains insufficient and is
+never converted from three-way probabilities into scoreline mass.

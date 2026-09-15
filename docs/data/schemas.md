@@ -405,6 +405,18 @@ Deferred checks require a complete 175-value population, an explicitly active
 latest registry event and metrics consistent with the referenced prediction and
 official result.
 
+Revision `f0008_step_7_7` adds schema-version-1 operational team-state,
+state-advancement, prediction-regeneration and simulation-regeneration
+contracts. Operational state is the complete canonical official-result ledger
+plus 20 ordered finite Elo ratings and its initial-Elo checksum. An advancement
+contains one simultaneous batch and exact evaluation/result evidence.
+Replacement predictions bind old and new immutable feature/prediction
+identities. Simulation regeneration binds the advancement, prior run, new
+canonical input, fixed seed, deterministic 10,000-run result and summary.
+Scoreline inputs carry separate explicit approval, runtime, numerical and input-
+checksum provenance; CatBoost outcome probabilities are never a scoreline
+schema.
+
 Immediate constraints reject invalid ranges, states, dtypes, identities,
 foreign keys and local inconsistencies. Deferred constraints reject incomplete
 season membership, gaps or reordered records, predictor populations,

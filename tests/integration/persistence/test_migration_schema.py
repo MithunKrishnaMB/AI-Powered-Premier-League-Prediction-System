@@ -36,9 +36,9 @@ def migrated_test_engine() -> Iterator[Engine]:
         revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one_or_none()
-    if revision != "f0007_step_7_4":
+    if revision != "f0008_step_7_7":
         engine.dispose()
-        pytest.skip("test PostgreSQL database is not at the Step 6.8 head")
+        pytest.skip("test PostgreSQL database is not at the current migration head")
     try:
         yield engine
     finally:
@@ -278,6 +278,62 @@ def test_prediction_lifecycle_tables_and_guards_exist(
         )
 
     assert tables == expected_tables
+    assert triggers == expected_triggers
+
+
+@pytest.mark.postgresql
+def test_post_match_state_and_regeneration_guards_exist(
+    migrated_test_engine: Engine,
+) -> None:
+    expected_tables = {
+        "operational_team_state",
+        "operational_team_state_rating",
+        "operational_team_state_result",
+        "prediction_regeneration",
+        "season_simulation_regeneration",
+        "team_state_advancement",
+        "team_state_advancement_result",
+    }
+    expected_constraints = {
+        "uq_team_state_advancement_predecessor",
+        "uq_team_state_result_evaluation",
+        "uq_team_state_result_value",
+    }
+    expected_triggers = {
+        "validate_operational_team_state",
+        "validate_prediction_regeneration",
+        "validate_season_simulation_regeneration",
+        "validate_team_state_advancement",
+    }
+    with migrated_test_engine.connect() as connection:
+        tables = set(
+            connection.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'prediction' "
+                    "AND table_name = ANY(:names)"
+                ),
+                {"names": sorted(expected_tables)},
+            ).scalars()
+        )
+        constraints = set(
+            connection.execute(
+                text("SELECT conname FROM pg_constraint WHERE conname = ANY(:names)"),
+                {"names": sorted(expected_constraints)},
+            ).scalars()
+        )
+        triggers = set(
+            connection.execute(
+                text(
+                    "SELECT tgname FROM pg_trigger "
+                    "WHERE tgname = ANY(:names) AND NOT tgisinternal"
+                ),
+                {"names": sorted(expected_triggers)},
+            ).scalars()
+        )
+
+    assert tables == expected_tables
+    assert constraints == expected_constraints
     assert triggers == expected_triggers
 
 

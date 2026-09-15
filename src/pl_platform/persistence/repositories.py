@@ -20,7 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from pl_platform.ingestion.download import DownloadError, verify_existing_file
 from pl_platform.ingestion.manifest import load_manifest
 
-MIGRATION_HEAD: Final = "f0007_step_7_4"
+MIGRATION_HEAD: Final = "f0008_step_7_7"
 _IDENTIFIER: Final = re.compile(r"^[a-z][a-z0-9_]*$")
 _FORMAT_ID: Final = re.compile(r"^[a-z0-9][a-z0-9._+-]*$")
 _SHA256: Final = re.compile(r"^[0-9a-f]{64}$")
@@ -73,6 +73,9 @@ class AggregateKind(StrEnum):
     UPCOMING_FEATURES = "upcoming_features"
     CURRENT_PREDICTIONS = "current_predictions"
     COMPLETED_PREDICTION_EVALUATIONS = "completed_prediction_evaluations"
+    TEAM_STATE_ADVANCEMENTS = "team_state_advancements"
+    PREDICTION_REGENERATIONS = "prediction_regenerations"
+    SIMULATION_REGENERATIONS = "simulation_regenerations"
     SCORELINE_DISTRIBUTION = "scoreline_distribution"
     SIMULATION_INPUT = "simulation_input"
     SIMULATION_RUN = "simulation_run"
@@ -182,6 +185,13 @@ class PersistenceTable(StrEnum):
     UPCOMING_FEATURE_VALUE = "prediction.upcoming_feature_value"
     CURRENT_MODEL_PREDICTION = "prediction.current_model_prediction"
     COMPLETED_PREDICTION_EVALUATION = "prediction.completed_prediction_evaluation"
+    OPERATIONAL_TEAM_STATE = "prediction.operational_team_state"
+    OPERATIONAL_TEAM_STATE_RESULT = "prediction.operational_team_state_result"
+    OPERATIONAL_TEAM_STATE_RATING = "prediction.operational_team_state_rating"
+    TEAM_STATE_ADVANCEMENT = "prediction.team_state_advancement"
+    TEAM_STATE_ADVANCEMENT_RESULT = "prediction.team_state_advancement_result"
+    PREDICTION_REGENERATION = "prediction.prediction_regeneration"
+    SEASON_SIMULATION_REGENERATION = "prediction.season_simulation_regeneration"
 
 
 _TABLE_ORDER: Final = {table: ordinal for ordinal, table in enumerate(PersistenceTable)}
@@ -316,6 +326,42 @@ _KIND_TABLES: Final[dict[AggregateKind, frozenset[PersistenceTable]]] = {
             PersistenceTable.SIMULATION_SUMMARY,
             PersistenceTable.TEAM_SUMMARY,
             PersistenceTable.POSITION_PROBABILITY,
+        }
+    ),
+    AggregateKind.TEAM_STATE_ADVANCEMENTS: frozenset(
+        {
+            PersistenceTable.OPERATIONAL_TEAM_STATE,
+            PersistenceTable.OPERATIONAL_TEAM_STATE_RESULT,
+            PersistenceTable.OPERATIONAL_TEAM_STATE_RATING,
+            PersistenceTable.TEAM_STATE_ADVANCEMENT,
+            PersistenceTable.TEAM_STATE_ADVANCEMENT_RESULT,
+        }
+    ),
+    AggregateKind.PREDICTION_REGENERATIONS: frozenset(
+        {
+            PersistenceTable.UPCOMING_FEATURE,
+            PersistenceTable.UPCOMING_FEATURE_RESULT_SOURCE,
+            PersistenceTable.UPCOMING_FEATURE_VALUE,
+            PersistenceTable.CURRENT_MODEL_PREDICTION,
+            PersistenceTable.PREDICTION_REGENERATION,
+        }
+    ),
+    AggregateKind.SIMULATION_REGENERATIONS: frozenset(
+        {
+            PersistenceTable.SCORELINE_DISTRIBUTION,
+            PersistenceTable.SCORELINE_PROBABILITY,
+            PersistenceTable.DISTRIBUTION_PROVENANCE,
+            PersistenceTable.SIMULATION_INPUT,
+            PersistenceTable.SIMULATION_INPUT_TEAM,
+            PersistenceTable.SIMULATION_INPUT_COMPLETED_FIXTURE,
+            PersistenceTable.SIMULATION_INPUT_BATCH,
+            PersistenceTable.SIMULATION_INPUT_REMAINING_FIXTURE,
+            PersistenceTable.SIMULATION_RUN,
+            PersistenceTable.RESULT_COMPONENT,
+            PersistenceTable.SIMULATION_SUMMARY,
+            PersistenceTable.TEAM_SUMMARY,
+            PersistenceTable.POSITION_PROBABILITY,
+            PersistenceTable.SEASON_SIMULATION_REGENERATION,
         }
     ),
 }

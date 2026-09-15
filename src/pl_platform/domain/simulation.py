@@ -59,15 +59,37 @@ class ScorelineProbability(BaseModel):
     probability: Probability
 
 
-def _identity_digest(payload: dict[str, object]) -> str:
-    serialized = json.dumps(
+def _identity_bytes(payload: dict[str, object]) -> bytes:
+    return json.dumps(
         payload,
         allow_nan=False,
         ensure_ascii=False,
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")
-    return hashlib.sha256(serialized).hexdigest()
+
+
+def _identity_digest(payload: dict[str, object]) -> str:
+    return hashlib.sha256(_identity_bytes(payload)).hexdigest()
+
+
+def scoreline_distribution_identity_bytes(
+    distribution: FixtureScorelineDistribution,
+) -> bytes:
+    """Return the exact identity bytes used by a scoreline distribution."""
+
+    return _identity_bytes(
+        {
+            "fixture_id": str(distribution.fixture_id),
+            "home_team_id": str(distribution.home_team_id),
+            "away_team_id": str(distribution.away_team_id),
+            "probabilities": tuple(
+                probability.model_dump(mode="json")
+                for probability in distribution.probabilities
+            ),
+            "schema_version": distribution.schema_version,
+        }
+    )
 
 
 def deterministic_scoreline_distribution_id(

@@ -14,7 +14,9 @@ Integration
 **Completed Milestone H steps:** 7.1 — deterministic read-only active-model
 resolution and complete registry-to-runtime artifact loading; 7.2 — unlabeled
 current-evidence upcoming features; 7.3 — immutable active-model predictions;
-7.4 — completed-result prediction evaluation
+7.4 — completed-result prediction evaluation; 7.5 — exactly-once operational
+team-state and Elo advancement; 7.6 — affected future-prediction regeneration;
+7.7 — provenance-bound season-simulation regeneration
 
 **Completed Milestone G steps:** 6.1 — current-provider capability and
 provider-neutral domain contracts; 6.2 — fixture/team transformation; 6.3 —
@@ -49,9 +51,9 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 7.5 — update Elo and team state exactly once
-after an official completed result, without double-applying a result or changing
-the immutable feature, prediction or evaluation records.
+**Exact next implementation step:** 7.8 — make the complete post-match workflow
+idempotent across result evaluation, state advancement, prediction regeneration
+and simulation regeneration.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -68,8 +70,8 @@ integration
 - Typed, immutable environment configuration.
 - Secret-backed, explicitly isolated PostgreSQL development/test connection
   settings and a read-only compatibility and privilege checker.
-- URL-free Alembic environment with seven linear transactional revisions and
-  head `f0007_step_7_4`.
+- URL-free Alembic environment with eight linear transactional revisions and
+  head `f0008_step_7_7`.
 - PostgreSQL checked domains, exact-byte SHA-256 verification, application
   UUIDv5 checks, restrictive provenance foreign keys, deferred aggregate
   validation and immutable update/delete guards.
@@ -124,6 +126,15 @@ integration
 - Immutable completed-prediction evaluations matched to official result
   observations, with natural-log loss, multiclass Brier and normalized ranked
   probability scores validated in both typed code and PostgreSQL.
+- Append-only operational team state retaining the full official-result ledger,
+  20 ordered Elo values and immutable pre/post advancement lineage. Results and
+  evaluations can be applied only once and a state predecessor cannot fork.
+- Affected future predictions regenerated from refreshed evidence as new
+  immutable feature/prediction pairs with explicit supersession lineage.
+- Deterministic season-simulation regeneration from independently approved
+  explicit scoreline distributions, preserving canonical input, all six exact
+  NumPy components, complete aggregate summary and prior/replacement run
+  lineage without converting CatBoost probabilities to scorelines.
 - A synthetic credential-free recorded-response corpus covering all seven
   capabilities and replay validation for exact bytes, checksums, request
   identity, compatibility, retrieval time, pagination and quota metadata.
@@ -324,20 +335,20 @@ integration
 
 ## Last verified quality result
 
-The implementation through Step 7.4 passes the complete local suite (final
-counts recorded after the Step 7.4 verification run):
+The implementation through Step 7.7 passes the complete local suite (final
+counts recorded after the Step 7.7 verification run):
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 495 passed, including active-model fail-closed and synthetic-success
-  paths, current feature/prediction/evaluation lifecycle checks, live
+- pytest: 502 passed, including active-model fail-closed and synthetic-success
+  paths, exactly-once state and prediction/simulation regeneration checks, live
   PostgreSQL migration/current-season transaction checks and offline recorded-
   response contract replay.
-- Branch coverage: 90.37%, above the required 90% threshold.
+- Branch coverage: 90.14%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 168 source, test and migration Python files.
+- Strict mypy: passed across all 173 source, test and migration Python files.
 - Dependency consistency: passed.
-- Development and test databases are at exact head `f0007_step_7_4`; the test
-  database completed a `f0007` to `f0006` downgrade and re-upgrade while the
+- Development and test databases are at exact head `f0008_step_7_7`; the test
+  database completed an `f0008` to `f0007` downgrade and re-upgrade while the
   two targets remained explicitly isolated.
 - No external provider was selected or contacted. Only synthetic exact bytes
   were persisted to the isolated test database; no production artifact import,
@@ -482,9 +493,10 @@ development comparisons, not final test performance.
 
 ## Next step boundary
 
-Steps 7.1 through 7.4 are complete and the actual registry still has no active
-model. Step 7.5 may record exactly-once Elo and team-state advancement only from
-an official result whose prediction evaluation is immutable. It must not alter
-prior feature/prediction/evaluation records, use an uncompleted result, access
-the sealed target, infer scorelines, run simulations, select a provider, add
-APIs or change deployment/frontend/CI/CD configuration.
+Steps 7.1 through 7.7 are complete and the actual registry still has no active
+model, so no real current prediction or derived simulation corpus exists. Step
+7.8 may compose the implemented post-match operations into one retry-safe
+workflow with a deterministic workflow identity and resumable no-op behavior.
+It must not weaken exactly-once result application, mutate immutable history,
+derive scorelines from CatBoost, access the sealed target, select a provider,
+add APIs or change deployment/frontend/CI/CD configuration.

@@ -24,6 +24,12 @@ from pl_platform.persistence.prediction import (
     predictions_write_plan,
     upcoming_features_write_plan,
 )
+from pl_platform.persistence.prediction_operations import (
+    PredictionOperationsRepository,
+    prediction_regeneration_write_plan,
+    simulation_regeneration_write_plan,
+    team_state_advancement_write_plan,
+)
 from pl_platform.persistence.provider_cache import (
     ProviderCacheEntry,
     ProviderCacheRepository,
@@ -63,6 +69,7 @@ __all__ = [
     "PersistenceTable",
     "PostgresAggregateRepository",
     "PredictionLifecycleRepository",
+    "PredictionOperationsRepository",
     "ProviderCacheEntry",
     "ProviderCacheRepository",
     "RawManifestEvidence",
@@ -79,7 +86,10 @@ __all__ = [
     "current_results_sync_plan",
     "current_squad_sync_plan",
     "current_standings_sync_plan",
+    "prediction_regeneration_write_plan",
     "predictions_write_plan",
     "provider_cache_write_plan",
+    "simulation_regeneration_write_plan",
+    "team_state_advancement_write_plan",
     "upcoming_features_write_plan",
 ]

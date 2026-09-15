@@ -84,7 +84,7 @@ transactional migration tests.
 Step 5.3 itself introduced no revision or database object. Steps 5.4 through
 5.7 subsequently added the baseline schema; Steps 6.7–6.8 and 7.2–7.4 extend
 the same linear transactional chain with current-season, squad and prediction-
-lifecycle structures. The current head is `f0007_step_7_4`; the allocation and
+lifecycle structures. The current head is `f0008_step_7_7`; the allocation and
 reviewed commands are
 documented in the [migration chain](postgresql-migrations.md).
 

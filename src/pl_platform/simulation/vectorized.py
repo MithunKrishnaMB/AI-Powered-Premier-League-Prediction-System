@@ -94,11 +94,11 @@ class VectorizedSimulationResult:
             value.flags.writeable = False
 
 
-def deterministic_simulation_id(
+def simulation_identity_bytes(
     simulation_input: SeasonSimulationInput,
     simulation_seed: int,
-) -> UUID:
-    """Bind a run to the complete ordered single-season input and algorithm."""
+) -> bytes:
+    """Return exact bytes binding a run to its ordered input and algorithm."""
 
     if (
         isinstance(simulation_seed, bool)
@@ -129,14 +129,24 @@ def deterministic_simulation_id(
         "simulation_seed": simulation_seed,
         "team_ids": tuple(str(team_id) for team_id in simulation_input.team_ids),
     }
-    serialized = json.dumps(
+    return json.dumps(
         payload,
         allow_nan=False,
         ensure_ascii=False,
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")
-    digest = hashlib.sha256(serialized).hexdigest()
+
+
+def deterministic_simulation_id(
+    simulation_input: SeasonSimulationInput,
+    simulation_seed: int,
+) -> UUID:
+    """Bind a run to the complete ordered single-season input and algorithm."""
+
+    digest = hashlib.sha256(
+        simulation_identity_bytes(simulation_input, simulation_seed)
+    ).hexdigest()
     return uuid5(NAMESPACE_URL, f"{_SIMULATION_NAMESPACE}:{digest}")
 
 

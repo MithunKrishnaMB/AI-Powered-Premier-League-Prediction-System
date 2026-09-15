@@ -236,10 +236,20 @@ remained sealed and no model was activated.
   official completed-result evidence, storing deterministic per-fixture natural-
   log loss, multiclass Brier score and normalized ranked probability score.
   The frozen 2025–26 season is explicitly prohibited.
-- **Step 7.5 — next:** Update Elo and team state exactly once.
-- **Step 7.6:** Regenerate affected future predictions.
-- **Step 7.7:** Regenerate season simulations.
-- **Step 7.8:** Make the complete post-match workflow idempotent.
+- **Step 7.5 — complete:** Advances one official simultaneous result batch into
+  an append-only operational result/Elo snapshot. Immutable evaluation lineage,
+  deterministic pre/post identities and database uniqueness prevent a result
+  from being applied twice or a state predecessor from forking.
+- **Step 7.6 — complete:** Regenerates only future predictions whose prior
+  feature state omitted the applied result batch. Replacement features and
+  active-model predictions are new immutable records with explicit supersession
+  lineage; prior records remain unchanged.
+- **Step 7.7 — complete:** Regenerates deterministic 10,000-run season
+  simulations from the advanced completed ledger and independently approved
+  explicit scoreline distributions. Exact NumPy components, summaries and the
+  prior/replacement run relationship are retained without deriving scorelines
+  from CatBoost probabilities.
+- **Step 7.8 — next:** Make the complete post-match workflow idempotent.
 - **Step 7.9:** Add recovery and partial-failure tests.
 
 ## Milestone I — FastAPI — planned

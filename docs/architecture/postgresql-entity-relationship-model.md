@@ -1,7 +1,7 @@
 # PostgreSQL Entity-Relationship Model
 
 **Implementation status:** The baseline model is implemented by Steps 5.4–5.7,
-and revisions through `f0007_step_7_4` extend its linear chain with current-
+and revisions through `f0008_step_7_7` extend its linear chain with current-
 season synchronization and prediction-lifecycle records. Steps 5.8–5.9 provide
 the typed transaction boundary. No production artifact corpus has been imported
 by migrations or repository tests.
@@ -616,8 +616,28 @@ test evaluation or target access.
   trigger recomputes these values from the referenced prediction/result and
   rejects a result not learned after the prediction cutoff.
 
-All five operational tables have immutable update/delete guards and restrictive
-foreign keys. Exact bytes remain authoritative in `lineage.stored_object`.
+### Operational state and regeneration lineage
+
+- `prediction.operational_team_state` stores exact append-only snapshots of the
+  canonical official-result ledger and all 20 ordered Elo ratings; child result
+  rows retain exact observations and child rating rows retain finite values.
+- `prediction.team_state_advancement` links one pre-state to one post-state and
+  owns a single simultaneous batch of immutable evaluation/result pairs.
+  Unique result/evaluation constraints enforce exactly-once application, while
+  one successor per season/pre-state prevents a chain fork.
+- `prediction.prediction_regeneration` links an affected prior prediction to a
+  new feature/prediction pair after the new state is known. Deferred validation
+  proves the replacement includes the applied results while the prior feature
+  omitted at least one.
+- `prediction.season_simulation_regeneration` links the advancement and prior
+  simulation to a deterministic replacement input, 10,000-run result and
+  summary. The replacement completed ledger must include every applied fixture.
+  Scoreline distributions retain separate explicit approval provenance.
+
+All operational lifecycle tables have immutable update/delete guards and
+restrictive foreign keys. Exact JSON and NumPy bytes remain authoritative in
+`lineage.stored_object`; current-state selection is derived from the append-only
+chain rather than a mutable pointer.
 
 ## Separate evaluation metadata
 

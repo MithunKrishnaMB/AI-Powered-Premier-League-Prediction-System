@@ -76,11 +76,11 @@ class TeamSimulationSummary(BaseModel):
         return self
 
 
-def deterministic_summary_id(
+def simulation_summary_identity_bytes(
     simulation_id: UUID,
     season_id: str,
     teams: tuple[TeamSimulationSummary, ...],
-) -> UUID:
+) -> bytes:
     payload = {
         "algorithm_version": SIMULATION_ALGORITHM_VERSION,
         "season_id": season_id,
@@ -88,14 +88,23 @@ def deterministic_summary_id(
         "simulation_id": str(simulation_id),
         "teams": tuple(team.model_dump(mode="json") for team in teams),
     }
-    serialized = json.dumps(
+    return json.dumps(
         payload,
         allow_nan=False,
         ensure_ascii=False,
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")
-    digest = hashlib.sha256(serialized).hexdigest()
+
+
+def deterministic_summary_id(
+    simulation_id: UUID,
+    season_id: str,
+    teams: tuple[TeamSimulationSummary, ...],
+) -> UUID:
+    digest = hashlib.sha256(
+        simulation_summary_identity_bytes(simulation_id, season_id, teams)
+    ).hexdigest()
     return uuid5(NAMESPACE_URL, f"pl-platform:simulation-summary:{digest}")
 
 
