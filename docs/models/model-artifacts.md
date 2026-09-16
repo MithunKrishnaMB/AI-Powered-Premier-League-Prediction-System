@@ -229,6 +229,19 @@ constraints preserve `candidate`, `development_accepted` and terminal
 `final_test_evidence_required`. The currently registered artifact therefore
 remains development-accepted and not active.
 
+## Candidate retraining boundary
+
+Milestone J Step 9.5 does not reuse this version-1 layout to imply a promoted
+artifact. It validates the exact baseline manifest, refits the same selected
+CatBoost policy in memory with target-safe operational examples and returns a
+separate `candidate_unassessed` manifest. No files are added below
+`artifacts/models` or `artifacts/registry` and no registry transition occurs.
+
+The retraining manifest binds the baseline identities and checksums while
+recording its own baseline, operational and combined training checksums. It is
+input to the later comparison boundary, not a `candidate` registry event and
+not an active-model source. See [Candidate Retraining](candidate-retraining.md).
+
 Scoreline distributions live in the separate simulation schema with their own
 producer provenance. The current classifier's `produces_scorelines = false`
 contract prevents it from being referenced as a distribution producer.

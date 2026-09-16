@@ -16,7 +16,8 @@ the same future user-owned commit as the first Milestone J implementation.
 **Completed Milestone J steps:** 9.1 — cache-aware live fixture reads over the
 provider-neutral capability and immutable exact-response cache boundaries; 9.2
 — deterministic kickoff-aware polling policy; 9.3 — exact-cache-aware final
-match reconciliation; 9.4 — fail-closed development/test job commands
+match reconciliation; 9.4 — fail-closed development/test job commands; 9.5 —
+explicit deterministic candidate retraining with no artifact or registry write
 
 **Completed Milestone I steps:** 8.1 — explicit application factory, liveness
 and fail-closed dependency readiness; 8.2 — request IDs, uniform error envelopes
@@ -67,9 +68,10 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Next roadmap boundary:** Step 9.5 scheduling remains explicitly excluded by
-the current no-CI/CD constraint. Step 9.6 candidate retraining is not approved
-by this implementation and requires a separate request.
+**Exact next implementation step:** 9.6 — add an explicit model comparison and
+promotion report, subject to separate approval. The former scheduling item was
+removed and the remaining steps renumbered; no automation, CI/CD, GitHub
+Actions or DevOps substitute is planned.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -162,6 +164,11 @@ completed milestones.
   reconciliation with required UTC time, season and development/test target.
   The default runtime fails closed until provider and database dependencies are
   explicitly injected; production is not an accepted target.
+- Explicit candidate retraining that pairs immutable pre-match operational
+  features with one official result each, rejects the sealed 2025–26 season,
+  refits the fixed deterministic CatBoost depth-6 policy in memory and emits a
+  content-derived `candidate_unassessed` manifest. It writes no artifact,
+  registry event, metric, comparison, prediction or scoreline distribution.
 - Immutable content-derived current fixture revisions, separate provider
   references and response observations, with fail-closed chronology and
   provider-local simultaneous batches.
@@ -397,18 +404,20 @@ completed milestones.
 
 ## Last verified quality result
 
-The implementation through Step 9.4 passes the complete local suite:
+The implementation through Step 9.5 passes the complete local suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 617 passed, including every kickoff/date-only polling band, safe CLI
+- pytest: 630 passed, including every kickoff/date-only polling band, safe CLI
   inputs and fail-closed runtime behavior, fresh/stale/missing result cache
   behavior, unavailable and incompatible capabilities, complete pagination,
-  exact recorded-response reuse, live PostgreSQL result idempotence, the pinned
-  GET-only OpenAPI contract and the complete prior suite.
-- Branch coverage: 91.08%, above the required 90% threshold.
+  exact recorded-response reuse, live PostgreSQL result idempotence, sealed-
+  target rejection, deterministic candidate identity and canonical unassessed
+  manifest validation, the pinned GET-only OpenAPI contract and the complete
+  prior suite.
+- Branch coverage: 91.04%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 212 source, test and migration Python files;
-  Ruff formatting checked 255 Python files.
+- Strict mypy: passed across all 216 source, test and migration Python files;
+  Ruff formatting checked 260 Python files.
 - Dependency consistency: passed.
 - Development and test databases are at exact head `f0009_step_7_9`; the test
   database completed an `f0009` to `f0008` downgrade and re-upgrade while the
@@ -418,7 +427,8 @@ The implementation through Step 9.4 passes the complete local suite:
 - No external provider was selected or contacted. Only synthetic exact bytes
   and normalized current-season integration evidence were exercised against
   the isolated test database; no production artifact import, final-test access
-  or model activation occurred. The actual filesystem registry remains
+  or model activation occurred. Candidate retraining tests used only synthetic
+  operational labels and wrote no artifact. The actual filesystem registry remains
   `development_accepted` with no active model. No changes were staged or
   committed.
 
@@ -541,8 +551,9 @@ The preserved Milestone F closeout result was:
 - Final-test evidence and active model promotion.
 - Production artifact-corpus import through the typed repositories.
 - A selected production current-data provider and its vendor-specific parsers.
-- Scheduled execution and later Milestone J retraining, promotion and
-  monitoring work.
+- Model comparison/promotion reporting and monitoring documentation.
+- Scheduling, automation, CI/CD, GitHub Actions and DevOps configuration are
+  removed from the roadmap rather than pending implementation.
 - Deployment or frontend code.
 
 ## Development evaluation snapshot
@@ -570,6 +581,8 @@ acknowledgement loss are safe. Milestone I now has the complete application,
 health, transport, read-projection, OpenAPI and HTTP-control implementation.
 Steps 9.1 through 9.4 now supply cache-aware provider-neutral fixture reads, a
 pure kickoff policy, complete final-result reconciliation and safe job command
-boundaries without an API or scheduling change. Step 9.5 scheduling remains
-excluded by the current no-CI/CD constraint. No candidate retraining, model
-comparison, promotion or monitoring work has been authorized.
+boundaries without an API or scheduling change. The renumbered Step 9.5 adds
+explicit deterministic candidate retraining while keeping its output
+unassessed, in memory and outside the artifact corpus and registry. The former
+scheduling item has been removed. Step 9.6 comparison/promotion reporting and
+Step 9.7 monitoring documentation remain separately authorized work.

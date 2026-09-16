@@ -71,5 +71,6 @@ import constructs no engine, provider client, model or artifact.
 
 These commands are execution boundaries, not scheduling configuration. No
 GitHub Actions, CI/CD, cron substitute, credential setting, production target,
-prediction, simulation, retraining, registry transition or model monitoring is
-included.
+prediction, simulation, registry transition or model monitoring is included.
+The separately implemented Step 9.5 retraining workflow is not invoked by
+these commands and has no scheduling integration.

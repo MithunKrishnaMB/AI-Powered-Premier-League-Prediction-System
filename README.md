@@ -407,7 +407,10 @@ IDs, error envelopes, pagination, all planned read-only football/model
 projections, the reviewed OpenAPI contract and HTTP controls. Milestone I's
 implementation is complete. Milestone J Steps 9.1 through 9.4 now add
 cache-aware fixture reads, deterministic polling policy, final-result
-reconciliation and fail-closed job commands. Step 9.5 scheduling remains
-excluded under the current no-CI/CD constraint.
+reconciliation and fail-closed job commands. The former scheduling item was
+removed from the roadmap, with no scheduler or
+CI/CD substitute. The renumbered Step 9.5 adds explicit in-memory candidate
+retraining while leaving the result unassessed, unserialized and outside the
+registry.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

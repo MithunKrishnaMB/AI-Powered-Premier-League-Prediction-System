@@ -345,12 +345,18 @@ the existing provider-neutral and exact-cache boundaries.
 - **Step 9.4 — complete:** Added `plp-current-data` fixture-poll and final-match
   commands with mandatory UTC time, season and development/test target. The
   default runtime fails closed because no provider has been selected.
-- **Step 9.5 — excluded under the current user constraint:** Add scheduled
-  GitHub Actions workflows only if the user explicitly reverses the no-CI/CD
-  decision. Do not implement substitute CI/CD configuration implicitly.
-- **Step 9.6:** Build the candidate retraining workflow.
-- **Step 9.7:** Add an explicit model comparison and promotion report.
-- **Step 9.8:** Add monitoring and operational documentation.
+- **Step 9.5 — complete:** Added an explicit in-memory candidate retraining
+  workflow. It pairs immutable pre-match feature rows with official results,
+  excludes the sealed season, refits the fixed CatBoost depth-6 policy and
+  emits a deterministic `candidate_unassessed` manifest without serializing an
+  artifact or mutating the registry.
+- **Step 9.6:** Add an explicit model comparison and promotion report.
+- **Step 9.7:** Add monitoring and operational documentation.
+
+The former scheduled GitHub Actions item was removed from this roadmap by
+explicit user direction. It was not implemented and the remaining items were
+renumbered. No substitute scheduler, automation, CI/CD or DevOps configuration
+is part of Milestone J.
 
 **Step 9.1 verification:** Python 3.14.7 completed 579 tests with 90.82%
 branch coverage. Ruff lint/format passed over 244 Python files, strict mypy
@@ -368,6 +374,14 @@ exact-byte contract and live PostgreSQL integration checks cover polling bands,
 date-only semantics, lazy imports, safe command parsing, cache hit/stale/miss
 behavior, capability failures, pagination, idempotence and
 prior-fixture-backed result persistence.
+
+**Step 9.5 verification:** Python 3.14.7 completed 630 tests with 91.04% branch
+coverage. Ruff lint/format checked 260 Python files, strict mypy checked 216
+source/test/migration files and dependency consistency passed. Focused unit and
+canonical-contract checks cover baseline verification, exact operational
+feature/result pairing, sealed-target and chronology rejection, deterministic
+candidate identity and the explicit absence of artifact, metric, promotion and
+registry behavior.
 
 ## Milestone K — Backend Release — planned
 

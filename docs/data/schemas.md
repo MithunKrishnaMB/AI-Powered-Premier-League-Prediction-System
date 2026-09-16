@@ -312,6 +312,16 @@ incomplete layer. The actual registry ends at `development_accepted` and
 therefore returns `no_active_model`; synthetic in-memory active snapshots test
 the successful path without changing persisted registry bytes.
 
+`CandidateRetrainingManifest` schema version 1 is an ephemeral canonical
+contract, not a model artifact or registry entry. Its UUIDv5 identity and
+checksum bind the verified baseline artifact/training identities, exact
+baseline, operational and combined training checksums, fixed predictor and
+CatBoost policy, excluded 2025–26 season, ordered operational
+feature/result/cache lineage and latest result-retrieval knowledge cutoff. Its
+only state is `candidate_unassessed`; metric, comparison, promotion, activation
+and scoreline fields are not representable. Step 9.5 writes no new database or
+filesystem schema.
+
 ## Current prediction lifecycle
 
 `UpcomingFeatureRow` schema version 1 is a target-free current-season wrapper

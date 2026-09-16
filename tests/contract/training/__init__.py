@@ -1,0 +1,1 @@
+"""Candidate-training contract tests."""

@@ -1,5 +1,7 @@
 """Historical and current football-data ingestion boundaries."""
 
+from typing import TYPE_CHECKING
+
 from pl_platform.ingestion.current import (
     CAPABILITY_ORDER,
     CAPABILITY_REQUIREMENTS,
@@ -69,19 +71,9 @@ from pl_platform.ingestion.download import (
     download_manifest_entry,
     verify_existing_file,
 )
-from pl_platform.ingestion.final_results import (
-    CacheAwareFinalResultReconciler,
-    FinalResultReconciliationError,
-    FinalResultReconciliationResult,
-)
 from pl_platform.ingestion.football_data import (
     FootballDataMatch,
     parse_football_data_csv,
-)
-from pl_platform.ingestion.live_fixtures import (
-    CacheAwareLiveFixtureReader,
-    LiveFixtureReadError,
-    LiveFixtureReadResult,
 )
 from pl_platform.ingestion.manifest import (
     HistoricalDataManifest,
@@ -89,6 +81,18 @@ from pl_platform.ingestion.manifest import (
     Source,
     load_manifest,
 )
+
+if TYPE_CHECKING:
+    from pl_platform.ingestion.final_results import (
+        CacheAwareFinalResultReconciler,
+        FinalResultReconciliationError,
+        FinalResultReconciliationResult,
+    )
+    from pl_platform.ingestion.live_fixtures import (
+        CacheAwareLiveFixtureReader,
+        LiveFixtureReadError,
+        LiveFixtureReadResult,
+    )
 
 __all__ = [
     "CAPABILITY_ORDER",
@@ -165,3 +169,39 @@ __all__ = [
     "transform_current_teams",
     "verify_existing_file",
 ]
+
+
+def __getattr__(name: str) -> object:
+    if name in {
+        "CacheAwareFinalResultReconciler",
+        "FinalResultReconciliationError",
+        "FinalResultReconciliationResult",
+    }:
+        from pl_platform.ingestion.final_results import (
+            CacheAwareFinalResultReconciler,
+            FinalResultReconciliationError,
+            FinalResultReconciliationResult,
+        )
+
+        return {
+            "CacheAwareFinalResultReconciler": CacheAwareFinalResultReconciler,
+            "FinalResultReconciliationError": FinalResultReconciliationError,
+            "FinalResultReconciliationResult": FinalResultReconciliationResult,
+        }[name]
+    if name in {
+        "CacheAwareLiveFixtureReader",
+        "LiveFixtureReadError",
+        "LiveFixtureReadResult",
+    }:
+        from pl_platform.ingestion.live_fixtures import (
+            CacheAwareLiveFixtureReader,
+            LiveFixtureReadError,
+            LiveFixtureReadResult,
+        )
+
+        return {
+            "CacheAwareLiveFixtureReader": CacheAwareLiveFixtureReader,
+            "LiveFixtureReadError": LiveFixtureReadError,
+            "LiveFixtureReadResult": LiveFixtureReadResult,
+        }[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

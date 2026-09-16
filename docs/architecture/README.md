@@ -38,6 +38,7 @@ speculative future complexity.
 - [FastAPI OpenAPI and HTTP controls](fastapi-openapi-and-http-controls.md)
 - [Point-in-time feature processing](../features/point-in-time.md)
 - [Probabilistic development evaluation](../models/probabilistic-evaluation.md)
+- [Candidate retraining](../models/candidate-retraining.md)
 - [Simulation domain, scorelines and table rules](../simulation/domain-and-table.md)
 - [Implementation roadmap](../roadmap.md)
 - [Project status](../project-status.md)

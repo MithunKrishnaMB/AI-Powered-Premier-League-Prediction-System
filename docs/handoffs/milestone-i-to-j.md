@@ -115,8 +115,10 @@ provider, scheduler, GitHub Actions, CI/CD substitute, credentials, prediction,
 simulation, retraining, registry transition, sealed-target evidence, production
 artifact, frontend or deployment configuration was introduced.
 
-Step 9.5 scheduling remains excluded under the current no-CI/CD constraint.
-Step 9.6 candidate retraining requires separate approval.
+The former Step 9.5 scheduling item has been removed from the roadmap and was
+not implemented. No scheduler, CI/CD, GitHub Actions or DevOps substitute was
+added. Candidate retraining became Step 9.5; comparison/promotion reporting and
+monitoring documentation were renumbered to Steps 9.6 and 9.7.
 
 The complete Python 3.14.7 suite now passes 617 tests with 91.08% branch
 coverage. Ruff lint/format checks 255 Python files, strict mypy checks 212
@@ -124,3 +126,31 @@ source/test/migration files, dependency consistency and whitespace checks pass,
 and the live PostgreSQL suite verifies cache-backed final reconciliation and
 idempotence against the isolated test target. The OpenAPI contract remains
 sixteen GET-only operations. No changes were staged or committed.
+
+## Step 9.5 candidate-retraining boundary
+
+Step 9.5 is an explicitly invoked in-memory workflow, not an automated job. It
+derives a baseline from an exact verified artifact manifest, requires only the
+accepted 2015–16 through 2024–25 development examples and pairs each immutable
+operational pre-match feature with exactly one official post-kickoff result.
+The sealed 2025–26 target is rejected and remains unread.
+
+The workflow refits the fixed deterministic CatBoost depth-6 policy and returns
+the classifier with a UUIDv5-identified, checksummed
+`candidate_unassessed` manifest. The manifest binds baseline lineage, predictor
+schema, exact baseline/operational/combined training checksums, operational
+feature/result/cache identities and the result-retrieval knowledge cutoff.
+
+No candidate bytes are written to the production artifact corpus. No registry
+entry or event is created or changed, no model is compared or promoted and no
+prediction, scoreline distribution, simulation or final-test metric is
+generated. The actual registry remains `development_accepted`, not active.
+Step 9.6 may add a comparison and promotion report only after separate approval.
+
+The complete Python 3.14.7 suite through Step 9.5 passes 630 tests with 91.04%
+branch coverage. Ruff lint/format checks 260 Python files, strict mypy checks
+216 source/test/migration files and dependency and whitespace checks pass.
+The new unit and canonical-contract tests cover exact baseline verification,
+one-to-one operational pairing, sealed-target rejection, chronology, schema and
+identity failures, deterministic fitting inputs and the absence of promotion or
+registry fields. No files were staged or committed.

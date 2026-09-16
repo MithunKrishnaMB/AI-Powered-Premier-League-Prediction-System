@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 9.4.
+These decisions describe implemented behavior through Step 9.5.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -1357,8 +1357,8 @@ dependency during import.
 
 **Consequences:** Policy output is deterministic and testable without wall
 clock, network or database state. Complete fixture collections are persisted
-before their next-poll plan is returned. Scheduling remains Step 9.5 and is
-explicitly excluded under the current no-CI/CD constraint.
+before their next-poll plan is returned. The later scheduling roadmap item was
+removed by explicit user direction; no scheduler or CI/CD substitute exists.
 
 ## ADR-053: Reconcile final results only after complete exact-cache retrieval
 
@@ -1403,3 +1403,41 @@ effects or an implicit production path. FastAPI request IDs, error envelopes,
 pagination, OpenAPI, CORS, security headers and rate limits remain unchanged.
 No scheduler, GitHub Actions, CI/CD substitute, retraining, promotion or
 monitoring is added.
+
+## ADR-055: Refit an unassessed candidate from paired operational evidence
+
+**Status:** Accepted
+
+**Decision:** Remove the scheduled GitHub Actions item from Milestone J and
+renumber the remaining work. Do not implement a scheduler, automation, CI/CD,
+GitHub Actions or DevOps substitute.
+
+Implement candidate retraining as an explicitly invoked, in-memory workflow.
+Derive its baseline only from an exact canonical model-artifact manifest whose
+checksum, development seasons, target-free excluded-season declaration,
+predictor schema and fixed CatBoost depth-6 configuration validate. Accept
+baseline training rows only from 2015–16 through 2024–25.
+
+Convert operational evidence into training examples only by pairing one
+immutable pre-match feature row with one official result for the same canonical
+fixture, competition, season, teams and kickoff. Preserve the predictor set
+unchanged and attach score/outcome only as a separate training label. Require
+result knowledge no earlier than kickoff, canonical one-to-one identity sets,
+no baseline fixture overlap and operational seasons strictly after the
+development window. Reject 2025–26 targets at both baseline and operational
+boundaries.
+
+Refit the selected 200-tree, depth-6, identity-calibrated CatBoost policy using
+the existing deterministic CPU/seed/thread contract. Return the fitted model in
+memory with a content-derived `candidate_unassessed` manifest. Bind the
+baseline artifact and training lineage, predictor schema, fixed parameters,
+baseline/operational/combined training checksums, every operational
+feature/result/cache identity and the maximum result-retrieval knowledge time.
+
+**Consequences:** Retraining can be reproduced from explicit reviewed inputs
+without inspecting sealed targets or creating wall-clock, provider, database,
+artifact or registry side effects. The manifest includes no metric, comparison,
+promotion, activation, scoreline or registry-entry claim. The actual registry
+remains `development_accepted` with no active model. Model comparison and a
+promotion report are the renumbered Step 9.6 and require separate approval;
+monitoring documentation is Step 9.7.
