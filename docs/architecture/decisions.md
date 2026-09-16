@@ -1224,4 +1224,50 @@ repository. Database, schema and missing-resource failures use the existing
 sanitized envelopes; collection order and pagination are deterministic. The
 actual no-active registry remains unchanged and no provider, artifact corpus,
 test target, final-test evidence, prediction, scoreline distribution,
-simulation or metric is created. OpenAPI publication remains Step 8.8.
+simulation or metric is created. OpenAPI publication was deferred to Step 8.8
+and is now governed by ADR-048.
+
+## ADR-048: Publish a pinned GET-only OpenAPI contract
+
+**Status:** Accepted
+
+**Decision:** Publish OpenAPI 3.1 at `/openapi.json` and Swagger UI at `/docs`,
+while leaving ReDoc disabled. Assign every health and version-one resource
+operation an explicit stable operation ID. Document strict public response
+schemas and the shared sanitized 400, 403, 404, 422, 429, 500 and 503 envelope;
+retain the readiness-specific 503 health schema.
+
+Pin the exact path-to-operation mapping in contract tests, require operation-ID
+uniqueness, verify representative component schemas and reject any POST, PUT,
+PATCH or DELETE operation.
+
+**Consequences:** Clients can inspect and generate against the implemented API
+without creating a second handwritten contract. Publication adds no endpoint
+behavior, ASGI server, provider call, workflow command or persistence write.
+
+## ADR-049: Enforce browser and HTTP controls inside the request-ID boundary
+
+**Status:** Accepted
+
+**Decision:** Validate CORS origins as an exact default-empty allowlist and
+reject wildcard, credential-bearing, path/query/fragment and duplicate origins.
+Permit only GET/OPTIONS preflights and the reviewed request headers. Keep
+credentials opt-in and never reflect a denied origin.
+
+Attach no-store, MIME-sniffing, framing, referrer, permissions, cross-domain
+policy and content-security headers to every response. Give Swagger UI a
+separate minimal CDN-aware content policy. Emit HSTS only for the production
+environment.
+
+Apply a factory-scoped, lock-protected sliding-window limiter using the direct
+peer rather than untrusted forwarded headers. Exempt liveness and preflight;
+bound client state with least-recently-used eviction and return stable rate
+metadata plus the common 429 envelope. Treat this as a single-process guard,
+not a distributed deployment quota.
+
+**Consequences:** CORS and rate failures preserve request IDs, sanitized bodies
+and security headers. Import and factory construction still perform no external
+I/O. Configuration contains no credentials and Step 8.9 adds no provider,
+deployment, automation, frontend or registry behavior. This completes the
+Milestone I implementation boundary; its repository closeout commit remains a
+user-owned action.

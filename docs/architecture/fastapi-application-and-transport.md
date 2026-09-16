@@ -25,9 +25,10 @@ when `GET /health/ready` is requested. The factory accepts an injected typed
 readiness service so tests can exercise the complete HTTP boundary without
 using process-global overrides.
 
-OpenAPI and interactive documentation routes remain disabled. Their reviewed
-contract and tests belong to Step 8.8. No ASGI server or deployment entry point
-is introduced by these steps.
+Steps 8.1 and 8.2 initially kept OpenAPI and interactive documentation routes
+disabled. Step 8.8 now publishes the reviewed contract at `/openapi.json` and
+Swagger UI at `/docs`; ReDoc remains disabled. No ASGI server or deployment
+entry point is introduced.
 
 ## Health endpoints
 

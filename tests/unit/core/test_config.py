@@ -28,6 +28,12 @@ def test_settings_use_safe_defaults(
     assert settings.log_level == "INFO"
     assert settings.artifact_root == Path("artifacts")
     assert settings.registry_root == Path("artifacts/registry")
+    assert settings.cors_allowed_origins == ()
+    assert settings.cors_allow_credentials is False
+    assert settings.rate_limit_enabled is True
+    assert settings.rate_limit_requests == 120
+    assert settings.rate_limit_window_seconds == 60
+    assert settings.rate_limit_max_clients == 10_000
 
 
 def test_settings_read_prefixed_environment(
@@ -48,6 +54,47 @@ def test_settings_read_prefixed_environment(
     assert settings.log_level == "WARNING"
     assert settings.artifact_root == Path("runtime-artifacts")
     assert settings.registry_root == Path("runtime-registry")
+
+
+def test_browser_transport_settings_are_typed_and_normalized(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv(
+        "PLP_CORS_ALLOWED_ORIGINS",
+        '["https://APP.example/", "http://localhost:3000"]',
+    )
+    monkeypatch.setenv("PLP_CORS_ALLOW_CREDENTIALS", "true")
+    monkeypatch.setenv("PLP_RATE_LIMIT_REQUESTS", "25")
+    monkeypatch.setenv("PLP_RATE_LIMIT_WINDOW_SECONDS", "30")
+
+    settings = Settings()
+
+    assert settings.cors_allowed_origins == (
+        "https://app.example",
+        "http://localhost:3000",
+    )
+    assert settings.cors_allow_credentials is True
+    assert settings.rate_limit_requests == 25
+    assert settings.rate_limit_window_seconds == 30
+
+
+@pytest.mark.parametrize(
+    "origins",
+    (
+        ("*",),
+        ("https://user@example.com",),
+        ("https://example.com/path",),
+        ("https://example.com?query=yes",),
+        ("https://example.com", "https://EXAMPLE.com/"),
+    ),
+)
+def test_cors_origins_reject_wildcards_credentials_paths_and_duplicates(
+    origins: tuple[str, ...],
+) -> None:
+    with pytest.raises(ValidationError):
+        Settings(cors_allowed_origins=origins)
 
 
 def test_settings_reject_invalid_log_level(monkeypatch: pytest.MonkeyPatch) -> None:

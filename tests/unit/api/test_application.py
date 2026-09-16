@@ -68,6 +68,7 @@ import pl_platform.api.application
 
 
 def test_factory_registers_routes_without_running_probes_or_queries() -> None:
+    settings = Settings()
     service = ReadinessService(
         probes=(
             StaticProbe(
@@ -76,15 +77,17 @@ def test_factory_registers_routes_without_running_probes_or_queries() -> None:
             ),
         )
     )
-    app = create_app(settings=Settings(), readiness=service)
+    app = create_app(settings=settings, readiness=service)
     with TestClient(app) as client:
         live = client.get("/health/live", headers={"X-Request-ID": REQUEST_ID})
         root = client.get("/", headers={"X-Request-ID": REQUEST_ID})
         docs = client.get("/docs", headers={"X-Request-ID": REQUEST_ID})
         openapi = client.get("/openapi.json", headers={"X-Request-ID": REQUEST_ID})
 
-    assert live.status_code == 200
-    assert root.status_code == docs.status_code == openapi.status_code == 404
+    assert live.status_code == docs.status_code == openapi.status_code == 200
+    assert root.status_code == 404
+    assert docs.headers["X-Frame-Options"] == "DENY"
+    assert openapi.json()["info"]["title"] == settings.app_name
 
 
 def test_health_responses_use_the_declared_factory_contract() -> None:
@@ -94,7 +97,8 @@ def test_health_responses_use_the_declared_factory_contract() -> None:
         ready = client.get("/health/ready", headers={"X-Request-ID": REQUEST_ID})
 
     assert app.title == "Test API"
-    assert app.openapi_url is None
+    assert app.openapi_url == "/openapi.json"
+    assert app.docs_url == "/docs"
     assert live.status_code == 200
     assert live.json() == {"schema_version": 1, "status": "alive"}
     assert ready.status_code == 200

@@ -9,13 +9,15 @@ System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
 Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
 Integration; H — Prediction Lifecycle
 
-**Current milestone:** I — FastAPI (in progress)
+**Current milestone:** I — FastAPI (implementation complete; closeout commit
+pending)
 
 **Completed Milestone I steps:** 8.1 — explicit application factory, liveness
 and fail-closed dependency readiness; 8.2 — request IDs, uniform error envelopes
 and reusable offset-pagination contracts; 8.3 — teams and seasons; 8.4 —
 fixtures and standings; 8.5 — predictions; 8.6 — simulations and predicted
-table; 8.7 — model metrics and performance
+table; 8.7 — model metrics and performance; 8.8 — OpenAPI and contract tests;
+8.9 — CORS, security headers and rate controls
 
 **Completed Milestone H steps:** 7.1 — deterministic read-only active-model
 resolution and complete registry-to-runtime artifact loading; 7.2 — unlabeled
@@ -59,8 +61,8 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 8.8 — enable reviewed OpenAPI publication
-and add explicit API contract snapshots, subject to explicit user approval.
+**Exact next implementation step:** 9.1 — implement cache-aware live fixture
+reads, subject to explicit user approval and the existing provider boundary.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -89,6 +91,11 @@ post-match workflow journal
 - Read-only API transactions that require exact migration head, dispose every
   lazy engine and fail closed for production, unavailable or incompatible
   databases without exposing connection or exception details.
+- Published OpenAPI 3.1 and Swagger UI with fixed operation IDs, shared error
+  schemas and contract tests prohibiting mutating operations.
+- Default-deny exact-origin CORS, deterministic security headers and a bounded
+  direct-peer sliding-window rate limiter integrated with request IDs and error
+  envelopes.
 - Typed, immutable environment configuration.
 - Secret-backed, explicitly isolated PostgreSQL development/test connection
   settings and a read-only compatibility and privilege checker.
@@ -361,15 +368,15 @@ post-match workflow journal
 
 ## Last verified quality result
 
-The implementation through Step 8.7 passes the complete local suite:
+The implementation through Step 8.9 passes the complete local suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 552 passed, including all read-only resource routes and query
-  mappings, isolated live PostgreSQL projection reads, side-effect-free factory
-  construction, health/transport contracts and the complete prior suite.
-- Branch coverage: 90.58%, above the required 90% threshold.
+- pytest: 565 passed, including the pinned GET-only OpenAPI contract,
+  exact-origin CORS, security headers, rate-limit exhaustion/recovery, all
+  read-only projections and the complete prior suite.
+- Branch coverage: 90.69%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 196 source, test and migration Python files.
+- Strict mypy: passed across all 199 source, test and migration Python files.
 - Dependency consistency: passed.
 - Development and test databases are at exact head `f0009_step_7_9`; the test
   database completed an `f0009` to `f0008` downgrade and re-upgrade while the
@@ -501,8 +508,7 @@ The preserved Milestone F closeout result was:
 - Final-test evidence and active model promotion.
 - Production artifact-corpus import through the typed repositories.
 - A selected production current-data provider and its vendor-specific parsers.
-- OpenAPI publication and its explicit contract snapshots.
-- CORS, security headers and rate controls.
+- Cache-aware live fixture API reads and later Milestone J automation.
 - Deployment or frontend code.
 
 ## Development evaluation snapshot
@@ -526,7 +532,7 @@ has no active model, so no real current prediction or derived simulation corpus
 exists. The post-match workflow now binds every immutable child under one
 deterministic manifest and derives progress from a hash-linked event prefix.
 Retries resume only the missing suffix; committed child writes and checkpoint
-acknowledgement loss are safe. Milestone I now has the application, health and
-transport boundaries plus the Step 8.3 through 8.7 read-only domain
-projections. The exact next boundary is Step 8.8, reviewed OpenAPI publication
-and explicit contract snapshots for the existing endpoints.
+acknowledgement loss are safe. Milestone I now has the complete application,
+health, transport, read-projection, OpenAPI and HTTP-control implementation.
+The exact next implementation boundary is Step 9.1, cache-aware live fixture
+reads under the existing provider-neutral and exact-cache contracts.

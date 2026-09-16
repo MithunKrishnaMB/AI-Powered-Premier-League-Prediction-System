@@ -72,6 +72,13 @@ class Settings(BaseSettings):
     database_max_overflow: int = Field(default=5, ge=0, le=20)
     artifact_root: Path = Path("artifacts")
     registry_root: Path = Path("artifacts/registry")
+    cors_allowed_origins: tuple[str, ...] = ()
+    cors_allow_credentials: bool = False
+    cors_max_age_seconds: int = Field(default=600, ge=0, le=86_400)
+    rate_limit_enabled: bool = True
+    rate_limit_requests: int = Field(default=120, ge=1, le=10_000)
+    rate_limit_window_seconds: int = Field(default=60, ge=1, le=3_600)
+    rate_limit_max_clients: int = Field(default=10_000, ge=1, le=100_000)
 
     @field_validator("database_url", "test_database_url", mode="before")
     @classmethod
@@ -82,6 +89,37 @@ class Settings(BaseSettings):
         if value is None:
             return None
         return _validate_database_url(value)
+
+    @field_validator("cors_allowed_origins")
+    @classmethod
+    def cors_origins_must_be_exact_http_origins(
+        cls,
+        value: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        normalized: list[str] = []
+        for origin in value:
+            parsed = urlsplit(origin)
+            if (
+                parsed.scheme not in {"http", "https"}
+                or parsed.hostname is None
+                or parsed.username is not None
+                or parsed.password is not None
+                or parsed.path not in {"", "/"}
+                or parsed.query
+                or parsed.fragment
+            ):
+                msg = "CORS origins must be exact HTTP or HTTPS origins"
+                raise ValueError(msg)
+            host = parsed.hostname.casefold()
+            if ":" in host:
+                host = f"[{host}]"
+            port = f":{parsed.port}" if parsed.port is not None else ""
+            canonical = f"{parsed.scheme}://{host}{port}"
+            if canonical in normalized:
+                msg = "CORS origins must be unique"
+                raise ValueError(msg)
+            normalized.append(canonical)
+        return tuple(normalized)
 
     @model_validator(mode="after")
     def database_targets_must_be_distinct(self) -> Self:

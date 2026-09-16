@@ -69,7 +69,10 @@ also implemented. Versioned read-only endpoints now expose persisted teams,
 seasons, fixtures, latest standings, immutable predictions, complete simulation
 summaries and predicted tables and development-only model performance. They
 open only request-scoped read-only PostgreSQL transactions and never generate a
-prediction, simulation or metric.
+prediction, simulation or metric. The reviewed OpenAPI 3.1 document and Swagger
+UI are published with exact GET-only contract tests. Exact-origin CORS,
+deterministic security headers and bounded process-local rate controls protect
+the HTTP boundary.
 Steps 7.2 through 7.4 add deterministic unlabeled upcoming-fixture features,
 immutable active-model predictions and immutable per-fixture evaluation against
 official completed results. Exact current evidence, state replay, predictor
@@ -346,8 +349,10 @@ implementation. Start with:
 - [Milestone H to I handoff](docs/handoffs/milestone-h-to-i.md)
 - [FastAPI application and transport boundary](docs/architecture/fastapi-application-and-transport.md)
 - [FastAPI read projections](docs/architecture/fastapi-read-projections.md)
+- [FastAPI OpenAPI and HTTP controls](docs/architecture/fastapi-openapi-and-http-controls.md)
 - [Step 8.2 to 8.3 handoff](docs/handoffs/step-8-2-to-8-3.md)
 - [Step 8.7 to 8.8 handoff](docs/handoffs/step-8-7-to-8-8.md)
+- [Milestone I to J handoff](docs/handoffs/milestone-i-to-j.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -385,9 +390,9 @@ provenance-bound season-simulation regeneration. A canonical post-match
 manifest and hash-linked append-only checkpoints make the complete workflow
 retry-safe and recoverable across partial failures. The actual registry
 correctly fails closed because no active model exists.
-Steps 8.1 through 8.7 add the explicit FastAPI factory, health checks, request
-IDs, error envelopes, pagination and all planned read-only football/model
-projections. Step 8.8 is next: reviewed OpenAPI publication and explicit API
-contract snapshots.
+Steps 8.1 through 8.9 add the explicit FastAPI factory, health checks, request
+IDs, error envelopes, pagination, all planned read-only football/model
+projections, the reviewed OpenAPI contract and HTTP controls. Milestone I's
+implementation is complete; Step 9.1, cache-aware live fixture reads, is next.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

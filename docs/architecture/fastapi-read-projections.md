@@ -19,8 +19,9 @@ All routes are under `/api/v1`:
   `GET /simulations/{simulation_id}/predicted-table`; and
 - `GET /models` and `GET /models/{model_id}/performance`.
 
-OpenAPI publication remains disabled until Step 8.8. These paths are contract
-tested directly without enabling `/openapi.json` or interactive documentation.
+Step 8.8 now publishes these paths at `/openapi.json`, serves Swagger UI at
+`/docs` and pins their operation and schema contract without adding a mutating
+operation.
 
 ## Query boundary
 
@@ -80,5 +81,6 @@ Historical raw-manifest verification remains mandatory for repository writes;
 these routes introduce no write path and do not weaken that gate. No provider
 is selected or contacted. The production artifact corpus is not imported or
 modified. No credential, database URL, exception detail or filesystem path is
-returned. CORS, security headers, rate controls, deployment, automation,
-frontend work and CI/CD remain outside this boundary.
+returned. Step 8.9 adds the separately documented CORS, security-header and
+rate-control boundary. Deployment, automation, frontend work and CI/CD remain
+outside this boundary.

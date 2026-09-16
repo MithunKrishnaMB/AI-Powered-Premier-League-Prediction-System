@@ -36,31 +36,48 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
 
     router = APIRouter(prefix="/api/v1")
 
-    @router.get("/teams", response_model=PaginatedResponse[Team], tags=["teams"])
+    @router.get(
+        "/teams",
+        operation_id="list_teams",
+        response_model=PaginatedResponse[Team],
+        tags=["teams"],
+    )
     def list_teams(
         pagination: Page,
         season_id: OptionalSeasonId = None,
     ) -> PaginatedResponse[Team]:
         return service.list_teams(season_id=season_id, pagination=pagination)
 
-    @router.get("/teams/{team_id}", response_model=Team, tags=["teams"])
+    @router.get(
+        "/teams/{team_id}",
+        operation_id="get_team",
+        response_model=Team,
+        tags=["teams"],
+    )
     def get_team(team_id: UUID) -> Team:
         return service.get_team(team_id)
 
     @router.get(
         "/seasons",
+        operation_id="list_seasons",
         response_model=PaginatedResponse[Season],
         tags=["seasons"],
     )
     def list_seasons(pagination: Page) -> PaginatedResponse[Season]:
         return service.list_seasons(pagination=pagination)
 
-    @router.get("/seasons/{season_id}", response_model=SeasonDetail, tags=["seasons"])
+    @router.get(
+        "/seasons/{season_id}",
+        operation_id="get_season",
+        response_model=SeasonDetail,
+        tags=["seasons"],
+    )
     def get_season(season_id: SeasonId) -> SeasonDetail:
         return service.get_season(season_id)
 
     @router.get(
         "/fixtures",
+        operation_id="list_fixtures",
         response_model=PaginatedResponse[Fixture],
         tags=["fixtures"],
     )
@@ -77,12 +94,18 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
             pagination=pagination,
         )
 
-    @router.get("/fixtures/{fixture_id}", response_model=Fixture, tags=["fixtures"])
+    @router.get(
+        "/fixtures/{fixture_id}",
+        operation_id="get_fixture",
+        response_model=Fixture,
+        tags=["fixtures"],
+    )
     def get_fixture(fixture_id: UUID) -> Fixture:
         return service.get_fixture(fixture_id)
 
     @router.get(
         "/seasons/{season_id}/standings",
+        operation_id="get_standings",
         response_model=Standings,
         tags=["standings"],
     )
@@ -91,6 +114,7 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
 
     @router.get(
         "/predictions",
+        operation_id="list_predictions",
         response_model=PaginatedResponse[Prediction],
         tags=["predictions"],
     )
@@ -107,6 +131,7 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
 
     @router.get(
         "/predictions/{prediction_id}",
+        operation_id="get_prediction",
         response_model=Prediction,
         tags=["predictions"],
     )
@@ -115,6 +140,7 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
 
     @router.get(
         "/simulations",
+        operation_id="list_simulations",
         response_model=PaginatedResponse[Simulation],
         tags=["simulations"],
     )
@@ -126,6 +152,7 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
 
     @router.get(
         "/simulations/{simulation_id}",
+        operation_id="get_simulation",
         response_model=Simulation,
         tags=["simulations"],
     )
@@ -134,6 +161,7 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
 
     @router.get(
         "/simulations/{simulation_id}/predicted-table",
+        operation_id="get_predicted_table",
         response_model=PredictedTable,
         tags=["simulations"],
     )
@@ -142,6 +170,7 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
 
     @router.get(
         "/models",
+        operation_id="list_model_performance",
         response_model=PaginatedResponse[ModelPerformance],
         tags=["models"],
     )
@@ -150,6 +179,7 @@ def create_resource_router(service: ResourceQueryService) -> APIRouter:
 
     @router.get(
         "/models/{model_id}/performance",
+        operation_id="get_model_performance",
         response_model=ModelPerformanceDetail,
         tags=["models"],
     )

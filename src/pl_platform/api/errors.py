@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Awaitable, Callable, Sequence
 from contextvars import ContextVar, Token
-from typing import Final, Literal
+from typing import Any, Final, Literal, Protocol
 from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response, status
@@ -52,6 +52,48 @@ class ErrorEnvelope(ErrorModel):
 
     schema_version: Literal[1] = 1
     error: ErrorBody
+
+
+OPENAPI_ERROR_RESPONSES: Final[dict[int | str, dict[str, Any]]] = {
+    status.HTTP_400_BAD_REQUEST: {
+        "model": ErrorEnvelope,
+        "description": "Malformed request or rejected browser transport metadata.",
+    },
+    status.HTTP_403_FORBIDDEN: {
+        "model": ErrorEnvelope,
+        "description": "The request origin is not allowed.",
+    },
+    status.HTTP_404_NOT_FOUND: {
+        "model": ErrorEnvelope,
+        "description": "The requested resource does not exist.",
+    },
+    status.HTTP_422_UNPROCESSABLE_CONTENT: {
+        "model": ErrorEnvelope,
+        "description": "Request validation failed.",
+    },
+    status.HTTP_429_TOO_MANY_REQUESTS: {
+        "model": ErrorEnvelope,
+        "description": "The process-local request limit was exceeded.",
+    },
+    status.HTTP_500_INTERNAL_SERVER_ERROR: {
+        "model": ErrorEnvelope,
+        "description": "An unexpected internal failure occurred.",
+    },
+    status.HTTP_503_SERVICE_UNAVAILABLE: {
+        "model": ErrorEnvelope,
+        "description": "A required runtime dependency is unavailable.",
+    },
+}
+
+
+class RequestControls(Protocol):
+    """Factory-scoped HTTP controls executed inside the request-ID boundary."""
+
+    def before_request(self, request: Request, request_id: str) -> Response | None:
+        """Return an early response or allow route dispatch."""
+
+    def after_response(self, request: Request, response: Response) -> None:
+        """Apply transport metadata to every response."""
 
 
 class ApiError(Exception):
@@ -151,7 +193,11 @@ def _validation_details(error: RequestValidationError) -> tuple[ErrorDetail, ...
     return tuple(details)
 
 
-def install_error_boundary(app: FastAPI) -> None:
+def install_error_boundary(
+    app: FastAPI,
+    *,
+    controls: RequestControls | None = None,
+) -> None:
     """Install request-ID middleware and uniform exception handlers."""
 
     @app.exception_handler(ApiError)
@@ -209,7 +255,16 @@ def install_error_boundary(app: FastAPI) -> None:
                 )
             else:
                 try:
-                    response = await call_next(request)
+                    controlled = (
+                        controls.before_request(request, request_id)
+                        if controls is not None
+                        else None
+                    )
+                    response = (
+                        controlled
+                        if controlled is not None
+                        else await call_next(request)
+                    )
                 except Exception:
                     response = error_response(
                         request_id=request_id,
@@ -217,6 +272,8 @@ def install_error_boundary(app: FastAPI) -> None:
                         code="internal_server_error",
                         message="An internal server error occurred.",
                     )
+            if controls is not None:
+                controls.after_response(request, response)
             response.headers[REQUEST_ID_HEADER] = request_id
             return response
         finally:

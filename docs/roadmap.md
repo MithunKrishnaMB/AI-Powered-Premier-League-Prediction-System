@@ -284,8 +284,12 @@ workflow journal.
   predicted table over stored expected values and position probabilities.
 - **Step 8.7 — complete:** Added semantic-model assessment, truthful registry
   state and development-only persisted performance metrics.
-- **Step 8.8 — next:** Add OpenAPI and API contract tests.
-- **Step 8.9:** Add CORS, security headers and rate controls.
+- **Step 8.8 — complete:** Published the reviewed OpenAPI 3.1 document and
+  Swagger UI with stable operation IDs, shared error schemas and contract tests
+  proving the exact GET-only path surface.
+- **Step 8.9 — complete:** Added exact-origin CORS, deterministic security
+  headers and bounded direct-peer sliding-window rate controls inside the
+  request-ID/error boundary.
 
 **Steps 8.1–8.2 verification:** Python 3.14.7 completed 543 tests with 90.37%
 branch-aware coverage. Ruff lint/format, strict mypy over 190 Python files and
@@ -302,6 +306,13 @@ preserved relevant row counts and artifact bytes and generated no prediction,
 simulation or metric. Both PostgreSQL targets remain at `f0009_step_7_9`; the
 actual registry remains `development_accepted` and resolves to
 `no_active_model`.
+
+**Steps 8.8–8.9 verification:** Python 3.14.7 completed 565 tests with 90.69%
+branch coverage. Ruff lint/format over 240 Python files, strict mypy over 199
+source/test/migration files, dependency consistency and diff checks passed.
+OpenAPI contract tests pin all 16 GET operations and prohibit mutation verbs;
+transport tests cover CORS, security headers and bounded rate behavior. No
+provider, target, registry, artifact or database mutation occurred.
 
 ## Milestone J — Live Data, Automation and Retraining — planned
 

@@ -33,6 +33,7 @@ speculative future complexity.
 - [PostgreSQL repositories and transactions](postgresql-repositories.md)
 - [FastAPI application and transport boundary](fastapi-application-and-transport.md)
 - [FastAPI read projections](fastapi-read-projections.md)
+- [FastAPI OpenAPI and HTTP controls](fastapi-openapi-and-http-controls.md)
 - [Point-in-time feature processing](../features/point-in-time.md)
 - [Probabilistic development evaluation](../models/probabilistic-evaluation.md)
 - [Simulation domain, scorelines and table rules](../simulation/domain-and-table.md)
@@ -52,3 +53,4 @@ speculative future complexity.
 - [Milestone H to I handoff](../handoffs/milestone-h-to-i.md)
 - [Step 8.2 to 8.3 handoff](../handoffs/step-8-2-to-8-3.md)
 - [Step 8.7 to 8.8 handoff](../handoffs/step-8-7-to-8-8.md)
+- [Milestone I to J handoff](../handoffs/milestone-i-to-j.md)
