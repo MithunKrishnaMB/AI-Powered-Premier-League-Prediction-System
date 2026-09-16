@@ -11,11 +11,13 @@ requires-python = ">=3.14,<3.15"
 dependencies = [
     "alembic==1.19.2",
     "catboost==1.2.10",
+    "fastapi==0.141.1",
     "numpy==2.5.3",
     "psycopg[binary]==3.3.5",
     "pydantic==2.13.5",
     "pydantic-settings==2.15.0",
     "SQLAlchemy==2.0.52",
+    "starlette==1.6.0",
     "tzdata==2026.3",
 ]
 
@@ -34,6 +36,7 @@ plp-check-database = "pl_platform.persistence.database:main"
 
 [dependency-groups]
 dev = [
+    "httpx2==2.13.0",
     "mypy==2.3.1",
     "pytest==9.1.1",
     "pytest-cov==7.1.0",

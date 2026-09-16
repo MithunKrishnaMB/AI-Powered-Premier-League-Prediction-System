@@ -257,17 +257,37 @@ remained sealed and no model was activated.
   windows at every stage, malformed/gapped history, payload conflicts and
   completed-workflow retry behavior. Recovery resumes only the missing suffix.
 
-## Milestone I — FastAPI — planned
+**Milestone H closeout:** Python 3.14.7 completed 520 tests with 90.13%
+branch-aware coverage. Ruff lint/format, strict mypy over 177 Python files and
+dependency consistency passed. Both isolated PostgreSQL databases are at
+`f0009_step_7_9`; the test database passed the `f0009` to `f0008` downgrade and
+re-upgrade cycle. The actual registry still resolves to `no_active_model`.
 
-- **Step 8.1:** Create the app factory and health endpoints.
-- **Step 8.2:** Add error envelopes, pagination and request IDs.
-- **Step 8.3:** Implement teams and seasons.
+**Implementation commit:** `4b44fcd` — add resumable idempotent post-match
+workflow journal.
+
+## Milestone I — FastAPI — in progress
+
+- **Step 8.1 — complete:** Added an explicit side-effect-free application
+  factory, process-only liveness and fail-closed PostgreSQL/active-model
+  readiness with deterministic typed responses.
+- **Step 8.2 — complete:** Added validated request IDs, uniform sanitized error
+  envelopes and strict reusable offset-pagination contracts without adding a
+  collection endpoint.
+- **Step 8.3 — next:** Implement teams and seasons.
 - **Step 8.4:** Implement fixtures and standings.
 - **Step 8.5:** Implement predictions.
 - **Step 8.6:** Implement simulations and the predicted table.
 - **Step 8.7:** Implement model metrics and performance.
 - **Step 8.8:** Add OpenAPI and API contract tests.
 - **Step 8.9:** Add CORS, security headers and rate controls.
+
+**Steps 8.1–8.2 verification:** Python 3.14.7 completed 543 tests with 90.37%
+branch-aware coverage. Ruff lint/format, strict mypy over 190 Python files and
+dependency consistency passed. Both isolated PostgreSQL targets remain at
+`f0009_step_7_9`, all 11 raw captures passed manifest verification and the
+actual registry still resolves to `no_active_model` with byte-identical
+registry and model artifacts.
 
 ## Milestone J — Live Data, Automation and Retraining — planned
 

@@ -26,6 +26,8 @@ def test_settings_use_safe_defaults(
     assert settings.environment == "development"
     assert settings.debug is False
     assert settings.log_level == "INFO"
+    assert settings.artifact_root == Path("artifacts")
+    assert settings.registry_root == Path("artifacts/registry")
 
 
 def test_settings_read_prefixed_environment(
@@ -36,12 +38,16 @@ def test_settings_read_prefixed_environment(
     monkeypatch.setenv("PLP_ENVIRONMENT", "test")
     monkeypatch.setenv("PLP_DEBUG", "true")
     monkeypatch.setenv("PLP_LOG_LEVEL", "WARNING")
+    monkeypatch.setenv("PLP_ARTIFACT_ROOT", "runtime-artifacts")
+    monkeypatch.setenv("PLP_REGISTRY_ROOT", "runtime-registry")
 
     settings = Settings()
 
     assert settings.environment == "test"
     assert settings.debug is True
     assert settings.log_level == "WARNING"
+    assert settings.artifact_root == Path("runtime-artifacts")
+    assert settings.registry_root == Path("runtime-registry")
 
 
 def test_settings_reject_invalid_log_level(monkeypatch: pytest.MonkeyPatch) -> None:

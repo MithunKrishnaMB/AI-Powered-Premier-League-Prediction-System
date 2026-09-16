@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 7.9.
+These decisions describe implemented behavior through Step 8.2.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -1142,4 +1142,54 @@ deferred stage/lineage validation. Stable workflow failures distinguish payload
 mismatch, manifest conflict, malformed history and retryable stage
 interruption. Tests inject failures after child writes and after journal commits
 at every stage. The active-model, sealed-test, scoreline-provenance and
-historical raw-manifest boundaries are unchanged.
+historical raw-manifest boundaries are unchanged. This closes Milestone H; the
+exact next implementation boundary is Step 8.1, a separately approved FastAPI
+application factory and health endpoints.
+
+## ADR-045: Explicit application factory and fail-closed health boundary
+
+**Status:** Accepted
+
+**Decision:** Construct FastAPI only through an explicit typed `create_app`
+factory. Do not create a module-level application, lifespan connection, engine,
+registry reader or loaded artifact. Import and factory construction remain free
+of external I/O.
+
+Expose only process liveness and dependency readiness in Step 8.1. Liveness is
+always independent of configuration, PostgreSQL, providers, registry state and
+artifact loading. Readiness checks the environment-selected PostgreSQL target,
+restricted connection contract and exact Alembic head, followed by the complete
+Step 7.1 active-model boundary. Production has no configured database target
+and fails closed rather than using development. Return HTTP 200 only when both
+required dependencies are ready and HTTP 503 otherwise, with deterministic
+ordered schemas and sanitized reason codes.
+
+**Consequences:** The actual registry's `development_accepted` state produces
+`no_active_model`, so the service truthfully remains not ready. A missing active
+model does not prevent liveness from answering. No provider, raw-data write,
+prediction, simulation, final-test access or registry mutation occurs. OpenAPI
+publication remains Step 8.8.
+
+## ADR-046: Request correlation, error envelopes and offset pagination
+
+**Status:** Accepted
+
+**Decision:** Give every response one `X-Request-ID`. Preserve a single valid
+caller value, generate a canonical UUID when absent and reject invalid or
+duplicate values without reflecting them. Store the ID only in request-local
+context.
+
+Represent routing, method, validation, typed application and unexpected errors
+through one strict envelope containing a stable code, safe message, request ID
+and ordered safe details. Never serialize rejected input, credentials, URLs,
+raw exception text or tracebacks. Unexpected failures use one generic HTTP 500
+contract.
+
+Define offset pagination with default limit 50, maximum 100, non-negative
+offset/total, ordered items and validated returned/next/previous arithmetic. Do
+not expose a collection endpoint in Step 8.2.
+
+**Consequences:** Steps 8.3 onward can share transport behavior without
+inventing per-endpoint envelopes or paging shapes. Request IDs do not become
+domain identities or provenance. These contracts add no football query,
+provider interaction, model loading, prediction or persistence write.

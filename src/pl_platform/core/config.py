@@ -1,6 +1,7 @@
 """Typed application settings loaded from environment variables."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal, Self
 from urllib.parse import unquote, urlsplit
 
@@ -69,6 +70,8 @@ class Settings(BaseSettings):
     database_connect_timeout_seconds: int = Field(default=5, ge=1, le=60)
     database_pool_size: int = Field(default=5, ge=1, le=20)
     database_max_overflow: int = Field(default=5, ge=0, le=20)
+    artifact_root: Path = Path("artifacts")
+    registry_root: Path = Path("artifacts/registry")
 
     @field_validator("database_url", "test_database_url", mode="before")
     @classmethod

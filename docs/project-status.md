@@ -1,6 +1,6 @@
 # Project Status
 
-**Status date:** 2026-09-15
+**Status date:** 2026-09-16
 
 **Runtime:** 64-bit Python 3.14.7
 
@@ -9,7 +9,11 @@ System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
 Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
 Integration; H — Prediction Lifecycle
 
-**Current milestone:** I — FastAPI (planned; not started)
+**Current milestone:** I — FastAPI (in progress)
+
+**Completed Milestone I steps:** 8.1 — explicit application factory, liveness
+and fail-closed dependency readiness; 8.2 — request IDs, uniform error envelopes
+and reusable offset-pagination contracts
 
 **Completed Milestone H steps:** 7.1 — deterministic read-only active-model
 resolution and complete registry-to-runtime artifact loading; 7.2 — unlabeled
@@ -53,8 +57,8 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 8.1 — create the FastAPI app factory and
-health endpoints, subject to explicit user approval.
+**Exact next implementation step:** 8.3 — implement read-only teams and seasons
+endpoints, subject to explicit user approval.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -65,9 +69,18 @@ and transaction verification
 **Milestone G implementation commit:** `f34c349` — complete current-season
 integration
 
+**Milestone H implementation commit:** `4b44fcd` — add resumable idempotent
+post-match workflow journal
+
 ## Implemented capabilities
 
 - Installable `pl_platform` package using the `src/` layout.
+- Explicit FastAPI application construction without an import-time application,
+  startup connection or model load.
+- Process-only liveness and ordered fail-closed readiness over the explicitly
+  selected PostgreSQL target, exact Alembic head and strict active-model chain.
+- Validated/generated request IDs, sanitized uniform error envelopes and strict
+  offset-pagination contracts with deterministic navigation arithmetic.
 - Typed, immutable environment configuration.
 - Secret-backed, explicitly isolated PostgreSQL development/test connection
   settings and a read-only compatibility and privilege checker.
@@ -136,6 +149,10 @@ integration
   explicit scoreline distributions, preserving canonical input, all six exact
   NumPy components, complete aggregate summary and prior/replacement run
   lineage without converting CatBoost probabilities to scorelines.
+- Canonical post-match workflow manifests and six hash-linked append-only
+  checkpoints composing evaluation, state advancement, prediction regeneration
+  and simulation regeneration. Recovery verifies the persisted prefix and
+  resumes only its missing suffix without a mutable workflow-status pointer.
 - A synthetic credential-free recorded-response corpus covering all seven
   capabilities and replay validation for exact bytes, checksums, request
   identity, compatibility, retrieval time, pagination and quota metadata.
@@ -336,25 +353,26 @@ integration
 
 ## Last verified quality result
 
-The implementation through Step 7.9 passes the complete local suite (final
-counts recorded after the Step 7.9 verification run):
+The implementation through Step 8.2 passes the complete local suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 520 passed, including active-model fail-closed and synthetic-success
-  paths, exactly-once state and prediction/simulation regeneration checks,
-  post-match recovery fault injection, live PostgreSQL journal/current-season
-  transaction checks and offline recorded-response contract replay.
-- Branch coverage: 90.13%, above the required 90% threshold.
+- pytest: 543 passed, including side-effect-free factory construction,
+  process-only liveness, dependency readiness, request-ID/error/pagination
+  contracts, actual no-active registry behavior and the complete prior suite.
+- Branch coverage: 90.37%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 177 source, test and migration Python files.
+- Strict mypy: passed across all 190 source, test and migration Python files.
 - Dependency consistency: passed.
 - Development and test databases are at exact head `f0009_step_7_9`; the test
   database completed an `f0009` to `f0008` downgrade and re-upgrade while the
   two targets remained explicitly isolated.
+- All 11 historical raw captures passed manifest verification with manifest
+  SHA-256 `87b599ecb06e5f00e64323ef4b426b1b2d2f7db803e26038ae9fb4a76da96aa1`.
 - No external provider was selected or contacted. Only synthetic exact bytes
   were persisted to the isolated test database; no production artifact import,
   final-test access or model activation occurred. The actual filesystem
-  registry returned `no_active_model` and remained byte-identical.
+  registry returned `no_active_model`; registry and model corpus aggregate
+  hashes remained byte-identical. No changes were staged or committed.
 
 The preserved Milestone F closeout result was:
 
@@ -470,12 +488,12 @@ The preserved Milestone F closeout result was:
 ## Not implemented yet
 
 - Final one-time untouched-test evaluation.
-- Persistence and current-provider production of fixture score distributions.
-- Simulation artifact serialization or database storage.
+- Production current-provider integration for fixture score distributions and
+  current-season simulation runs.
 - Final-test evidence and active model promotion.
 - Production artifact-corpus import through the typed repositories.
 - A selected production current-data provider and its vendor-specific parsers.
-- FastAPI endpoints.
+- Teams, seasons and every later football-domain FastAPI endpoint.
 - Deployment or frontend code.
 
 ## Development evaluation snapshot
@@ -499,5 +517,6 @@ has no active model, so no real current prediction or derived simulation corpus
 exists. The post-match workflow now binds every immutable child under one
 deterministic manifest and derives progress from a hash-linked event prefix.
 Retries resume only the missing suffix; committed child writes and checkpoint
-acknowledgement loss are safe. Milestone I begins at Step 8.1 with a separately
-approved FastAPI app-factory and health-endpoint boundary.
+acknowledgement loss are safe. Milestone I now has the Step 8.1 application and
+health boundary plus the Step 8.2 transport contracts. The exact next boundary
+is Step 8.3, read-only teams and seasons endpoints using those shared contracts.

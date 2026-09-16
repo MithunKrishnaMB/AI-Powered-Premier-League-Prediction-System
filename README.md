@@ -61,6 +61,11 @@ state from complete append-only registry history, requires exactly one explicit
 active entry and verifies the full registry-to-runtime artifact chain. The
 actual registry correctly returns the typed `no_active_model` failure; its
 development-accepted artifact is never reinterpreted as active.
+An explicit FastAPI factory now exposes process-only liveness and fail-closed
+PostgreSQL/active-model readiness. The actual no-active state therefore returns
+HTTP 503 readiness while liveness remains independent. Validated request IDs,
+uniform sanitized error envelopes and reusable offset-pagination contracts are
+also implemented; no football-domain API endpoint exists yet.
 Steps 7.2 through 7.4 add deterministic unlabeled upcoming-fixture features,
 immutable active-model predictions and immutable per-fixture evaluation against
 official completed results. Exact current evidence, state replay, predictor
@@ -335,6 +340,8 @@ implementation. Start with:
 - [Step 7.4 to 7.5 handoff](docs/handoffs/step-7-4-to-7-5.md)
 - [Step 7.7 to 7.8 handoff](docs/handoffs/step-7-7-to-7-8.md)
 - [Milestone H to I handoff](docs/handoffs/milestone-h-to-i.md)
+- [FastAPI application and transport boundary](docs/architecture/fastapi-application-and-transport.md)
+- [Step 8.2 to 8.3 handoff](docs/handoffs/step-8-2-to-8-3.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -372,5 +379,8 @@ provenance-bound season-simulation regeneration. A canonical post-match
 manifest and hash-linked append-only checkpoints make the complete workflow
 retry-safe and recoverable across partial failures. The actual registry
 correctly fails closed because no active model exists.
+Steps 8.1 and 8.2 add the explicit FastAPI factory, health checks, request IDs,
+error envelopes and pagination contracts. Step 8.3 is next; no teams, seasons
+or later football-domain endpoint has been added.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

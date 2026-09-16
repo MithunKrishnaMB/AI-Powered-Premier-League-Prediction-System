@@ -31,6 +31,7 @@ speculative future complexity.
 - [PostgreSQL connections and Alembic boundary](postgresql-connections-and-alembic.md)
 - [PostgreSQL migration chain](postgresql-migrations.md)
 - [PostgreSQL repositories and transactions](postgresql-repositories.md)
+- [FastAPI application and transport boundary](fastapi-application-and-transport.md)
 - [Point-in-time feature processing](../features/point-in-time.md)
 - [Probabilistic development evaluation](../models/probabilistic-evaluation.md)
 - [Simulation domain, scorelines and table rules](../simulation/domain-and-table.md)
@@ -47,3 +48,5 @@ speculative future complexity.
 - [Step 6.4 to 6.5 handoff](../handoffs/step-6-4-to-6-5.md)
 - [Step 6.7 to 6.8 handoff](../handoffs/step-6-7-to-6-8.md)
 - [Milestone G to H handoff](../handoffs/milestone-g-to-h.md)
+- [Milestone H to I handoff](../handoffs/milestone-h-to-i.md)
+- [Step 8.2 to 8.3 handoff](../handoffs/step-8-2-to-8-3.md)
