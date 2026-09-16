@@ -102,7 +102,14 @@ exact-cache-backed pages before one immutable repository write. Safe
 `plp-current-data` commands accept only explicit development/test targets and
 fail closed until provider/runtime dependencies are injected. No external
 provider has been selected or configured and none of this is wired to FastAPI
-or a scheduler.
+or a scheduler. Explicit in-memory candidate retraining now binds verified
+baseline and operational evidence without writing an artifact. A later,
+disjoint operational holdout can produce a canonical baseline-versus-candidate
+comparison report with deterministic evidence gates and a human-review-only
+recommendation. Passive operational snapshots preserve the actual
+`development_accepted` registry state and zero active models. See
+[candidate comparison](docs/models/candidate-comparison.md) and
+[retraining observability](docs/operations/retraining-observability.md).
 Production artifact import, current score-distribution integration and the
 frontend have not been created. CI/CD automation is intentionally not
 configured.

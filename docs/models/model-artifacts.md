@@ -242,6 +242,14 @@ recording its own baseline, operational and combined training checksums. It is
 input to the later comparison boundary, not a `candidate` registry event and
 not an active-model source. See [Candidate Retraining](candidate-retraining.md).
 
+Step 9.6 consumes the in-memory candidate through a separate canonical
+comparison report. That report retains `registry_disposition: no_change` even
+when its proper-score gates recommend human review. Step 9.7's passive snapshot
+likewise fixes the registry to `development_accepted` with zero active models.
+Neither schema is accepted below `artifacts/models` or `artifacts/registry`.
+See [Candidate Comparison](candidate-comparison.md) and
+[Retraining Observability](../operations/retraining-observability.md).
+
 Scoreline distributions live in the separate simulation schema with their own
 producer provenance. The current classifier's `produces_scorelines = false`
 contract prevents it from being referenced as a distribution producer.

@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 9.5.
+These decisions describe implemented behavior through Step 9.7.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -1441,3 +1441,50 @@ promotion, activation, scoreline or registry-entry claim. The actual registry
 remains `development_accepted` with no active model. Model comparison and a
 promotion report are the renumbered Step 9.6 and require separate approval;
 monitoring documentation is Step 9.7.
+
+## ADR-056: Compare candidates only on later disjoint operational evidence
+
+**Status:** Accepted
+
+**Decision:** Compare the verified development-accepted baseline and one exact
+`candidate_unassessed` result on one identical operational holdout. Require
+every pre-match feature cutoff and official result retrieval to follow the
+candidate training-knowledge cutoff. Reject candidate-training fixture overlap,
+duplicate or mismatched identities, predictor-schema drift and the sealed
+2025–26 season before reading an outcome.
+
+Use the existing three-way log-loss, multiclass-Brier and normalized-ranked-
+probability-score definitions. Require 30 completed fixtures and all three
+observed outcomes for sufficient evidence. Recommend human review only when
+log loss improves strictly and both other proper scores are non-inferior;
+otherwise report insufficient evidence or retain the baseline.
+
+Bind all baseline, candidate, feature, result, observation and cache identities,
+knowledge cutoffs, metrics and gates into a canonical content-derived report.
+Fix registry disposition to `no_change` and require human review for every
+decision.
+
+**Consequences:** Operational comparison is reproducible and chronologically
+honest, but it is not final-test evidence and cannot serialize a candidate,
+append a registry event, activate a model or generate predictions, scoreline
+distributions or simulations. The actual registry remains
+`development_accepted` with no active model.
+
+## ADR-057: Keep retraining observability passive and manual
+
+**Status:** Accepted
+
+**Decision:** Represent retraining observability as a pure snapshot built from
+one checksum-verified comparison report and an explicit UTC observation time.
+The supported snapshot fixes registry state to `development_accepted`, active
+model count to zero and execution mode to `explicit_manual_only`. Map the three
+comparison decisions to stable informational, warning or human-action signals.
+
+Document evidence review and failure response as a manual runbook. Do not add a
+monitor loop, scheduler, notification transport, CI/CD workflow, GitHub Action,
+deployment configuration or other DevOps substitute.
+
+**Consequences:** Operators can inspect canonical, content-derived state
+without creating hidden I/O, background work or import-time dependencies. A
+human-review signal never authorizes promotion; final-test evidence and active
+promotion remain separately prohibited.

@@ -39,6 +39,8 @@ speculative future complexity.
 - [Point-in-time feature processing](../features/point-in-time.md)
 - [Probabilistic development evaluation](../models/probabilistic-evaluation.md)
 - [Candidate retraining](../models/candidate-retraining.md)
+- [Candidate comparison and review report](../models/candidate-comparison.md)
+- [Retraining observability and manual operations](../operations/retraining-observability.md)
 - [Simulation domain, scorelines and table rules](../simulation/domain-and-table.md)
 - [Implementation roadmap](../roadmap.md)
 - [Project status](../project-status.md)

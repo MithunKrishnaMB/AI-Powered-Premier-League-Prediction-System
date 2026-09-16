@@ -349,6 +349,28 @@ validation recomputes all metrics. Every lifecycle contract rejects season
 See [Model Artifacts and Registry](../models/model-artifacts.md) for byte,
 identity, path, compatibility and transition rules.
 
+`CandidateRetrainingManifest` schema version 1 binds a verified baseline to
+the exact baseline, operational and combined training checksums, fixed
+predictor/configuration policy, later operational feature/result/cache lineage
+and the maximum training-knowledge cutoff. Its only status is
+`candidate_unassessed`; it is not an artifact or registry record.
+
+`CandidateComparisonReport` schema version 1 binds that candidate and baseline
+to one strictly later, disjoint holdout. It records identical-population
+CatBoost metric summaries, minimum-population and outcome-coverage results,
+proper-score gates and one of `insufficient_evidence`, `retain_baseline` or
+`candidate_review_recommended`. Registry disposition is always `no_change` and
+human review is always required.
+
+`RetrainingOperationalSnapshot` schema version 1 checksum-binds one comparison
+report to an explicit UTC observation. It supports only registry state
+`development_accepted`, zero active models and execution mode
+`explicit_manual_only`; its signals do not schedule or execute any action.
+
+See [Candidate Retraining](../models/candidate-retraining.md),
+[Candidate Comparison](../models/candidate-comparison.md) and
+[Retraining Observability](../operations/retraining-observability.md).
+
 ## Simulation domain
 
 Simulation schema version 1 defines strict `Scoreline`,

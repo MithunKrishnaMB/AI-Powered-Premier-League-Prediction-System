@@ -145,7 +145,8 @@ No candidate bytes are written to the production artifact corpus. No registry
 entry or event is created or changed, no model is compared or promoted and no
 prediction, scoreline distribution, simulation or final-test metric is
 generated. The actual registry remains `development_accepted`, not active.
-Step 9.6 may add a comparison and promotion report only after separate approval.
+Step 9.6 was subsequently approved and is recorded below as a non-mutating
+comparison and human-review report.
 
 The complete Python 3.14.7 suite through Step 9.5 passes 630 tests with 91.04%
 branch coverage. Ruff lint/format checks 260 Python files, strict mypy checks
@@ -154,3 +155,36 @@ The new unit and canonical-contract tests cover exact baseline verification,
 one-to-one operational pairing, sealed-target rejection, chronology, schema and
 identity failures, deterministic fitting inputs and the absence of promotion or
 registry fields. No files were staged or committed.
+
+## Steps 9.6 and 9.7 comparison and observability boundary
+
+Step 9.6 compares the exact verified baseline and one unassessed candidate only
+on a strictly later operational holdout that is disjoint from candidate
+training. Both classifiers score the identical canonical population through
+the existing log-loss, multiclass-Brier and normalized-ranked-probability
+metrics. The sealed 2025–26 target is rejected before outcome access.
+
+The canonical report distinguishes insufficient evidence, baseline retention
+and a candidate recommendation for human review. Sufficient evidence requires
+30 fixtures and all three outcomes; a review recommendation additionally
+requires better log loss and non-inferior Brier and ranked probability scores.
+Every report fixes registry disposition to no change and requires human review.
+It does not serialize an artifact or create a registry entry or event.
+
+Step 9.7 adds one pure passive snapshot contract and a manual runbook. Snapshot
+construction verifies exact report bytes, uses an explicit UTC instant and
+preserves the only supported registry truth: `development_accepted`, zero
+active models and explicit manual execution. It starts no loop, contacts no
+service and sends no notification.
+
+No scheduler, automation, CI/CD, GitHub Actions, deployment or DevOps
+configuration was introduced. No provider was selected, no production corpus
+was imported, no final-test target was inspected and no prediction, scoreline
+distribution or simulation was generated.
+
+The complete Python 3.14.7 suite through Step 9.7 passes 642 tests with 91.06%
+branch coverage. Ruff lint/format checks 266 Python files, strict mypy checks
+220 source/test/migration files and dependency consistency passes. All 11 raw
+captures remain manifest-verified, PostgreSQL integration remains isolated to
+the explicit test database and the OpenAPI contract remains sixteen GET-only
+operations. No changes were staged or committed.

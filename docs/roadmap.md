@@ -350,8 +350,14 @@ the existing provider-neutral and exact-cache boundaries.
   excludes the sealed season, refits the fixed CatBoost depth-6 policy and
   emits a deterministic `candidate_unassessed` manifest without serializing an
   artifact or mutating the registry.
-- **Step 9.6:** Add an explicit model comparison and promotion report.
-- **Step 9.7:** Add monitoring and operational documentation.
+- **Step 9.6 — complete:** Added an explicit canonical comparison report over
+  a strictly later, disjoint operational holdout. Identical-population proper
+  scores drive deterministic insufficient/retain/review decisions; every
+  report requires human review and fixes registry disposition to no change.
+- **Step 9.7 — complete:** Added a passive deterministic operational snapshot
+  plus a manual observability and failure-response runbook. The snapshot fixes
+  the supported truth to `development_accepted`, zero active models and
+  explicit manual execution only.
 
 The former scheduled GitHub Actions item was removed from this roadmap by
 explicit user direction. It was not implemented and the remaining items were
@@ -382,6 +388,15 @@ canonical-contract checks cover baseline verification, exact operational
 feature/result pairing, sealed-target and chronology rejection, deterministic
 candidate identity and the explicit absence of artifact, metric, promotion and
 registry behavior.
+
+**Steps 9.6–9.7 verification:** Python 3.14.7 completed 642 tests with 91.06%
+branch coverage. Ruff lint/format checked 266 Python files, strict mypy checked
+220 source/test/migration files and dependency consistency passed. Focused unit
+and canonical-contract tests cover later/disjoint evidence, sealed-target and
+chronology rejection, exact baseline/candidate populations, all three report
+decisions, checksum drift, passive signal mapping and zero registry mutation.
+All 11 historical captures remained exact-manifest verified and the live
+PostgreSQL suite remained isolated to the explicit test target.
 
 ## Milestone K — Backend Release — planned
 
