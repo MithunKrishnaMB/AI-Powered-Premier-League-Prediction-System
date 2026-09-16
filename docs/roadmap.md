@@ -274,12 +274,17 @@ workflow journal.
 - **Step 8.2 — complete:** Added validated request IDs, uniform sanitized error
   envelopes and strict reusable offset-pagination contracts without adding a
   collection endpoint.
-- **Step 8.3 — next:** Implement teams and seasons.
-- **Step 8.4:** Implement fixtures and standings.
-- **Step 8.5:** Implement predictions.
-- **Step 8.6:** Implement simulations and the predicted table.
-- **Step 8.7:** Implement model metrics and performance.
-- **Step 8.8:** Add OpenAPI and API contract tests.
+- **Step 8.3 — complete:** Added deterministic read-only teams and seasons
+  collections/details with canonical UUID and registry checksum provenance.
+- **Step 8.4 — complete:** Added read-only fixture projections over current,
+  result and canonical historical evidence plus latest complete standings.
+- **Step 8.5 — complete:** Added persisted immutable three-way prediction reads
+  without active-model loading, prediction generation or scoreline inference.
+- **Step 8.6 — complete:** Added persisted simulation reads and a deterministic
+  predicted table over stored expected values and position probabilities.
+- **Step 8.7 — complete:** Added semantic-model assessment, truthful registry
+  state and development-only persisted performance metrics.
+- **Step 8.8 — next:** Add OpenAPI and API contract tests.
 - **Step 8.9:** Add CORS, security headers and rate controls.
 
 **Steps 8.1–8.2 verification:** Python 3.14.7 completed 543 tests with 90.37%
@@ -288,6 +293,15 @@ dependency consistency passed. Both isolated PostgreSQL targets remain at
 `f0009_step_7_9`, all 11 raw captures passed manifest verification and the
 actual registry still resolves to `no_active_model` with byte-identical
 registry and model artifacts.
+
+**Steps 8.3–8.7 verification:** Python 3.14.7 completed 552 tests with 90.58%
+branch coverage. Ruff lint/format over 235 Python files, strict mypy over 196
+source/test/migration files and dependency consistency passed. Read-only API
+integration checks used only the isolated test database,
+preserved relevant row counts and artifact bytes and generated no prediction,
+simulation or metric. Both PostgreSQL targets remain at `f0009_step_7_9`; the
+actual registry remains `development_accepted` and resolves to
+`no_active_model`.
 
 ## Milestone J — Live Data, Automation and Retraining — planned
 

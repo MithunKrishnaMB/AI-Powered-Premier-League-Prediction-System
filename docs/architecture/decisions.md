@@ -1193,3 +1193,35 @@ not expose a collection endpoint in Step 8.2.
 inventing per-endpoint envelopes or paging shapes. Request IDs do not become
 domain identities or provenance. These contracts add no football query,
 provider interaction, model loading, prediction or persistence write.
+
+## ADR-047: Expose immutable projections through lazy read-only API queries
+
+**Status:** Accepted
+
+**Decision:** Expose teams, seasons, fixtures, standings, predictions,
+simulations, predicted tables and model performance only as versioned reads of
+existing PostgreSQL projections. Construct the typed query service without I/O;
+for each request choose the environment-specific local target, begin a
+read-only transaction before querying, require exact Alembic head and dispose
+the engine. Production has no target and fails closed.
+
+Choose registry-backed team and season revisions deterministically by schema
+version then checksum. Prefer the latest observed current fixture revision and
+result, with a deterministic canonical historical fallback. Return only the
+latest complete standings snapshot. Read predictions and simulation summaries
+as stored; never load a model, infer scorelines or execute simulation. Build a
+predicted-table view only by sorting stored expected values and returning stored
+position probabilities.
+
+Join model performance through the semantic model's persisted development
+assessment and its source evaluation metrics. Derive registry state from the
+latest append-only event, so `development_accepted` remains distinct from
+`active`. Explicitly exclude the sealed 2025–26 season from prediction,
+simulation and performance query surfaces.
+
+**Consequences:** Steps 8.3 through 8.7 add no command endpoint and no mutable
+repository. Database, schema and missing-resource failures use the existing
+sanitized envelopes; collection order and pagination are deterministic. The
+actual no-active registry remains unchanged and no provider, artifact corpus,
+test target, final-test evidence, prediction, scoreline distribution,
+simulation or metric is created. OpenAPI publication remains Step 8.8.

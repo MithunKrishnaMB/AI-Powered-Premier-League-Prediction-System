@@ -67,7 +67,7 @@ import pl_platform.api.application
     assert completed.returncode == 0, completed.stderr
 
 
-def test_factory_registers_only_health_routes_without_running_probes() -> None:
+def test_factory_registers_routes_without_running_probes_or_queries() -> None:
     service = ReadinessService(
         probes=(
             StaticProbe(

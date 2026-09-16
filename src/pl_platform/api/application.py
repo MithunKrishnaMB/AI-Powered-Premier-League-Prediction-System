@@ -11,6 +11,11 @@ from pl_platform.api.health import (
     create_health_router,
     default_readiness_service,
 )
+from pl_platform.api.queries import (
+    ResourceQueryService,
+    default_resource_query_service,
+)
+from pl_platform.api.router import create_resource_router
 from pl_platform.core.config import Settings, get_settings
 
 
@@ -18,6 +23,7 @@ def create_app(
     *,
     settings: Settings | None = None,
     readiness: ReadinessService | None = None,
+    resources: ResourceQueryService | None = None,
 ) -> FastAPI:
     """Create one application without connecting or loading runtime artifacts."""
 
@@ -26,6 +32,11 @@ def create_app(
         readiness
         if readiness is not None
         else default_readiness_service(resolved_settings)
+    )
+    resolved_resources = (
+        resources
+        if resources is not None
+        else default_resource_query_service(resolved_settings)
     )
     app = FastAPI(
         title=resolved_settings.app_name,
@@ -37,4 +48,5 @@ def create_app(
     )
     install_error_boundary(app)
     app.include_router(create_health_router(resolved_readiness))
+    app.include_router(create_resource_router(resolved_resources))
     return app

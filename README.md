@@ -65,7 +65,11 @@ An explicit FastAPI factory now exposes process-only liveness and fail-closed
 PostgreSQL/active-model readiness. The actual no-active state therefore returns
 HTTP 503 readiness while liveness remains independent. Validated request IDs,
 uniform sanitized error envelopes and reusable offset-pagination contracts are
-also implemented; no football-domain API endpoint exists yet.
+also implemented. Versioned read-only endpoints now expose persisted teams,
+seasons, fixtures, latest standings, immutable predictions, complete simulation
+summaries and predicted tables and development-only model performance. They
+open only request-scoped read-only PostgreSQL transactions and never generate a
+prediction, simulation or metric.
 Steps 7.2 through 7.4 add deterministic unlabeled upcoming-fixture features,
 immutable active-model predictions and immutable per-fixture evaluation against
 official completed results. Exact current evidence, state replay, predictor
@@ -341,7 +345,9 @@ implementation. Start with:
 - [Step 7.7 to 7.8 handoff](docs/handoffs/step-7-7-to-7-8.md)
 - [Milestone H to I handoff](docs/handoffs/milestone-h-to-i.md)
 - [FastAPI application and transport boundary](docs/architecture/fastapi-application-and-transport.md)
+- [FastAPI read projections](docs/architecture/fastapi-read-projections.md)
 - [Step 8.2 to 8.3 handoff](docs/handoffs/step-8-2-to-8-3.md)
+- [Step 8.7 to 8.8 handoff](docs/handoffs/step-8-7-to-8-8.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -379,8 +385,9 @@ provenance-bound season-simulation regeneration. A canonical post-match
 manifest and hash-linked append-only checkpoints make the complete workflow
 retry-safe and recoverable across partial failures. The actual registry
 correctly fails closed because no active model exists.
-Steps 8.1 and 8.2 add the explicit FastAPI factory, health checks, request IDs,
-error envelopes and pagination contracts. Step 8.3 is next; no teams, seasons
-or later football-domain endpoint has been added.
+Steps 8.1 through 8.7 add the explicit FastAPI factory, health checks, request
+IDs, error envelopes, pagination and all planned read-only football/model
+projections. Step 8.8 is next: reviewed OpenAPI publication and explicit API
+contract snapshots.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.
