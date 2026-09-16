@@ -67,6 +67,13 @@ kickoff. The result retrieval time—not provider completion time—is the
 point-in-time knowledge boundary. Result scores remain targets for their own
 fixture and may affect predictor state only for later fixture batches.
 
+Step 9.3 adds a cache-aware orchestration layer without changing this schema or
+write plan. It classifies each exact completed-result request as fresh, stale
+or missing, preserves exact-byte compatibility/retrieval/expiry provenance and
+finishes every page before calling `reconcile_results` once. Duplicate fixture
+identities, cursor cycles, incompatible cache evidence and unavailable provider
+capability fail before a database write. Empty complete result sets are no-ops.
+
 ## Step 6.7 standings
 
 `transform_current_standings` requires positions 1 through 20 exactly once,

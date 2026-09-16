@@ -33,6 +33,7 @@ plp-assess-models = "pl_platform.evaluation.assessment_materialize:main"
 plp-build-model-artifact = "pl_platform.registry.serialization:main"
 plp-register-model-artifact = "pl_platform.registry.registry:main"
 plp-check-database = "pl_platform.persistence.database:main"
+plp-current-data = "pl_platform.automation.cli:main"
 
 [dependency-groups]
 dev = [

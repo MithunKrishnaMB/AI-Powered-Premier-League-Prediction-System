@@ -54,6 +54,7 @@ from pl_platform.ingestion.current_client import (
     capture_successful_transport_response,
 )
 from pl_platform.ingestion.current_transform import (
+    CanonicalCompletedResult,
     CanonicalCurrentFixture,
     CurrentFixtureBatch,
     CurrentTeamResolution,
@@ -68,9 +69,19 @@ from pl_platform.ingestion.download import (
     download_manifest_entry,
     verify_existing_file,
 )
+from pl_platform.ingestion.final_results import (
+    CacheAwareFinalResultReconciler,
+    FinalResultReconciliationError,
+    FinalResultReconciliationResult,
+)
 from pl_platform.ingestion.football_data import (
     FootballDataMatch,
     parse_football_data_csv,
+)
+from pl_platform.ingestion.live_fixtures import (
+    CacheAwareLiveFixtureReader,
+    LiveFixtureReadError,
+    LiveFixtureReadResult,
 )
 from pl_platform.ingestion.manifest import (
     HistoricalDataManifest,
@@ -84,6 +95,9 @@ __all__ = [
     "CAPABILITY_REQUIREMENTS",
     "CURRENT_PROVIDER_CONTRACT_VERSION",
     "PROVIDER_CACHE_CAPABILITY_BY_OPERATION",
+    "CacheAwareFinalResultReconciler",
+    "CacheAwareLiveFixtureReader",
+    "CanonicalCompletedResult",
     "CanonicalCurrentFixture",
     "CapabilityAvailability",
     "CapabilityDeclaration",
@@ -103,12 +117,16 @@ __all__ = [
     "CurrentTransformationError",
     "DownloadResult",
     "ExactProviderResponse",
+    "FinalResultReconciliationError",
+    "FinalResultReconciliationResult",
     "FixtureStatusRequest",
     "FixtureStatusResponse",
     "FootballDataMatch",
     "HistoricalDataManifest",
     "HistoricalFile",
     "IdentityResolutionContract",
+    "LiveFixtureReadError",
+    "LiveFixtureReadResult",
     "PageMetadata",
     "PageRequest",
     "PreparedProviderRequest",

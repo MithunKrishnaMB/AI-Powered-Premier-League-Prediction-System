@@ -1,6 +1,7 @@
 """End-to-end PostgreSQL synchronization for current-season match state."""
 
 from collections.abc import Iterator
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -8,14 +9,23 @@ import pytest
 from sqlalchemy import Engine, text
 
 from pl_platform.core.config import Settings
+from pl_platform.ingestion.current import (
+    CompletedResultsRequest,
+    CompletedResultsResponse,
+    CurrentProviderCapability,
+)
 from pl_platform.ingestion.current_transform import (
     transform_completed_results,
     transform_current_fixtures,
     transform_current_standings,
 )
+from pl_platform.ingestion.final_results import CacheAwareFinalResultReconciler
 from pl_platform.persistence.current_sync import CurrentSeasonRepository
 from pl_platform.persistence.database import create_database_engine
-from pl_platform.persistence.provider_cache import ProviderCacheRepository
+from pl_platform.persistence.provider_cache import (
+    ProviderCacheEntry,
+    ProviderCacheRepository,
+)
 from pl_platform.persistence.repositories import (
     AggregateKind,
     AggregateWritePlan,
@@ -26,12 +36,28 @@ from pl_platform.persistence.repositories import (
     PostgresAggregateRepository,
     StoredObject,
 )
+from tests.unit.ingestion.current_helpers import NOW, request_for
 from tests.unit.ingestion.test_current_reconciliation import (
     _resolution,
     _result_response,
     _standings_response,
 )
 from tests.unit.ingestion.test_current_transform import _fixture, _fixture_response
+
+
+@dataclass(frozen=True)
+class _ResultDecoder:
+    response: CompletedResultsResponse
+
+    def decode_completed_results(
+        self,
+        *,
+        request: CompletedResultsRequest,
+        entry: ProviderCacheEntry,
+    ) -> CompletedResultsResponse:
+        assert request == request_for(CurrentProviderCapability.COMPLETED_RESULTS)
+        assert entry.response == self.response.capture.response
+        return self.response
 
 
 @pytest.fixture(scope="module")
@@ -209,8 +235,31 @@ def test_fixture_result_and_standings_sync_is_exact_and_idempotent(
 
     fixture_first = current.synchronize_fixtures(fixtures)
     fixture_second = current.synchronize_fixtures(fixtures)
-    result_first = current.reconcile_results(results)
-    result_second = current.reconcile_results(results)
+    result_request = request_for(CurrentProviderCapability.COMPLETED_RESULTS)
+    assert isinstance(result_request, CompletedResultsRequest)
+    reconciler = CacheAwareFinalResultReconciler(
+        cache=cache,
+        decoder=_ResultDecoder(result_response),
+        repository=current,
+        provider=None,
+        cache_ttl=timedelta(minutes=5),
+    )
+    result_first_reconciliation = reconciler.reconcile(
+        result_request,
+        resolution=resolution,
+        season=season,
+        at=NOW + timedelta(minutes=1),
+    )
+    result_second_reconciliation = reconciler.reconcile(
+        result_request,
+        resolution=resolution,
+        season=season,
+        at=NOW + timedelta(minutes=1),
+    )
+    assert result_first_reconciliation.persistence is not None
+    assert result_second_reconciliation.persistence is not None
+    result_first = result_first_reconciliation.persistence
+    result_second = result_second_reconciliation.persistence
     standing_first = current.synchronize_standings(standings, results)
     standing_second = current.synchronize_standings(standings, results)
 

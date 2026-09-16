@@ -8,6 +8,8 @@ import pytest
 from pl_platform.ingestion.current import CurrentProviderCapability
 from pl_platform.persistence.provider_cache import (
     ProviderCacheEntry,
+    ProviderCacheLookup,
+    ProviderCacheLookupStatus,
     provider_cache_write_plan,
 )
 from pl_platform.persistence.repositories import (
@@ -83,3 +85,22 @@ def test_cache_entry_revalidates_identity_and_freshness() -> None:
         )
     with pytest.raises(ValueError, match="compatibility"):
         replace(entry, compatibility_format_id="incompatible-format")
+
+    rebuilt = ProviderCacheEntry.from_capture(
+        capture,
+        expires_at=NOW + timedelta(minutes=5),
+    )
+    assert rebuilt == entry
+
+
+def test_cache_lookup_state_requires_entry_except_for_miss() -> None:
+    capture = capture_for(CurrentProviderCapability.FIXTURES, 0)
+    entry = ProviderCacheEntry.from_capture(
+        capture,
+        expires_at=NOW + timedelta(minutes=5),
+    )
+
+    assert ProviderCacheLookup(ProviderCacheLookupStatus.FRESH, entry).entry is entry
+    assert ProviderCacheLookup(ProviderCacheLookupStatus.MISS, None).entry is None
+    with pytest.raises(ValueError, match="must agree"):
+        ProviderCacheLookup(ProviderCacheLookupStatus.STALE, None)

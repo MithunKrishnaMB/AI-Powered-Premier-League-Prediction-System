@@ -109,3 +109,21 @@ a final-test metric or activate a model. They do not derive scorelines from the
 CatBoost three-way probabilities or change identity calibration, outcome order,
 chronological evaluation, 10,000-run simulation behavior, numerical dtypes or
 position-mass guarantees.
+
+## Step 9.1 cache-aware fixture reads
+
+`CacheAwareLiveFixtureReader` composes the existing fixture request/response,
+capability, cache and canonical transformation contracts. Each exact request
+page receives a `fresh`, `stale` or `miss` lookup. A fresh compatible entry is
+decoded from the stored exact response bytes without provider contact. Stale
+bytes are never served; stale and missing pages refresh only through a matching
+manifest whose fixture capability is supported. Incompatible cached evidence
+fails closed without a provider fallback.
+
+The reader follows provider cursors to completion, rejects cycles and duplicate
+provider or canonical fixture identities, transforms through reviewed team
+resolution and returns kickoff/UUID-ordered fixtures plus page-level cache key,
+request/response checksums, compatibility, retrieval and expiry provenance.
+Successful refreshes use the existing raw-manifest-gated cache writer. The
+reader does not synchronize normalized current-fixture tables or add an API or
+scheduler; those remain later boundaries.

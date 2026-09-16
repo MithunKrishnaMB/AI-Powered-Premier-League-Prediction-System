@@ -46,10 +46,81 @@ Milestone completion still requires the user-owned local closeout commit under
 the repository's milestone rule. No files were staged or committed by this
 implementation.
 
+## Closeout record
+
+- Steps 8.1 through 8.9 are implemented and documented.
+- The final suite passes 565 tests with 90.69% branch coverage on 64-bit Python
+  3.14.7.
+- Ruff lint/format, strict mypy, dependency, whitespace and local Markdown-link
+  checks pass.
+- Development and test PostgreSQL remain separate restricted targets at exact
+  head `f0009_step_7_9`; API reads do not mutate either target.
+- All 11 historical raw captures retain their verified manifest boundary.
+- The actual registry remains `development_accepted`, not active and resolves
+  to `no_active_model`.
+- The production artifact corpus was not imported, the sealed target was not
+  inspected and no provider was selected or contacted.
+- No files were staged or committed; the local closeout commit remains the
+  user's responsibility.
+
 ## Step 9.1 boundary
 
-Step 9.1 may implement cache-aware live fixture reads using the existing
-provider-neutral capability, exact-response cache and immutable synchronization
-contracts. It must not select a provider without explicit approval, generate
-scoreline distributions, access sealed targets, activate a model or add
-deployment, scheduled automation, frontend or CI/CD configuration.
+Step 9.1 is implemented as a provider-neutral read-through service over the
+existing fixture capability and immutable exact-response cache. It classifies
+exact-request cache evidence as fresh, stale or missing, reuses compatible
+exact bytes without provider contact and refreshes stale/missing pages only when
+the declared fixture capability is supported. Incompatible cache evidence fails
+closed. Complete pagination precedes reviewed team resolution and canonical
+fixture UUID derivation and ordered page provenance retains request/response
+checksums, cache key, compatibility, retrieval and expiry.
+
+No provider was selected or configured. Step 9.1 adds no FastAPI path and does
+not synchronize normalized fixture tables, poll, reconcile results, expose job
+commands, schedule work, generate predictions or simulations, inspect sealed
+targets or mutate registry or artifact state.
+
+Step 9.1 verification passes 579 tests with 90.82% branch coverage on Python
+3.14.7. Ruff lint/format checks 244 Python files, strict mypy checks 202
+source/test/migration files and dependency consistency passes. PostgreSQL
+integration exercises the exact fresh, stale and missing states only against
+the isolated test target, while the pinned OpenAPI contract remains sixteen
+GET-only operations.
+
+## Steps 9.2 through 9.4 boundary
+
+Step 9.2 adds a pure kickoff-aware policy and a composable
+read/synchronize/plan job. Exact kickoff proximity, in-progress, postponed and
+terminal state have deterministic bands. Date-only fixtures use the retained
+provider-local calendar boundary rather than their noon storage anchor. The
+policy returns the earliest next poll but schedules nothing.
+
+Step 9.3 applies the exact-cache fresh/stale/miss rules to completed-result
+pages. Fresh compatible bytes require no provider. Stale or missing pages
+refresh only through an injected supported capability. Complete pagination,
+canonical team/fixture resolution and duplicate checks all precede one
+raw-manifest-gated immutable reconciliation write; an empty response is a
+no-op. The PostgreSQL prior-fixture, official-score, chronology and idempotence
+constraints remain authoritative.
+
+Step 9.4 exposes `plp-current-data poll-fixtures` and
+`reconcile-final-matches`. Both require an explicit development/test target,
+season and UTC instant. Production is not a target, output/errors are sanitized
+JSON and the installed runner fails closed because no provider/runtime
+composition has been approved. Imports construct no provider, engine, model or
+artifact.
+
+The FastAPI contract remains the same sixteen GET operations with unchanged
+request IDs, envelopes, pagination, OpenAPI, CORS, headers and rate limits. No
+provider, scheduler, GitHub Actions, CI/CD substitute, credentials, prediction,
+simulation, retraining, registry transition, sealed-target evidence, production
+artifact, frontend or deployment configuration was introduced.
+
+Step 9.5 scheduling remains excluded under the current no-CI/CD constraint.
+Step 9.6 candidate retraining requires separate approval.
+
+The complete Python 3.14.7 suite now passes 617 tests with 91.08% branch
+coverage. Ruff lint/format checks 255 Python files, strict mypy checks 212
+source/test/migration files, dependency consistency and whitespace checks pass,
+and the live PostgreSQL suite verifies cache-backed final reconciliation and
+idempotence against the isolated test target. The OpenAPI contract remains
+sixteen GET-only operations. No changes were staged or committed.

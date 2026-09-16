@@ -92,7 +92,17 @@ pagination, quota, exact-response provenance and sanitized errors. Pure
 fixture/team transformations, a provider-neutral HTTPS/authentication/retry
 executor, immutable exact-byte PostgreSQL response caching, current match and
 squad synchronization and offline recorded-response replay are implemented.
-No external provider has been selected or configured.
+A cache-aware live fixture reader now classifies exact-request entries as fresh,
+stale or missing, reuses compatible exact bytes without provider contact and
+refreshes only through the declared provider-neutral fixture capability. It
+completes every provider page before canonical transformation and retains exact
+cache and retrieval provenance. A pure kickoff-aware policy now derives the
+next poll without scheduling it and a final-result reconciler completes all
+exact-cache-backed pages before one immutable repository write. Safe
+`plp-current-data` commands accept only explicit development/test targets and
+fail closed until provider/runtime dependencies are injected. No external
+provider has been selected or configured and none of this is wired to FastAPI
+or a scheduler.
 Production artifact import, current score-distribution integration and the
 frontend have not been created. CI/CD automation is intentionally not
 configured.
@@ -338,6 +348,8 @@ implementation. Start with:
 - [Step 6.1 to 6.2 handoff](docs/handoffs/step-6-1-to-6-2.md)
 - [current-provider capability and domain contracts](docs/data/current-provider-contracts.md)
 - [current-provider transformations, transport and caching](docs/data/current-provider-integration.md)
+- [cache-aware live fixture reads](docs/data/cache-aware-live-fixture-reads.md)
+- [live-data polling, reconciliation and job commands](docs/architecture/live-data-automation.md)
 - [Step 6.4 to 6.5 handoff](docs/handoffs/step-6-4-to-6-5.md)
 - [current-season fixture, result and standings synchronization](docs/data/current-season-synchronization.md)
 - [Step 6.7 to 6.8 handoff](docs/handoffs/step-6-7-to-6-8.md)
@@ -393,6 +405,9 @@ correctly fails closed because no active model exists.
 Steps 8.1 through 8.9 add the explicit FastAPI factory, health checks, request
 IDs, error envelopes, pagination, all planned read-only football/model
 projections, the reviewed OpenAPI contract and HTTP controls. Milestone I's
-implementation is complete; Step 9.1, cache-aware live fixture reads, is next.
+implementation is complete. Milestone J Steps 9.1 through 9.4 now add
+cache-aware fixture reads, deterministic polling policy, final-result
+reconciliation and fail-closed job commands. Step 9.5 scheduling remains
+excluded under the current no-CI/CD constraint.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.

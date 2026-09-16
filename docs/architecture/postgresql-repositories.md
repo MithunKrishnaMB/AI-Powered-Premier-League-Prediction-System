@@ -94,6 +94,20 @@ broad cache capability and request checksum, reject expired rows, reload both
 byte streams and revalidate request operation, source, compatibility, media
 metadata, checksums and deterministic cache key.
 
+Step 9.1 extends the read side without changing the schema. `lookup_latest`
+uses a read-only transaction at exact migration head and returns a validated
+`fresh`, `stale` or `miss` state for the latest exact request known by the
+lookup instant. The compatibility checks apply to stale entries as well, so
+corrupt evidence cannot be disguised as a cache miss or provider refresh.
+`get_latest_fresh` remains as the backward-compatible fresh-only projection.
+
+Steps 9.2 and 9.3 reuse that same lookup and do not introduce a repository or
+migration variant. The fixture polling job synchronizes only after a complete
+read. Final-result reconciliation completes all exact-cache pages and canonical
+identity checks before one `CurrentSeasonRepository.reconcile_results` call.
+Consequently the historical raw-manifest verifier still runs before every
+normalized write, while an empty result set opens no write transaction.
+
 ## Steps 6.5–6.7 current-season writes
 
 `CurrentSeasonRepository` exposes three narrow operations over the same

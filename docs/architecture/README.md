@@ -25,6 +25,8 @@ speculative future complexity.
 - [Architectural decision register](decisions.md)
 - [Current-provider capability and domain contracts](../data/current-provider-contracts.md)
 - [Current-provider transformations, transport and caching](../data/current-provider-integration.md)
+- [Cache-aware live fixture reads](../data/cache-aware-live-fixture-reads.md)
+- [Live-data polling, reconciliation and job commands](live-data-automation.md)
 - [Current-season fixture, result and standings synchronization](../data/current-season-synchronization.md)
 - [Current players, squads and recorded-response contracts](../data/current-squads-and-recorded-contracts.md)
 - [PostgreSQL entity-relationship model](postgresql-entity-relationship-model.md)

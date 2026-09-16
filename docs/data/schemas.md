@@ -57,6 +57,17 @@ The full contract, field-governance table and provider-cache projection are in
 [Current-Provider Capability and Domain Contracts](current-provider-contracts.md).
 The implemented transformation, HTTPS execution and cache behavior are in
 [Current-Provider Transformations, Transport and Caching](current-provider-integration.md).
+Step 9.1 composes those schemas into complete cache-aware fixture reads as
+documented in [Cache-Aware Live Fixture Reads](cache-aware-live-fixture-reads.md).
+Its result retains canonically ordered fixtures plus ordered per-page cache key,
+request and response checksums, compatibility, retrieval, expiry and cache
+decision. It introduces no persisted schema or migration.
+
+Steps 9.2 through 9.4 add no persisted schema or migration. The polling plan
+and CLI request/summary types are ephemeral immutable command data. Final-match
+reconciliation reuses `CompletedResultsRequest`, `CompletedResultsResponse`,
+`CanonicalCompletedResult`, the provider-cache projection and the existing
+current-result tables without weakening any identity or provenance field.
 
 ## Canonical fixture model
 

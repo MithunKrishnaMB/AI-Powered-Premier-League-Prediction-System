@@ -9,8 +9,14 @@ System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
 Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
 Integration; H — Prediction Lifecycle
 
-**Current milestone:** I — FastAPI (implementation complete; closeout commit
-pending)
+**Current milestone:** J — Live Data, Automation and Retraining. Milestone I
+implementation is complete and its closeout documentation remains pending in
+the same future user-owned commit as the first Milestone J implementation.
+
+**Completed Milestone J steps:** 9.1 — cache-aware live fixture reads over the
+provider-neutral capability and immutable exact-response cache boundaries; 9.2
+— deterministic kickoff-aware polling policy; 9.3 — exact-cache-aware final
+match reconciliation; 9.4 — fail-closed development/test job commands
 
 **Completed Milestone I steps:** 8.1 — explicit application factory, liveness
 and fail-closed dependency readiness; 8.2 — request IDs, uniform error envelopes
@@ -61,8 +67,9 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 9.1 — implement cache-aware live fixture
-reads, subject to explicit user approval and the existing provider boundary.
+**Next roadmap boundary:** Step 9.5 scheduling remains explicitly excluded by
+the current no-CI/CD constraint. Step 9.6 candidate retraining is not approved
+by this implementation and requires a separate request.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -75,6 +82,11 @@ integration
 
 **Milestone H implementation commit:** `4b44fcd` — add resumable idempotent
 post-match workflow journal
+
+**Milestone I closeout state:** implementation and documentation complete;
+565 tests pass with 90.69% branch coverage. The required user-owned local
+closeout commit is pending, so Milestone I is not yet listed among committed
+completed milestones.
 
 ## Implemented capabilities
 
@@ -133,6 +145,23 @@ post-match workflow journal
 - Raw-manifest-gated provider-cache writes and latest-fresh reads that preserve
   exact request and response bytes, independent checksums, retrieval/expiry,
   compatibility and HTTP metadata.
+- Provider-neutral cache-aware fixture reads that classify the latest exact
+  request as fresh, stale or missing; reuse validated exact bytes without
+  provider contact; refresh only through a supported fixture capability; finish
+  pagination before canonical transformation; and retain ordered cache and
+  retrieval provenance.
+- Pure kickoff-aware polling decisions with explicit bands for live, overdue,
+  imminent, near, distant, postponed, terminal and provider-local date-only
+  fixtures; the composable job persists a complete fixture read but schedules
+  nothing.
+- Exact-cache-aware completed-result reconciliation that finishes pagination,
+  rejects cycles and duplicate identities, retains per-page provenance and
+  performs one existing raw-manifest-gated repository write only for a complete
+  non-empty canonical result set.
+- Import-safe `plp-current-data` commands for fixture polling and final-match
+  reconciliation with required UTC time, season and development/test target.
+  The default runtime fails closed until provider and database dependencies are
+  explicitly injected; production is not an accepted target.
 - Immutable content-derived current fixture revisions, separate provider
   references and response observations, with fail-closed chronology and
   provider-local simultaneous batches.
@@ -368,15 +397,18 @@ post-match workflow journal
 
 ## Last verified quality result
 
-The implementation through Step 8.9 passes the complete local suite:
+The implementation through Step 9.4 passes the complete local suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 565 passed, including the pinned GET-only OpenAPI contract,
-  exact-origin CORS, security headers, rate-limit exhaustion/recovery, all
-  read-only projections and the complete prior suite.
-- Branch coverage: 90.69%, above the required 90% threshold.
+- pytest: 617 passed, including every kickoff/date-only polling band, safe CLI
+  inputs and fail-closed runtime behavior, fresh/stale/missing result cache
+  behavior, unavailable and incompatible capabilities, complete pagination,
+  exact recorded-response reuse, live PostgreSQL result idempotence, the pinned
+  GET-only OpenAPI contract and the complete prior suite.
+- Branch coverage: 91.08%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 199 source, test and migration Python files.
+- Strict mypy: passed across all 212 source, test and migration Python files;
+  Ruff formatting checked 255 Python files.
 - Dependency consistency: passed.
 - Development and test databases are at exact head `f0009_step_7_9`; the test
   database completed an `f0009` to `f0008` downgrade and re-upgrade while the
@@ -384,10 +416,11 @@ The implementation through Step 8.9 passes the complete local suite:
 - All 11 historical raw captures passed manifest verification with manifest
   SHA-256 `87b599ecb06e5f00e64323ef4b426b1b2d2f7db803e26038ae9fb4a76da96aa1`.
 - No external provider was selected or contacted. Only synthetic exact bytes
-  were persisted to the isolated test database; no production artifact import,
-  final-test access or model activation occurred. The actual filesystem
-  registry returned `no_active_model`; registry and model corpus aggregate
-  hashes remained byte-identical. No changes were staged or committed.
+  and normalized current-season integration evidence were exercised against
+  the isolated test database; no production artifact import, final-test access
+  or model activation occurred. The actual filesystem registry remains
+  `development_accepted` with no active model. No changes were staged or
+  committed.
 
 The preserved Milestone F closeout result was:
 
@@ -508,7 +541,8 @@ The preserved Milestone F closeout result was:
 - Final-test evidence and active model promotion.
 - Production artifact-corpus import through the typed repositories.
 - A selected production current-data provider and its vendor-specific parsers.
-- Cache-aware live fixture API reads and later Milestone J automation.
+- Scheduled execution and later Milestone J retraining, promotion and
+  monitoring work.
 - Deployment or frontend code.
 
 ## Development evaluation snapshot
@@ -534,5 +568,8 @@ deterministic manifest and derives progress from a hash-linked event prefix.
 Retries resume only the missing suffix; committed child writes and checkpoint
 acknowledgement loss are safe. Milestone I now has the complete application,
 health, transport, read-projection, OpenAPI and HTTP-control implementation.
-The exact next implementation boundary is Step 9.1, cache-aware live fixture
-reads under the existing provider-neutral and exact-cache contracts.
+Steps 9.1 through 9.4 now supply cache-aware provider-neutral fixture reads, a
+pure kickoff policy, complete final-result reconciliation and safe job command
+boundaries without an API or scheduling change. Step 9.5 scheduling remains
+excluded by the current no-CI/CD constraint. No candidate retraining, model
+comparison, promotion or monitoring work has been authorized.

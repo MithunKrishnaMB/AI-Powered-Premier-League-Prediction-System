@@ -1,6 +1,6 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 8.2.
+These decisions describe implemented behavior through Step 9.4.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -1271,3 +1271,135 @@ I/O. Configuration contains no credentials and Step 8.9 adds no provider,
 deployment, automation, frontend or registry behavior. This completes the
 Milestone I implementation boundary; its repository closeout commit remains a
 user-owned action.
+
+## ADR-050: Close Milestone I at the read-only HTTP boundary
+
+**Status:** Accepted
+
+**Decision:** Close the Milestone I implementation after Steps 8.1 through 8.9
+with exactly the explicit application factory, health boundary, shared
+transport contracts, version-one read projections, published GET-only OpenAPI
+contract and factory-scoped HTTP controls. Do not extend closeout into live
+provider reads, workflow commands, distributed infrastructure, deployment or
+frontend work.
+
+Carry the following invariants into Milestone J: module import and application
+construction perform no external I/O; liveness remains independent of every
+dependency; readiness requires the explicit PostgreSQL target, exact migration
+head and a truly active model; development acceptance is not activation; API
+database transactions are read-only and environment-isolated; the historical
+raw-manifest gate remains mandatory for writes; and the 2025–26 targets remain
+sealed until separately authorized final-test work.
+
+Treat the 565-test, 90.69% branch-coverage result as the Milestone I
+implementation evidence. Ruff lint/format over 240 Python files, strict mypy
+over 199 source/test/migration files, dependency consistency, diff and local
+Markdown-link checks also pass. The actual registry remains
+`development_accepted` and resolves to `no_active_model`; no provider,
+production corpus, prediction, simulation, metric, registry transition or
+deployment action occurred.
+
+**Consequences:** Step 9.1 is the exact next implementation boundary and may
+add cache-aware live fixture reads only through the existing provider-neutral
+capability and exact-response cache contracts. Provider selection, scoreline
+generation, active promotion, sealed-target access, scheduling, deployment,
+frontend and CI/CD remain separately authorized work. The repository's formal
+milestone-completion rule still requires a local closeout commit; this task
+leaves that commit and all staging to the user.
+
+## ADR-051: Read live fixture pages through the exact cache boundary
+
+**Status:** Accepted
+
+**Decision:** Implement Step 9.1 as a provider-neutral read-through service,
+not an HTTP route or scheduled job. Begin with one exact typed fixture request,
+classify the latest matching PostgreSQL cache entry as fresh, stale or missing
+at an explicit UTC instant and revalidate its request bytes, response bytes,
+checksums, deterministic key, transport metadata and compatibility before use.
+
+Decode a fresh compatible response directly from its exact bytes without
+consulting the provider. Never serve a stale entry. On stale or missing state,
+require an explicitly configured provider whose complete capability manifest
+matches the request and declares current-season fixtures supported, then cache
+the validated response through the existing historical raw-manifest-gated
+repository with an explicit positive TTL. Fail closed without provider fallback
+when cached evidence is incompatible.
+
+Follow advancing provider cursors to completion before producing a fixture
+collection. Preserve one cache/provenance record per page and reject cursor
+cycles or duplicate provider/canonical fixture identities. Transform only
+through the existing reviewed team resolution and canonical fixture UUIDv5
+logic. Do not synchronize normalized fixture tables in this step.
+
+**Consequences:** A later polling policy can reuse exact compatible bytes and
+make deterministic refresh decisions without embedding vendor logic. Partial
+page reads never become a fixture collection, while immutable page captures may
+be retried safely. No provider or credential configuration is added, production
+remains closed and the existing sixteen-operation FastAPI contract and its
+read-only query boundary are unchanged. Step 9.2 may add kickoff-aware polling
+only after separate approval; reconciliation, CLI jobs, scheduling, retraining,
+promotion and monitoring remain later steps.
+
+## ADR-052: Separate polling decisions from scheduling
+
+**Status:** Accepted
+
+**Decision:** Implement kickoff-aware polling as a pure policy over canonical
+current fixtures and an explicit UTC instant. Use fixed bands for in-progress,
+overdue, imminent, near, distant, postponed and terminal states. For date-only
+fixtures, derive boundaries from the retained provider timezone and local date;
+never treat the canonical noon anchor as a real kickoff.
+
+Compose the policy with cache-aware reads and immutable fixture synchronization
+through an injected `FixturePollingJob`, but return the earliest next poll as
+data only. Do not sleep, schedule, contact a provider or construct a database
+dependency during import.
+
+**Consequences:** Policy output is deterministic and testable without wall
+clock, network or database state. Complete fixture collections are persisted
+before their next-poll plan is returned. Scheduling remains Step 9.5 and is
+explicitly excluded under the current no-CI/CD constraint.
+
+## ADR-053: Reconcile final results only after complete exact-cache retrieval
+
+**Status:** Accepted
+
+**Decision:** Apply the Step 9.1 fresh/stale/miss rules to typed
+`completed_results` requests. Reuse exact compatible cached bytes on fresh
+hits. Refresh stale or missing pages only through an injected provider whose
+matching capability manifest declares completed results supported. Preserve
+cache key, request/response checksums, compatibility, retrieval and expiry for
+every page.
+
+Finish advancing pagination and reject cursor cycles or duplicate provider and
+canonical fixture identities before persistence. Transform only through the
+reviewed team resolution and canonical fixture identity, then pass one complete
+non-empty result set to the existing raw-manifest-gated current-season
+repository. Treat an empty complete response as a no-op.
+
+**Consequences:** Partial result pages cannot mutate the official result ledger.
+Prior-fixture, completion chronology, immutable score, idempotence and
+retrieval-time knowledge checks remain enforced by the existing application
+and PostgreSQL contracts. No new schema, provider or prediction behavior is
+introduced.
+
+## ADR-054: Expose current-data commands with an unavailable-by-default runtime
+
+**Status:** Accepted
+
+**Decision:** Expose `poll-fixtures` and `reconcile-final-matches` through the
+`plp-current-data` console entry point. Require a consecutive season ID, an
+explicit UTC evaluation instant and an explicit `development` or `test` target.
+Do not offer a production target. Emit compact deterministic JSON and sanitized
+unavailability errors.
+
+Keep provider, decoder, cache and database composition injected. Because no
+production current-data provider has been approved, the installed default
+runner must fail closed rather than guess a vendor, database or credential.
+
+**Consequences:** Commands and their provider-neutral job services are ready
+for a separately approved runtime adapter without creating import-time side
+effects or an implicit production path. FastAPI request IDs, error envelopes,
+pagination, OpenAPI, CORS, security headers and rate limits remain unchanged.
+No scheduler, GitHub Actions, CI/CD substitute, retraining, promotion or
+monitoring is added.

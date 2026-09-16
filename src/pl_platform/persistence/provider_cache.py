@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from enum import StrEnum
 from typing import cast
 
 from sqlalchemy import Engine, text
@@ -92,6 +93,55 @@ class ProviderCacheEntry:
     def is_fresh_at(self, value: datetime) -> bool:
         _must_be_utc(value, "cache lookup time")
         return self.fetched_at <= value < self.expires_at
+
+    @classmethod
+    def from_capture(
+        cls,
+        capture: ProviderResponseCapture,
+        *,
+        expires_at: datetime,
+    ) -> ProviderCacheEntry:
+        """Build the exact entry represented by one validated capture."""
+
+        return cls(
+            cache_key_sha256=deterministic_provider_cache_key(
+                source_id=capture.source_id,
+                capability=capture.capability,
+                request_identity_sha256=capture.request_identity.sha256,
+                fetched_at=capture.retrieved_at,
+            ),
+            source_id=capture.source_id,
+            capability=capture.capability,
+            request_identity=capture.request_identity,
+            response=capture.response,
+            fetched_at=capture.retrieved_at,
+            expires_at=expires_at,
+            compatibility_format_id=capture.compatibility.format_id,
+        )
+
+
+class ProviderCacheLookupStatus(StrEnum):
+    """Deterministic state of the latest exact-request cache entry."""
+
+    FRESH = "fresh"
+    STALE = "stale"
+    MISS = "miss"
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderCacheLookup:
+    """One validated latest-entry lookup and its freshness classification."""
+
+    status: ProviderCacheLookupStatus
+    entry: ProviderCacheEntry | None
+
+    def __post_init__(self) -> None:
+        if (self.status is ProviderCacheLookupStatus.MISS) != (self.entry is None):
+            raise ValueError("cache miss state and entry presence must agree")
+
+
+class ProviderCacheCompatibilityError(ValueError):
+    """A stored cache entry cannot be safely interpreted."""
 
 
 def provider_cache_write_plan(
@@ -185,6 +235,26 @@ class ProviderCacheRepository:
     ) -> ProviderCacheEntry | None:
         """Return the latest unexpired exact response for one exact request."""
 
+        lookup = self.lookup_latest(
+            source_id=source_id,
+            capability=capability,
+            request_identity_sha256=request_identity_sha256,
+            at=at,
+        )
+        if lookup.status is ProviderCacheLookupStatus.FRESH:
+            return lookup.entry
+        return None
+
+    def lookup_latest(
+        self,
+        *,
+        source_id: str,
+        capability: CurrentProviderCapability,
+        request_identity_sha256: str,
+        at: datetime,
+    ) -> ProviderCacheLookup:
+        """Return and classify the latest exact response known by ``at``."""
+
         _must_be_utc(at, "cache lookup time")
         if len(request_identity_sha256) != 64 or any(
             character not in "0123456789abcdef" for character in request_identity_sha256
@@ -192,7 +262,8 @@ class ProviderCacheRepository:
             raise ValueError("request identity must be lowercase SHA-256")
         cache_capability = PROVIDER_CACHE_CAPABILITY_BY_OPERATION[capability]
         try:
-            with self._engine.connect() as connection:
+            with self._engine.connect() as connection, connection.begin():
+                connection.execute(text("SET TRANSACTION READ ONLY"))
                 revision = connection.execute(
                     text("SELECT version_num FROM public.alembic_version")
                 ).scalar_one_or_none()
@@ -221,7 +292,7 @@ class ProviderCacheRepository:
                             "WHERE r.source_id = :source_id "
                             "AND r.capability = :capability "
                             "AND r.request_identity_sha256 = :request_sha256 "
-                            "AND r.fetched_at <= :at AND r.expires_at > :at "
+                            "AND r.fetched_at <= :at "
                             "ORDER BY r.fetched_at DESC, r.cache_key_sha256 DESC "
                             "LIMIT 1"
                         ),
@@ -243,8 +314,24 @@ class ProviderCacheRepository:
                 AggregateKind.PROVIDER_CACHE,
             ) from exc
         if row is None:
-            return None
-        return self._entry_from_row(row, capability)
+            return ProviderCacheLookup(
+                status=ProviderCacheLookupStatus.MISS,
+                entry=None,
+            )
+        try:
+            entry = self._entry_from_row(row, capability)
+        except (TypeError, ValueError) as exc:
+            raise ProviderCacheCompatibilityError(
+                "stored provider cache entry is incompatible"
+            ) from exc
+        return ProviderCacheLookup(
+            status=(
+                ProviderCacheLookupStatus.FRESH
+                if entry.is_fresh_at(at)
+                else ProviderCacheLookupStatus.STALE
+            ),
+            entry=entry,
+        )
 
     @staticmethod
     def _entry_from_row(

@@ -29,7 +29,10 @@ from pl_platform.ingestion.current import (
 )
 from pl_platform.persistence.database import create_database_engine
 from pl_platform.persistence.post_match_workflow import PostMatchWorkflowRepository
-from pl_platform.persistence.provider_cache import ProviderCacheRepository
+from pl_platform.persistence.provider_cache import (
+    ProviderCacheLookupStatus,
+    ProviderCacheRepository,
+)
 from pl_platform.persistence.repositories import (
     AggregateKind,
     AggregateWritePlan,
@@ -400,6 +403,24 @@ def test_provider_cache_round_trip_is_exact_fresh_and_idempotent(
         request_identity_sha256=capture.request_identity.sha256,
         at=NOW + timedelta(minutes=1),
     )
+    fresh = cache.lookup_latest(
+        source_id=SOURCE,
+        capability=CurrentProviderCapability.FIXTURES,
+        request_identity_sha256=capture.request_identity.sha256,
+        at=NOW + timedelta(minutes=1),
+    )
+    stale = cache.lookup_latest(
+        source_id=SOURCE,
+        capability=CurrentProviderCapability.FIXTURES,
+        request_identity_sha256=capture.request_identity.sha256,
+        at=expires_at,
+    )
+    missing = cache.lookup_latest(
+        source_id=SOURCE,
+        capability=CurrentProviderCapability.FIXTURES,
+        request_identity_sha256="0" * 64,
+        at=NOW,
+    )
 
     assert first.inserted_rows + first.existing_rows == 1
     assert second.inserted_objects == second.inserted_rows == 0
@@ -408,6 +429,14 @@ def test_provider_cache_round_trip_is_exact_fresh_and_idempotent(
     assert loaded.response.sha256 == capture.response.sha256
     assert loaded.request_identity.payload == capture.request_identity.payload
     assert loaded.compatibility_format_id == capture.compatibility.format_id
+    assert fresh.status is ProviderCacheLookupStatus.FRESH
+    assert fresh.entry == loaded
+    assert stale.status is ProviderCacheLookupStatus.STALE
+    assert (
+        stale.entry is not None and stale.entry.response.body == capture.response.body
+    )
+    assert missing.status is ProviderCacheLookupStatus.MISS
+    assert missing.entry is None
     with pytest.raises(ValueError, match="lowercase SHA-256"):
         cache.get_latest_fresh(
             source_id=SOURCE,
