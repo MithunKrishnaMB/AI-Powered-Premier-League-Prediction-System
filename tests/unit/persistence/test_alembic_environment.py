@@ -36,7 +36,8 @@ def test_steps_5_4_through_7_9_form_one_linear_revision_chain() -> None:
 
     script = ScriptDirectory.from_config(Config("alembic.ini"))
     assert script.get_heads() == ["f0009_step_7_9"]
-    assert [revision.revision for revision in script.walk_revisions()] == [
+    revisions = list(script.walk_revisions())
+    assert [revision.revision for revision in revisions] == [
         "f0009_step_7_9",
         "f0008_step_7_7",
         "f0007_step_7_4",
@@ -47,6 +48,19 @@ def test_steps_5_4_through_7_9_form_one_linear_revision_chain() -> None:
         "f0002_step_5_5",
         "f0001_step_5_4",
     ]
+    assert [revision.down_revision for revision in revisions] == [
+        "f0008_step_7_7",
+        "f0007_step_7_4",
+        "f0006_step_6_8",
+        "f0005_step_6_7",
+        "f0004_step_5_7",
+        "f0003_step_5_6",
+        "f0002_step_5_5",
+        "f0001_step_5_4",
+        None,
+    ]
+    assert all(revision.branch_labels == set() for revision in revisions)
+    assert all(revision.dependencies is None for revision in revisions)
 
 
 def test_alembic_files_do_not_embed_local_password() -> None:

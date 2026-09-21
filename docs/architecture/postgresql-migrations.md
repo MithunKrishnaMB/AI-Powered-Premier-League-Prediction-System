@@ -95,3 +95,19 @@ before opening writes and compare exact bytes and normalized relationships
 before commit. Step 5.9 verifies transaction rollback, idempotency, conflicts,
 checksums and immutable guards. Current-season repository integration tests run
 against exact head `f0009_step_7_9`.
+
+Step 10.1 converts the complete local cycle into an opt-in executable release
+contract. `pytest --cov --require-local-release` first proves that the selected
+connection is the restricted `pl_app` login on `pl_platform_test`, then uses an
+externally supplied connection and caller-owned outer transaction to downgrade
+head to base and upgrade each of the nine revisions in order. It checks the
+version after every upgrade, requires all twelve bounded schemas at head and
+rolls the outer transaction back so pre-existing test state is restored. The
+development database is never supplied to Alembic and its head is compared
+before and after the cycle.
+
+The static migration test separately pins the exact file set, single head,
+parent edge for every revision and absence of branch labels or dependency
+edges. Together these checks reject an accidental branch, extra revision,
+missing downgrade or silently skipped local database cycle without adding a
+new migration.

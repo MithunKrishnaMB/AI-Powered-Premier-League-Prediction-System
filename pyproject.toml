@@ -19,6 +19,7 @@ dependencies = [
     "SQLAlchemy==2.0.52",
     "starlette==1.6.0",
     "tzdata==2026.3",
+    "uvicorn==0.53.0",
 ]
 
 [project.scripts]
@@ -51,6 +52,7 @@ addopts = [
     "-ra",
 ]
 markers = [
+    "local_release: requires complete local release evidence and may exercise transactional test-database migrations",
     "postgresql: requires configured local PostgreSQL development and test databases",
 ]
 testpaths = ["tests"]

@@ -114,6 +114,26 @@ Production artifact import, current score-distribution integration and the
 frontend have not been created. CI/CD automation is intentionally not
 configured.
 
+Milestone K Step 10.1 hardens the local release boundary without adding a
+runtime feature. An explicit pytest release mode now requires both isolated
+PostgreSQL targets at the exact migration head, all eleven checksum-pinned raw
+captures and the actual single `development_accepted` registry history with no
+active model. The same mode transactionally exercises the complete nine-
+revision downgrade/upgrade chain only against `pl_platform_test` and rolls the
+outer transaction back. Direct dependency pins, the 64-bit Python 3.14.7
+runtime, `pip check` consistency and package-wide side-effect-free imports are
+also executable test contracts. No container, deployment, hosted service or
+automation was added.
+
+Step 10.2 now packages the same backend in a digest-pinned Python 3.14.7 image.
+The deny-by-default build context contains no credentials, data or artifact
+corpus; the process runs as UID/GID 10001 and accepts only the production
+environment before replacing itself with one pinned Uvicorn worker. Container
+liveness is healthy while readiness intentionally remains HTTP 503 without a
+production database or active model. No hosted database, deployment,
+automation, provider, production artifact import or registry mutation was
+added.
+
 The development environment uses 64-bit Python 3.14.7.
 
 ## Local setup
@@ -163,8 +183,34 @@ Run the quality checks with:
 ruff check .
 ruff format --check .
 mypy src tests migrations
-pytest --cov
+python -m pip check
+pytest --cov --require-local-release
 ```
+
+`--require-local-release` is the explicit backend-release gate. It fails when
+the local development/test PostgreSQL topology, raw corpus or registry evidence
+is missing instead of allowing those checks to be reported as skipped. The
+migration cycle uses an outer transaction on the verified test database and
+restores its prior state; it never migrates the development database.
+
+### Local production container
+
+Docker builds the production-shaped backend locally from the exact Python
+3.14.7 base-image digest:
+
+```powershell
+docker build --tag pl-platform-backend:local .
+docker run --detach --rm `
+  --name pl-platform-backend-local `
+  --publish 127.0.0.1:8000:8000 `
+  pl-platform-backend:local
+```
+
+`GET /health/live` returns HTTP 200. `GET /health/ready` deliberately returns
+HTTP 503 until separately authorized production PostgreSQL and active-model
+work exists. Runtime secrets must be supplied outside the image; never put them
+in the Dockerfile or build context. See the
+[production container runtime](docs/architecture/production-container-runtime.md).
 
 ## Historical data acquisition
 
@@ -372,6 +418,10 @@ implementation. Start with:
 - [Step 8.2 to 8.3 handoff](docs/handoffs/step-8-2-to-8-3.md)
 - [Step 8.7 to 8.8 handoff](docs/handoffs/step-8-7-to-8-8.md)
 - [Milestone I to J handoff](docs/handoffs/milestone-i-to-j.md)
+- [Milestone J to K handoff](docs/handoffs/milestone-j-to-k.md)
+- [Step 10.1 to 10.2 handoff](docs/handoffs/step-10-1-to-10-2.md)
+- [Step 10.2 to 10.3 handoff](docs/handoffs/step-10-2-to-10-3.md)
+- [Production container runtime](docs/architecture/production-container-runtime.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 

@@ -89,6 +89,22 @@ lifecycle and post-match workflow structures. The current head is
 reviewed commands are
 documented in the [migration chain](postgresql-migrations.md).
 
+## Local release gate
+
+Step 10.1 adds an explicit `pytest --cov --require-local-release` mode. Before
+the release-only checks run, it requires both configured URLs, verifies that
+they resolve to distinct `pl_platform_dev` and `pl_platform_test` databases,
+reuses the restricted-role and UTC checks and requires exact head
+`f0009_step_7_9` on both targets. Missing or incompatible local evidence is a
+failure in this mode rather than a PostgreSQL test skip.
+
+The executable migration cycle validates the target identity before changing
+schema state, supplies only a `pl_platform_test` connection to Alembic and
+performs all downgrade and incremental upgrade operations inside one caller-
+owned outer transaction. Rolling that transaction back restores the original
+test database. The development target is read only and its unchanged head is
+checked after the cycle. No production target or fallback exists.
+
 ## Preserved boundaries
 
 Connection and migration initialization do not import artifacts, bypass source

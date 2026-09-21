@@ -1,6 +1,6 @@
 # Project Status
 
-**Status date:** 2026-09-16
+**Status date:** 2026-09-21
 
 **Runtime:** 64-bit Python 3.14.7
 
@@ -8,10 +8,17 @@
 System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
 Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
 Integration; H — Prediction Lifecycle; I — FastAPI Application and Read-Only
-API
+API; J — Live Data, Operational Workflows and Retraining
 
-**Current milestone:** J — Live Data, Automation and Retraining — implementation
-complete; Milestone K remains planned and separately authorized.
+**Current milestone:** K — Backend Release — in progress; Steps 10.1 and 10.2
+complete.
+
+**Completed Milestone K steps:** 10.1 — explicit local release evidence,
+dependency and runtime integrity, package-wide import safety, exact migration-
+graph verification and rollback-only full-chain migration testing against the
+isolated test database; 10.2 — digest-pinned Python 3.14.7 container, pinned
+Uvicorn process, production-only entry point, non-root single-worker runtime,
+allowlisted build context and local image/runtime verification
 
 **Completed Milestone J steps:** 9.1 — cache-aware live fixture reads over the
 provider-neutral capability and immutable exact-response cache boundaries; 9.2
@@ -70,10 +77,13 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** 10.1 — harden tests, migrations and
-dependency scanning, subject to separate approval. The former Milestone J
-scheduling item remains removed; no automation, CI/CD, GitHub Actions or
-DevOps substitute is planned.
+**Exact next implementation step:** 10.3 — hosted PostgreSQL provisioning and
+migration, not approved or started. After separate explicit approval, its scope
+is a least-privilege production database, explicit secret-backed configuration
+and the reviewed nine-revision Alembic chain. It will not deploy FastAPI, select
+a provider, import production artifacts, inspect sealed targets or begin Step
+10.4. Steps 10.1 and 10.2 do not authorize automation, CI/CD, GitHub Actions,
+deployment or other hosted infrastructure.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -91,11 +101,17 @@ post-match workflow journal
 FastAPI closeout documentation and deterministic target-safe candidate
 retraining lineage through Step 9.5.
 
+**Milestone J implementation commit:** `059c226` — records deterministic
+candidate comparison and passive retraining observability through Step 9.7.
+
 ## Implemented capabilities
 
 - Installable `pl_platform` package using the `src/` layout.
 - Explicit FastAPI application construction without an import-time application,
   startup connection or model load.
+- Digest-pinned Python 3.14.7 production image with a deny-by-default build
+  context, production-only entry point, non-root UID/GID 10001 and one pinned
+  Uvicorn worker.
 - Process-only liveness and ordered fail-closed readiness over the explicitly
   selected PostgreSQL target, exact Alembic head and strict active-model chain.
 - Validated/generated request IDs, sanitized uniform error envelopes and strict
@@ -216,6 +232,12 @@ retraining lineage through Step 9.5.
   identity, compatibility, retrieval time, pagination and quota metadata.
 - Structured JSON logging with recursive key-based secret redaction.
 - Local Ruff, strict mypy, pytest, branch coverage and dependency checks.
+- An explicit local-release pytest mode that fails rather than skips when
+  isolated PostgreSQL, raw-manifest or actual registry evidence is missing.
+- A rollback-only test-database migration cycle covering every revision from
+  base through `f0009_step_7_9` while leaving development untouched.
+- Exact direct dependency-pin/runtime checks and a package-wide isolated import
+  sweep with external constructors blocked.
 - Versioned Football-Data manifest with HTTPS host allowlisting.
 - Immutable, checksum-verified, idempotent historical downloads.
 - Typed Football-Data row parsing with retained additional source fields.
@@ -411,25 +433,34 @@ retraining lineage through Step 9.5.
 
 ## Last verified quality result
 
-The implementation through Step 9.7 passes the complete local suite:
+The implementation through Step 10.2 passes the complete local release suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 642 passed, including every kickoff/date-only polling band, safe CLI
+- pytest: 653 passed with no skips, including every kickoff/date-only polling
+  band, safe CLI
   inputs and fail-closed runtime behavior, fresh/stale/missing result cache
   behavior, unavailable and incompatible capabilities, complete pagination,
   exact recorded-response reuse, live PostgreSQL result idempotence, sealed-
   target rejection, deterministic candidate identity and canonical unassessed
   manifest validation, later disjoint comparison evidence, all three report
   decisions, passive operational snapshots, the pinned GET-only OpenAPI
-  contract and the complete prior suite.
-- Branch coverage: 91.06%, above the required 90% threshold.
+  contract, exact dependency pins, package-wide import safety, required local
+  release evidence, the complete migration cycle, production entry-point and
+  loopback Uvicorn runtime contracts and the complete prior suite.
+- Branch coverage: 91.07%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 220 source, test and migration Python files;
-  Ruff formatting checked 266 Python files.
+- Strict mypy: passed across all 229 source, test and migration Python files;
+  Ruff formatting checked 279 files.
 - Dependency consistency: passed.
+- Docker Desktop 4.84.0 built the digest-pinned image. Its liveness healthcheck
+  became healthy under UID/GID 10001, readiness returned HTTP 503 with
+  `production_database_not_configured` and `no_active_model` and the exact
+  sixteen-operation GET-only OpenAPI surface, production HSTS and request ID
+  were preserved. A non-production environment override exited before serving.
 - Development and test databases are at exact head `f0009_step_7_9`; the test
-  database completed an `f0009` to `f0008` downgrade and re-upgrade while the
-  two targets remained explicitly isolated.
+  database completed the full head-to-base and incremental nine-revision
+  base-to-head cycle inside a rolled-back outer transaction while the
+  development target remained unchanged.
 - All 11 historical raw captures passed manifest verification with manifest
   SHA-256 `87b599ecb06e5f00e64323ef4b426b1b2d2f7db803e26038ae9fb4a76da96aa1`.
 - No external provider was selected or contacted. Only synthetic exact bytes
@@ -563,6 +594,8 @@ The preserved Milestone F closeout result was:
 - Scheduling, automation, CI/CD, GitHub Actions and DevOps configuration are
   removed from the roadmap rather than pending implementation.
 - Deployment or frontend code.
+- Hosted production PostgreSQL remains unstarted pending separate approval for
+  Step 10.3; FastAPI deployment remains Step 10.4.
 
 ## Development evaluation snapshot
 
@@ -594,5 +627,10 @@ explicit deterministic candidate retraining while keeping its output
 unassessed, in memory and outside the artifact corpus and registry. The former
 scheduling item has been removed. Steps 9.6 and 9.7 now add a later disjoint
 comparison report and passive manual observability while keeping registry
-disposition at no change. Milestone J is implemented; Milestone K remains
-separately authorized work.
+disposition at no change. Milestone J is implemented. Milestone K Step 10.1
+provides the explicit local release gate, exact dependency and import contracts
+and rollback-only full migration-cycle verification. Step 10.2 now packages
+that backend as a digest-pinned, production-only, non-root, single-worker image
+and verifies it locally without secrets or artifacts. Step 10.3 is the exact
+next planned boundary but remains separately unauthorized; no hosted database,
+deployment, automation or other infrastructure work was added.

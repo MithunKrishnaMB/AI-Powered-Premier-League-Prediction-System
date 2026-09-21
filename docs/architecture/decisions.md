@@ -1488,3 +1488,116 @@ deployment configuration or other DevOps substitute.
 without creating hidden I/O, background work or import-time dependencies. A
 human-review signal never authorizes promotion; final-test evidence and active
 promotion remain separately prohibited.
+
+## ADR-058: Close Milestone J without an automation or promotion path
+
+**Status:** Accepted
+
+**Decision:** Close Milestone J after the seven implemented, renumbered steps:
+cache-aware fixture reads; pure polling decisions; exact-cache final-result
+reconciliation; fail-closed development/test commands; explicit in-memory
+candidate retraining; later disjoint candidate comparison; and passive manual
+observability. Treat commit `059c226` as the completed implementation baseline
+for the comparison and observability boundary.
+
+The originally planned scheduled GitHub Actions item remains deleted rather
+than deferred. Do not reinterpret the pure polling policy, command boundary or
+passive snapshot as a scheduler, monitor loop or deployment facility. Preserve
+the sixteen-operation GET-only FastAPI contract, lazy dependency construction,
+explicit development/test PostgreSQL isolation and production fail-closed
+behavior.
+
+Carry forward the verified Python 3.14.7 result of 642 tests and 91.06% branch
+coverage, strict typing over 220 source/test/migration files, exact historical
+manifest verification and the actual `development_accepted` registry with no
+active model. Candidate review remains non-mutating; no final-test evidence,
+artifact promotion, provider selection, scoreline inference, prediction or
+simulation is authorized by this closeout.
+
+Set Milestone K Step 10.1 as the exact next boundary. Limit it to local test,
+migration and dependency hardening. It must begin with an inspection and plan,
+then wait for explicit approval before modifying files. Do not start Step 10.2
+or later container, hosted-database, deployment, CI/CD, GitHub Actions,
+scheduling or DevOps work without separate explicit authorization.
+
+**Consequences:** Milestone J is a complete provider-neutral, manually invoked
+operational boundary with reproducible evidence but no production runtime or
+active model. Backend-release work starts from a clean local quality audit,
+while infrastructure and deployment remain outside the approved scope.
+
+## ADR-059: Require explicit, reversible local release evidence
+
+**Status:** Accepted
+
+**Context:** The portable pytest suite may legitimately skip PostgreSQL tests
+when local configuration is absent, but that behavior is too weak for a backend
+release gate. The nine-revision Alembic graph was pinned statically while its
+base/head cycle remained a manual closeout command. Dependency consistency was
+checked locally but exact direct pins, the 64-bit Python patch runtime and all-
+module import safety were not one executable contract. Readiness also proved
+`no_active_model` without requiring the actual registry to retain its sole
+`development_accepted` history.
+
+**Decision:** Add an explicit `--require-local-release` pytest mode. In that
+mode, fail unless the distinct restricted development and test PostgreSQL
+targets are configured at exact head `f0009_step_7_9`, all eleven historical
+captures pass the existing raw-manifest verifier and exactly one verified
+registry history ends at `development_accepted` with zero active entries.
+
+Pin the complete Alembic file and parent graph in unit tests. Exercise head to
+base and each ordered base-to-head revision only through an externally supplied
+`pl_platform_test` connection inside a caller-owned transaction, then roll it
+back and prove both database heads are unchanged. Never supply the development
+connection to the migration operation.
+
+Parse the existing runtime and development dependency declarations with the
+standard library, require exact direct pins, compare them with installed
+versions and retain `python -m pip check` for transitive consistency. Require
+the reviewed 64-bit Python 3.14.7 runtime. Import every `pl_platform` module in
+an isolated subprocess with external constructors blocked and require no file
+output. Add no dependency, lock service, vulnerability service, network call,
+scheduler, CI/CD, container or deployment configuration.
+
+**Consequences:** A normal developer test run remains portable, while the
+documented local release command cannot report success by silently omitting
+PostgreSQL, raw-corpus or registry evidence. The cycle validates upgrade and
+downgrade behavior without retaining schema or data changes. Existing
+raw-manifest gates, production fail-closed behavior, the sixteen-operation
+GET-only API, the sealed 2025–26 target and the non-active registry state remain
+unchanged. Step 10.2 and all infrastructure work require separate approval.
+
+## ADR-060: Package one fail-closed non-root production API process
+
+**Status:** Accepted
+
+**Context:** The reviewed FastAPI factory and local release evidence did not
+define a production process or container. The application uses a process-local
+rate limiter, requires Python 3.14.7, must never fall back from production to a
+development/test database and must not treat `development_accepted` as active.
+The repository also contains ignored credentials, raw data and artifact corpora
+that must not enter an image build context.
+
+**Decision:** Build from the digest-pinned official Python 3.14.7 slim-trixie
+image and install the exact project pins plus Uvicorn 0.53.0 from the copied
+source. Use a deny-by-default build context that admits only metadata and
+`src/`. Run as UID/GID 10001 with write access only below `/runtime` and do not
+create or copy a registry history.
+
+Enter through the side-effect-free `pl_platform.api.production_runtime` module.
+Require `PLP_ENVIRONMENT=production`, then replace the entry process with the
+explicit FastAPI factory under one Uvicorn worker. Disable proxy-header trust
+until a deployment defines trusted proxies. Use `/health/live` for the
+container healthcheck and preserve `/health/ready` as the ordered PostgreSQL and
+active-model gate.
+
+Keep secrets entirely in runtime inputs. Do not define a production database,
+import an artifact corpus, deploy the image or add CI/CD, automation, provider
+selection, prediction, simulation, final-test or registry work.
+
+**Consequences:** The backend now has a locally verified, reproducible process
+boundary whose empty default state is alive but intentionally not ready. It
+reports `production_database_not_configured` and `no_active_model`, preserves
+the sixteen-operation GET-only API and runs without root privileges. A
+non-production environment override fails before Uvicorn starts. Hosted
+PostgreSQL remains Step 10.3 and deployment remains Step 10.4, each requiring
+separate explicit approval.

@@ -266,7 +266,7 @@ re-upgrade cycle. The actual registry still resolves to `no_active_model`.
 **Implementation commit:** `4b44fcd` — add resumable idempotent post-match
 workflow journal.
 
-## Milestone I — FastAPI — implementation complete; closeout commit pending
+## Milestone I — FastAPI — complete
 
 - **Step 8.1 — complete:** Added an explicit side-effect-free application
   factory, process-only liveness and fail-closed PostgreSQL/active-model
@@ -314,19 +314,17 @@ OpenAPI contract tests pin all 16 GET operations and prohibit mutation verbs;
 transport tests cover CORS, security headers and bounded rate behavior. No
 provider, target, registry, artifact or database mutation occurred.
 
-**Milestone I implementation closeout:** Steps 8.1 through 8.9 are complete and
-the implementation, architecture and handoff documentation agree. The API
+**Milestone I closeout:** Commit `c74ba9b` records the completed implementation,
+architecture and handoff documentation for Steps 8.1 through 8.9. The API
 remains GET-only and import-safe; liveness is dependency-independent, readiness
 fails closed, database reads are environment-isolated and read-only, the actual
 registry remains `development_accepted` with no active model and the sealed
 2025–26 target remains untouched. No provider, production artifact corpus,
 deployment, frontend, scheduled automation or CI/CD configuration was added.
-Under the repository completion rule, formal milestone completion awaits the
-user-owned local closeout commit because this task did not stage or commit
-files. Its handoff boundary was Step 9.1, cache-aware live fixture reads under
-the existing provider-neutral and exact-cache boundaries.
+Its handoff boundary was Step 9.1, cache-aware live fixture reads under the
+existing provider-neutral and exact-cache boundaries.
 
-## Milestone J — Live Data, Automation and Retraining — in progress
+## Milestone J — Live Data, Automation and Retraining — complete
 
 - **Step 9.1 — complete:** Added provider-neutral read-through fixture pages
   over the immutable exact-response cache. Fresh compatible bytes avoid
@@ -398,16 +396,77 @@ decisions, checksum drift, passive signal mapping and zero registry mutation.
 All 11 historical captures remained exact-manifest verified and the live
 PostgreSQL suite remained isolated to the explicit test target.
 
-## Milestone K — Backend Release — planned
+**Milestone J closeout:** Steps 9.1 through 9.7 are complete. The scheduled
+automation item was explicitly removed and no substitute scheduler, CI/CD,
+GitHub Actions, deployment or DevOps configuration exists. Commit `059c226`
+records the completed comparison and passive-observability implementation on
+top of the earlier live-data and retraining work. The final Python 3.14.7 suite
+passes 642 tests with 91.06% branch coverage; Ruff lint/format, strict mypy over
+220 source/test/migration files, dependency consistency, PostgreSQL isolation,
+historical manifest verification, diff whitespace and local Markdown-link
+checks pass. The actual registry remains `development_accepted` with no active
+model, no final-test evidence was created and the sealed 2025–26 targets remain
+uninspected.
 
-- **Step 10.1:** Harden tests, migrations and dependency scanning.
-- **Step 10.2:** Create production container/runtime configuration.
-- **Step 10.3:** Provision and migrate a hosted PostgreSQL database.
+**Exact next step:** Milestone K Step 10.1, a local-only hardening audit of
+tests, migration verification and dependency checks. It requires separate
+approval and must not add CI/CD, GitHub Actions, scheduling, deployment,
+containers, hosted infrastructure or another DevOps substitute.
+
+## Milestone K — Backend Release — in progress
+
+- **Step 10.1 — complete:** Hardened the explicit local release test mode,
+  dependency-pin and environment integrity checks, package-wide import safety,
+  exact Alembic graph verification and a rollback-only full migration cycle on
+  the isolated test database. No automation or external infrastructure was
+  added.
+- **Step 10.2 — complete:** Added a digest-pinned Python 3.14.7 image, explicit
+  production-only Uvicorn entry point, non-root single-worker process,
+  deny-by-default build context, liveness healthcheck and deterministic local
+  process/image verification. The empty image remains fail-closed and not
+  ready; it contains no secrets, database configuration or artifact corpus.
+- **Step 10.3 — exact next step; not started:** After separate explicit
+  approval, provision and migrate a hosted PostgreSQL database while preserving
+  least privilege, explicit production configuration and the reviewed
+  nine-revision Alembic chain. It must not deploy FastAPI or begin Step 10.4.
 - **Step 10.4:** Deploy FastAPI after current platform research and explicit
   deployment approval.
 - **Step 10.5:** Run historical-to-API end-to-end validation.
 - **Step 10.6:** Verify secret handling, quotas, recovery and reproducibility.
 - **Step 10.7:** Declare the backend/ML acceptance gate passed.
+
+**Steps 10.1 and 10.2 boundary:** The release-only pytest mode requires both
+restricted, isolated local PostgreSQL targets at exact head, all eleven
+historical raw captures and the actual single `development_accepted` registry
+history with no active model. It rejects skipped local evidence, validates all
+nine migration upgrades after a complete downgrade inside a rollback-only
+test-database transaction and enforces exact direct dependency pins, local
+dependency consistency, Python 3.14.7 and side-effect-free package imports. The
+production image adds only the pinned Uvicorn server and packages that verified
+backend as one non-root, production-only process without copying local evidence.
+
+**Step 10.1 verification:** Python 3.14.7 completed 648 tests with no skips and
+91.06% branch coverage. Ruff lint and formatting passed over 273 files, strict
+mypy passed over 225 source/test/migration files and dependency consistency
+passed. The release gate verified both restricted PostgreSQL 18.4 targets at
+`f0009_step_7_9`, completed the rollback-only nine-revision test-database cycle,
+verified all eleven raw captures and required the actual registry to remain
+`development_accepted` with zero active models.
+
+**Step 10.2 verification:** The digest-pinned image builds locally, runs as
+UID/GID 10001 under one Uvicorn worker and becomes container-healthy through
+HTTP 200 liveness. Its empty production state returns HTTP 503 readiness with
+`production_database_not_configured` and `no_active_model`; request IDs,
+production HSTS and the sixteen GET-only OpenAPI paths remain intact. A
+non-production environment override exits before Uvicorn starts. The complete
+Python 3.14.7 release suite passes 653 tests with no skips and 91.07% branch
+coverage; Ruff passes across 279 files, strict mypy passes across 229 Python
+files and dependency consistency passes.
+
+**Exact next step:** Milestone K Step 10.3, hosted PostgreSQL provisioning and
+migration. It is planned but not started and requires separate explicit
+approval. Deployment remains Step 10.4; no host or deployment configuration is
+selected by Step 10.2.
 
 ## Milestone L — Frontend, Last — planned
 

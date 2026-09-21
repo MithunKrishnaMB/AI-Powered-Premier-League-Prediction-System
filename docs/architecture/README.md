@@ -11,9 +11,9 @@ Planned topics include:
 - model training, validation, calibration and versioning
 - score modelling and season simulation
 - PostgreSQL schema and migration strategy
-- provider adapters, caching and ingestion workflows
+- provider adapters, caching and explicitly invoked ingestion workflows
 - FastAPI contracts and scheduled jobs
-- deployment and operational decisions
+- operational boundaries and separately authorized deployment decisions
 - frontend architecture, after backend acceptance
 
 Major decisions will record the decision, alternatives, rationale and
@@ -36,6 +36,7 @@ speculative future complexity.
 - [FastAPI application and transport boundary](fastapi-application-and-transport.md)
 - [FastAPI read projections](fastapi-read-projections.md)
 - [FastAPI OpenAPI and HTTP controls](fastapi-openapi-and-http-controls.md)
+- [Production container runtime](production-container-runtime.md)
 - [Point-in-time feature processing](../features/point-in-time.md)
 - [Probabilistic development evaluation](../models/probabilistic-evaluation.md)
 - [Candidate retraining](../models/candidate-retraining.md)
@@ -59,3 +60,6 @@ speculative future complexity.
 - [Step 8.2 to 8.3 handoff](../handoffs/step-8-2-to-8-3.md)
 - [Step 8.7 to 8.8 handoff](../handoffs/step-8-7-to-8-8.md)
 - [Milestone I to J handoff](../handoffs/milestone-i-to-j.md)
+- [Milestone J to K handoff](../handoffs/milestone-j-to-k.md)
+- [Step 10.1 to 10.2 handoff](../handoffs/step-10-1-to-10-2.md)
+- [Step 10.2 to 10.3 handoff](../handoffs/step-10-2-to-10-3.md)
