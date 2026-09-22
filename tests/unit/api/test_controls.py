@@ -30,6 +30,7 @@ def _controlled_client(
     limit: int = 2,
     clock: MutableClock | None = None,
     credentials: bool = True,
+    trusted_client_ip: bool = False,
 ) -> TestClient:
     settings = Settings(
         cors_allowed_origins=(ALLOWED_ORIGIN,),
@@ -37,6 +38,7 @@ def _controlled_client(
         rate_limit_requests=limit,
         rate_limit_window_seconds=60,
         rate_limit_max_clients=2,
+        trusted_client_ip_header=("CF-Connecting-IP" if trusted_client_ip else None),
     )
     limiter = SlidingWindowRateLimiter(
         limit=limit,
@@ -147,6 +149,38 @@ def test_rate_limit_is_stable_expires_and_does_not_limit_liveness() -> None:
     assert limited.json()["error"]["code"] == "rate_limit_exceeded"
     assert recovered.status_code == 200
     assert recovered.headers["RateLimit-Remaining"] == "1"
+
+
+def test_rate_limit_uses_only_explicitly_trusted_valid_client_ip_header() -> None:
+    with _controlled_client(limit=1, trusted_client_ip=True) as client:
+        first = client.get(
+            "/openapi.json",
+            headers={"CF-Connecting-IP": "192.0.2.1"},
+        )
+        second = client.get(
+            "/openapi.json",
+            headers={"CF-Connecting-IP": "192.0.2.2"},
+        )
+        repeated = client.get(
+            "/openapi.json",
+            headers={"CF-Connecting-IP": "192.0.2.1"},
+        )
+
+    assert first.status_code == second.status_code == 200
+    assert repeated.status_code == 429
+
+    with _controlled_client(limit=1) as client:
+        direct = client.get(
+            "/openapi.json",
+            headers={"CF-Connecting-IP": "192.0.2.1"},
+        )
+        spoofed = client.get(
+            "/openapi.json",
+            headers={"CF-Connecting-IP": "192.0.2.2"},
+        )
+
+    assert direct.status_code == 200
+    assert spoofed.status_code == 429
 
 
 def test_security_policy_varies_for_docs_and_production_hsts() -> None:

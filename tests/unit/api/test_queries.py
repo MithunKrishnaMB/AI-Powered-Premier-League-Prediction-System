@@ -10,6 +10,7 @@ from typing import Self
 from uuid import UUID
 
 import pytest
+from pydantic import SecretStr
 from pytest import MonkeyPatch
 
 from pl_platform.api.errors import ApiError
@@ -19,7 +20,7 @@ from pl_platform.api.queries import (
     default_resource_query_service,
 )
 from pl_platform.api.resources import FixtureStatus
-from pl_platform.core.config import Settings
+from pl_platform.core.config import Environment, Settings
 from pl_platform.persistence.repositories import MIGRATION_HEAD
 
 TEAM_ID = UUID("00000000-0000-0000-0000-000000000001")
@@ -194,8 +195,22 @@ class ScriptedEngine:
         self.disposed = True
 
 
-def _settings(environment: str = "test") -> Settings:
-    return Settings(environment=environment)  # type: ignore[arg-type]
+def _settings(
+    environment: Environment = "test",
+    *,
+    production_database: bool = False,
+) -> Settings:
+    return Settings(
+        environment=environment,
+        production_database_url=(
+            SecretStr(
+                "postgresql+psycopg://pl_api:production@db.example:5432/pl_prod"
+                "?sslmode=require"
+            )
+            if production_database
+            else None
+        ),
+    )
 
 
 def _service(
@@ -392,6 +407,30 @@ def test_query_boundary_fails_closed_for_environment_schema_and_rows(
     with pytest.raises(ApiError, match="database_not_configured") as production_error:
         production.list_seasons(pagination=PaginationParams())
     assert production_error.value.status_code == 503
+
+    production_engine = ScriptedEngine(
+        (ScriptedResult(scalar=0), ScriptedResult(rows=())),
+        MIGRATION_HEAD,
+    )
+
+    def create_production_engine(
+        settings: Settings,
+        *,
+        target: str,
+    ) -> ScriptedEngine:
+        assert settings.environment == "production"
+        assert target == "production"
+        return production_engine
+
+    monkeypatch.setattr(
+        "pl_platform.api.queries.create_database_engine",
+        create_production_engine,
+    )
+    configured_production = PostgresResourceQueryService(
+        _settings("production", production_database=True)
+    )
+    assert configured_production.list_seasons(pagination=PaginationParams()).items == ()
+    assert production_engine.disposed
 
     service, engine = _service(monkeypatch, revision="old-head")
     with pytest.raises(ApiError, match="database_schema_incompatible"):

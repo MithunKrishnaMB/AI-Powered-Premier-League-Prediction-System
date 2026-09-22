@@ -127,7 +127,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--target",
-        choices=("development", "test"),
+        choices=("development", "test", "production"),
         default="development",
     )
     return parser

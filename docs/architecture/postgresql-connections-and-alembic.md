@@ -25,6 +25,29 @@ privileged login, old server or non-UTC session fails closed. SQLAlchemy
 engines are lazy and use connection health checking, a five-second default
 timeout and bounded pooling.
 
+## Hosted production topology
+
+Milestone K Step 10.3 adds a separate, fail-closed Neon production boundary:
+
+| Purpose | Target/setting | Endpoint and authority |
+| --- | --- | --- |
+| API reads | `production` / `PLP_PRODUCTION_DATABASE_URL` | Pooled TLS URL, unprivileged `pl_api` login |
+| Alembic | `PLP_PRODUCTION_MIGRATION_DATABASE_URL` | Direct TLS URL, Neon owner, local process only |
+
+Production URLs must use `postgresql+psycopg`, provide complete credentials and
+database identity, and include `sslmode=require` or a stronger verification
+mode. The runtime URL remains distinct from development and test targets. A
+missing runtime or migration URL fails closed rather than falling back to a
+local target.
+
+The direct migration credential is never supplied to Render. The deployed API
+receives only the pooled `pl_api` URL, checks the same unprivileged-role flags
+as local targets and opens each resource transaction as read-only. Alembic
+selects the migration URL only when `PLP_ENVIRONMENT=production`; development
+and test selection is unchanged. See the
+[Neon and Render release runbook](../operations/neon-render-backend-release.md)
+for the manual grant and verification sequence.
+
 ## Local administrator bootstrap
 
 The one-time cluster bootstrap must be run as an existing PostgreSQL
@@ -72,8 +95,8 @@ no `sqlalchemy.url`. `migrations/env.py` reads typed settings at runtime:
 
 - `PLP_ENVIRONMENT=development` selects `PLP_DATABASE_URL`;
 - `PLP_ENVIRONMENT=test` selects `PLP_TEST_DATABASE_URL`; and
-- `PLP_ENVIRONMENT=production` fails closed because production migration policy
-  is outside Steps 5.2 and 5.3.
+- `PLP_ENVIRONMENT=production` selects the separately authorized
+  `PLP_PRODUCTION_MIGRATION_DATABASE_URL`.
 
 Online migrations use a non-pooled connection with a forced UTC session.
 Offline rendering uses the same explicitly selected URL. Type and server-default

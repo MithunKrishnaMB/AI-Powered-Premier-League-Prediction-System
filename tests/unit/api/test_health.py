@@ -29,7 +29,11 @@ from pl_platform.registry.active_model import (
 from tests.unit.api.helpers import StaticProbe
 
 
-def _settings(*, environment: Environment = "development") -> Settings:
+def _settings(
+    *,
+    environment: Environment = "development",
+    production_database: bool = False,
+) -> Settings:
     return Settings(
         environment=environment,
         database_url=SecretStr(
@@ -37,6 +41,14 @@ def _settings(*, environment: Environment = "development") -> Settings:
         ),
         test_database_url=SecretStr(
             "postgresql+psycopg://pl_app:test@localhost:5432/pl_test"
+        ),
+        production_database_url=(
+            SecretStr(
+                "postgresql+psycopg://pl_api:production@db.example:5432/pl_prod"
+                "?sslmode=require"
+            )
+            if production_database
+            else None
         ),
     )
 
@@ -155,6 +167,35 @@ def test_database_probe_selects_test_and_disposes_engine(
 
     assert result.status is DependencyStatus.READY
     assert selected == ["test"]
+    cast(MagicMock, engine).dispose.assert_called_once_with()
+
+
+def test_database_probe_selects_configured_production_target(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    engine = _engine_at("f0009_step_7_9")
+    selected: list[str] = []
+
+    def create_engine(settings: Settings, *, target: str) -> Engine:
+        assert settings.environment == "production"
+        selected.append(target)
+        return engine
+
+    monkeypatch.setattr(
+        "pl_platform.api.health.create_database_engine",
+        create_engine,
+    )
+    monkeypatch.setattr(
+        "pl_platform.api.health.check_database_connection",
+        lambda engine, *, target: None,
+    )
+
+    result = PostgreSQLReadinessProbe(
+        _settings(environment="production", production_database=True)
+    ).check()
+
+    assert result.status is DependencyStatus.READY
+    assert selected == ["production"]
     cast(MagicMock, engine).dispose.assert_called_once_with()
 
 

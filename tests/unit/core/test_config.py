@@ -28,12 +28,15 @@ def test_settings_use_safe_defaults(
     assert settings.log_level == "INFO"
     assert settings.artifact_root == Path("artifacts")
     assert settings.registry_root == Path("artifacts/registry")
+    assert settings.production_database_url is None
+    assert settings.production_migration_database_url is None
     assert settings.cors_allowed_origins == ()
     assert settings.cors_allow_credentials is False
     assert settings.rate_limit_enabled is True
     assert settings.rate_limit_requests == 120
     assert settings.rate_limit_window_seconds == 60
     assert settings.rate_limit_max_clients == 10_000
+    assert settings.trusted_client_ip_header is None
 
 
 def test_settings_read_prefixed_environment(
@@ -120,11 +123,21 @@ def test_database_urls_are_secret_and_environment_specific() -> None:
         test_database_url=SecretStr(
             "postgresql+psycopg://pl_app:test@localhost:5432/pl_test"
         ),
+        production_database_url=SecretStr(
+            "postgresql+psycopg://pl_api:production@db.example:5432/pl_prod"
+            "?sslmode=require"
+        ),
+        production_migration_database_url=SecretStr(
+            "postgresql+psycopg://pl_owner:migrate@direct.example:5432/pl_prod"
+            "?sslmode=require"
+        ),
     )
 
     assert "development" not in repr(settings.database_url)
     assert settings.database_url_for("development").endswith("/pl_dev")
     assert settings.database_url_for("test").endswith("/pl_test")
+    assert "pl_api:production" in settings.database_url_for("production")
+    assert "pl_owner:migrate" in settings.production_migration_url()
 
 
 @pytest.mark.parametrize(
@@ -147,7 +160,7 @@ def test_database_targets_must_not_share_a_database() -> None:
     development_url = "postgresql+psycopg://pl_app:development@LOCALHOST:5432/pl_shared"
     test_url = "postgresql+psycopg://test_app:test@localhost:5432/pl_shared"
 
-    with pytest.raises(ValidationError, match="targets must differ"):
+    with pytest.raises(ValidationError, match="runtime database targets must differ"):
         Settings(
             database_url=SecretStr(development_url),
             test_database_url=SecretStr(test_url),
@@ -163,3 +176,37 @@ def test_missing_database_target_fails_closed(
 
     with pytest.raises(DatabaseConfigurationError, match="test database URL"):
         settings.database_url_for("test")
+    with pytest.raises(DatabaseConfigurationError, match="production database URL"):
+        settings.database_url_for("production")
+    with pytest.raises(
+        DatabaseConfigurationError,
+        match="production migration database URL",
+    ):
+        settings.production_migration_url()
+
+
+@pytest.mark.parametrize(
+    "field",
+    ("production_database_url", "production_migration_database_url"),
+)
+def test_production_database_urls_require_tls(field: str) -> None:
+    with pytest.raises(ValidationError, match="must require TLS"):
+        Settings.model_validate(
+            {
+                field: SecretStr(
+                    "postgresql+psycopg://pl_api:secret@db.example:5432/pl_prod"
+                )
+            }
+        )
+
+
+def test_trusted_client_ip_header_accepts_only_one_valid_address() -> None:
+    settings = Settings(trusted_client_ip_header="CF-Connecting-IP")
+
+    assert settings.client_ip_from_trusted_header(["2001:0db8::1"]) == "2001:db8::1"
+    assert settings.client_ip_from_trusted_header([]) is None
+    assert settings.client_ip_from_trusted_header(["192.0.2.1", "192.0.2.2"]) is None
+    assert settings.client_ip_from_trusted_header(["not-an-address"]) is None
+
+    with pytest.raises(ValidationError):
+        Settings(trusted_client_ip_header="X-Forwarded-For")  # type: ignore[arg-type]

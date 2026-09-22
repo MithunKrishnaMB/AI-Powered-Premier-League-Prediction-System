@@ -1601,3 +1601,81 @@ the sixteen-operation GET-only API and runs without root privileges. A
 non-production environment override fails before Uvicorn starts. Hosted
 PostgreSQL remains Step 10.3 and deployment remains Step 10.4, each requiring
 separate explicit approval.
+
+## ADR-061: Separate Neon migration authority from pooled API reads
+
+**Status:** Accepted
+
+**Context:** The approved zero-cost hosted database is Neon Free. Production
+must not fall back to either local database, the API must not receive schema-
+mutation authority and Alembic must not depend on a transaction-pooler's
+session behavior. Both hosted paths must require TLS without placing a
+credential in source, logs or the Render build.
+
+**Decision:** Add an explicit `production` database target backed only by
+`PLP_PRODUCTION_DATABASE_URL`. Require TLS in every production URL and preserve
+the local development/test fields and distinct-target validation. Use a pooled
+Neon URL with a dedicated unprivileged `pl_api` login for runtime reads.
+
+Give Alembic a separate `PLP_PRODUCTION_MIGRATION_DATABASE_URL` used only when
+`PLP_ENVIRONMENT=production`. The migration URL is a direct Neon owner URL held
+only in a temporary local environment or Git-ignored local secret file during
+the manual handoff. Apply the existing linear chain through `f0009_step_7_9`,
+then grant the runtime role schema usage and table/view `SELECT`. Never provide
+the migration URL to the deployed application.
+
+Keep the engine lazy, retain UTC and identity/capability checks and execute API
+transactions as read-only. A missing production URL preserves the existing
+sanitized fail-closed responses. Provisioning creates schema only: no corpus,
+registry history, artifact, final-test evidence, provider data, prediction or
+simulation is imported or generated.
+
+**Consequences:** Production database access becomes possible without
+weakening development/test isolation or giving the public API migration
+authority. The Neon owner remains an explicit manual operational credential.
+Readiness can report PostgreSQL ready while still correctly reporting
+`no_active_model`; aggregate readiness therefore remains HTTP 503 until a later
+authorized lifecycle step supplies a real active model.
+
+**Operational evidence (2026-09-22):** The Neon Free project was created in
+AWS Asia Pacific 1 (Singapore) on PostgreSQL 18.6. The existing nine-revision
+chain reached `f0009_step_7_9`. The pooled `pl_api` login can select all 111
+migrated tables, cannot write any table and has every elevated role capability
+disabled. No application data, artifact, registry entry or sealed target was
+imported or inspected.
+
+## ADR-062: Deploy one manually released Render Free service
+
+**Status:** Accepted
+
+**Context:** The approved backend host is Render Free with no payment details.
+Render selects the listening port at runtime, terminates public TLS at its edge
+and fronts the process with proxies. The service must remain one worker because
+the existing rate limiter is process-local. Automatic deployment, preview
+services, persistent disks and paid pre-deploy commands are outside the
+approved zero-cost/manual boundary.
+
+**Decision:** Define one Free Docker web service in Singapore with one instance,
+manual deploys, no previews, no disk, no worker, no cron job and
+`/health/live` as its platform health check. Accept Render's validated `PORT`
+while retaining port 8000 as the local default. Prompt for only the pooled
+`PLP_PRODUCTION_DATABASE_URL` at runtime; never include a database URL or the
+migration setting in the Blueprint or image.
+
+Continue to disable Uvicorn's generic proxy-header handling. On this explicit
+deployment only, trust one syntactically valid `CF-Connecting-IP` value because
+Render's edge overwrites that header. All other environments and malformed or
+duplicate values retain direct-peer rate-limit identity. Preserve all existing
+HTTP controls and the exact sixteen-operation GET-only OpenAPI contract.
+
+**Consequences:** The checked-in deployment is deterministic, manually
+triggered and incapable of creating paid infrastructure. Render's idle sleep
+and cold start are accepted zero-cost constraints and must not be hidden with a
+keep-alive scheduler. The initial deployment remains alive but not ready because
+the actual registry still has no active model. Deployment does not authorize
+corpus import, model promotion, provider selection, frontend work or CI/CD.
+
+**Operational evidence (2026-09-22):** Render authentication is complete and
+the dashboard is at web-service source selection. No service was created
+because the approved changes are intentionally unstaged and uncommitted and
+the repository has no remote. No Neon credential has been sent to Render.

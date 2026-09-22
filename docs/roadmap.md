@@ -425,12 +425,17 @@ containers, hosted infrastructure or another DevOps substitute.
   deny-by-default build context, liveness healthcheck and deterministic local
   process/image verification. The empty image remains fail-closed and not
   ready; it contains no secrets, database configuration or artifact corpus.
-- **Step 10.3 — exact next step; not started:** After separate explicit
-  approval, provision and migrate a hosted PostgreSQL database while preserving
-  least privilege, explicit production configuration and the reviewed
-  nine-revision Alembic chain. It must not deploy FastAPI or begin Step 10.4.
-- **Step 10.4:** Deploy FastAPI after current platform research and explicit
-  deployment approval.
+- **Step 10.3 — complete:** Created the Neon Free PostgreSQL 18 project in
+  Singapore, migrated the schema-only database through `f0009_step_7_9` and
+  verified the dedicated pooled `pl_api` role. It can select all 111 migrated
+  tables, has no table write privilege and has no elevated PostgreSQL role
+  capability. Both connection URLs remain only in the Git-ignored local secret
+  configuration pending the Render handoff.
+- **Step 10.4 — in progress:** Render Free Singapore is selected. The manual
+  one-service Docker Blueprint, dynamic port, liveness health check, bounded
+  database pool and explicit trusted-edge client identity are implemented and
+  tested. Actual deployment requires provider sign-in and a user-reviewed,
+  committed source available to Render; no service is currently deployed.
 - **Step 10.5:** Run historical-to-API end-to-end validation.
 - **Step 10.6:** Verify secret handling, quotas, recovery and reproducibility.
 - **Step 10.7:** Declare the backend/ML acceptance gate passed.
@@ -463,10 +468,23 @@ Python 3.14.7 release suite passes 653 tests with no skips and 91.07% branch
 coverage; Ruff passes across 279 files, strict mypy passes across 229 Python
 files and dependency consistency passes.
 
-**Exact next step:** Milestone K Step 10.3, hosted PostgreSQL provisioning and
-migration. It is planned but not started and requires separate explicit
-approval. Deployment remains Step 10.4; no host or deployment configuration is
-selected by Step 10.2.
+**Steps 10.3 and 10.4 verification:** Python 3.14.7 completes 666 tests
+with no skips and 91.10% branch coverage. Ruff lint and formatting pass across
+281 files, strict mypy passes across 230 source/test/migration files and
+dependency consistency passes. Tests require explicit TLS production URLs,
+separate migration authority, configured-production database selection,
+Render's dynamic port, manual free Singapore Blueprint, liveness health check,
+secret prompting and validated trusted-edge rate-limit identity. Hosted Neon
+verification additionally confirms PostgreSQL 18.6 in UTC, exact migration
+head `f0009_step_7_9`, 111 of 111 tables selectable by `pl_api`, zero tables
+with write privilege and every elevated role flag disabled.
+
+**Exact next action:** Continue Step 10.4 after the user-owned review, commit
+and publication of this exact source. Render is authenticated and waiting at
+web-service source selection, but the repository has no remote and the approved
+changes remain intentionally unstaged and uncommitted. Do not create a stale
+service and do not begin Step 10.5 until the public Render result is verified
+and documented.
 
 ## Milestone L — Frontend, Last — planned
 

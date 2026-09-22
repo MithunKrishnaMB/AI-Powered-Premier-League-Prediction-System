@@ -71,3 +71,11 @@ def test_alembic_files_do_not_embed_local_password() -> None:
     )
 
     assert "pl2026" not in migration_text
+
+
+def test_production_migrations_use_a_separate_explicit_url() -> None:
+    environment = Path("migrations/env.py").read_text(encoding="utf-8")
+
+    assert 'if target == "production":' in environment
+    assert "return settings.production_migration_url()" in environment
+    assert "settings.database_url_for(target)" in environment

@@ -33,14 +33,16 @@ python -m pl_platform.api.production_runtime
 
 That side-effect-free module validates that `PLP_ENVIRONMENT` is exactly
 `production` before replacing itself with the pinned Uvicorn command. The ASGI
-target remains the explicit `pl_platform.api:create_app` factory. It binds port
-8000, runs exactly one worker, disables proxy-header trust and access logging,
-and allows 30 seconds for graceful shutdown.
+target remains the explicit `pl_platform.api:create_app` factory. It binds the
+validated platform `PORT` when supplied and defaults to 8000 locally, runs
+exactly one worker, disables generic proxy-header trust and access logging, and
+allows 30 seconds for graceful shutdown.
 
 One worker is deliberate. The existing bounded rate limiter is process-local;
-multiple workers would silently create independent limits. Proxy forwarding is
-also kept disabled until a concrete deployment boundary defines trusted proxy
-addresses in a later separately approved step.
+multiple workers would silently create independent limits. Step 10.4 keeps
+Uvicorn proxy forwarding disabled and trusts only Render's overwritten,
+validated `CF-Connecting-IP` header inside the application. Generic forwarded
+headers remain caller-controlled and untrusted.
 
 Imports remain side-effect free. Importing the entry-point module neither reads
 configuration nor starts a process; validation and process replacement occur
@@ -58,7 +60,9 @@ Secrets are runtime inputs only. They must be supplied through an ignored local
 environment file or a future deployment secret mechanism, never through the
 Dockerfile, image layers, tracked files or command-line literals. This step
 does not define a production database URL and does not copy the development or
-test PostgreSQL settings into the image.
+test PostgreSQL settings into the image. Step 10.4 supplies only the pooled,
+read-only `PLP_PRODUCTION_DATABASE_URL` through Render's runtime secret store;
+the direct migration URL never reaches the image or service.
 
 Overriding `PLP_ENVIRONMENT` to any non-production value terminates the entry
 point before Uvicorn starts. When production database configuration is absent,
@@ -112,10 +116,12 @@ The local contract tests also verify the base digest, allowlisted build context,
 non-root runtime, production entry-point validation, one-worker Uvicorn command
 and a real loopback Uvicorn process with the sixteen-operation API surface.
 
-## Deferred work
+## Hosted continuation
 
-This boundary does not provision or migrate hosted PostgreSQL, choose a host,
-deploy the image, configure a reverse proxy, add automation or CI/CD, select a
-current-data provider, import artifacts, inspect sealed targets, mutate the
-registry or create predictions. Hosted PostgreSQL is Step 10.3 and deployment
-is Step 10.4; both require separate explicit approval.
+Steps 10.3 and 10.4 select Neon Free and Render Free and implement their local
+configuration and runbook. The Render Blueprint defines one manually deployed
+Free Singapore service, uses `/health/live`, disables automatic deploys and
+prompts for the pooled URL. External provisioning remains incomplete at the
+provider sign-in boundary. No current-data provider, artifact import, sealed-
+target inspection, registry mutation, prediction, automation or CI/CD is
+introduced.

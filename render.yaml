@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: premier-league-prediction-api
+    runtime: docker
+    plan: free
+    region: singapore
+    numInstances: 1
+    autoDeployTrigger: "off"
+    healthCheckPath: /health/live
+    maxShutdownDelaySeconds: 30
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PLP_ENVIRONMENT
+        value: production
+      - key: PLP_LOG_LEVEL
+        value: INFO
+      - key: PLP_PRODUCTION_DATABASE_URL
+        sync: false
+      - key: PLP_DATABASE_CONNECT_TIMEOUT_SECONDS
+        value: "10"
+      - key: PLP_DATABASE_POOL_SIZE
+        value: "2"
+      - key: PLP_DATABASE_MAX_OVERFLOW
+        value: "1"
+      - key: PLP_TRUSTED_CLIENT_IP_HEADER
+        value: CF-Connecting-IP

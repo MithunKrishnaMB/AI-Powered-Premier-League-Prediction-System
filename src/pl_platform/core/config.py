@@ -1,16 +1,18 @@
 """Typed application settings loaded from environment variables."""
 
 from functools import lru_cache
+from ipaddress import ip_address
 from pathlib import Path
 from typing import Literal, Self
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-DatabaseTarget = Literal["development", "test"]
+DatabaseTarget = Literal["development", "test", "production"]
+TrustedClientIpHeader = Literal["CF-Connecting-IP"]
 
 
 class DatabaseConfigurationError(ValueError):
@@ -50,6 +52,21 @@ def _database_target_identity(value: SecretStr) -> tuple[str, int, str]:
     return hostname.casefold(), port, unquote(parsed.path.removeprefix("/"))
 
 
+def _validate_production_database_url(value: SecretStr | None) -> SecretStr | None:
+    if value is None:
+        return None
+    parsed = urlsplit(value.get_secret_value())
+    ssl_modes = parse_qs(parsed.query).get("sslmode", ())
+    if len(ssl_modes) != 1 or ssl_modes[0] not in {
+        "require",
+        "verify-ca",
+        "verify-full",
+    }:
+        msg = "production database URLs must require TLS with sslmode"
+        raise ValueError(msg)
+    return value
+
+
 class Settings(BaseSettings):
     """Process configuration with safe local defaults."""
 
@@ -67,6 +84,8 @@ class Settings(BaseSettings):
     log_level: LogLevel = "INFO"
     database_url: SecretStr | None = None
     test_database_url: SecretStr | None = None
+    production_database_url: SecretStr | None = None
+    production_migration_database_url: SecretStr | None = None
     database_connect_timeout_seconds: int = Field(default=5, ge=1, le=60)
     database_pool_size: int = Field(default=5, ge=1, le=20)
     database_max_overflow: int = Field(default=5, ge=0, le=20)
@@ -79,8 +98,15 @@ class Settings(BaseSettings):
     rate_limit_requests: int = Field(default=120, ge=1, le=10_000)
     rate_limit_window_seconds: int = Field(default=60, ge=1, le=3_600)
     rate_limit_max_clients: int = Field(default=10_000, ge=1, le=100_000)
+    trusted_client_ip_header: TrustedClientIpHeader | None = None
 
-    @field_validator("database_url", "test_database_url", mode="before")
+    @field_validator(
+        "database_url",
+        "test_database_url",
+        "production_database_url",
+        "production_migration_database_url",
+        mode="before",
+    )
     @classmethod
     def database_urls_must_be_explicit_psycopg_urls(
         cls,
@@ -89,6 +115,18 @@ class Settings(BaseSettings):
         if value is None:
             return None
         return _validate_database_url(value)
+
+    @field_validator(
+        "production_database_url",
+        "production_migration_database_url",
+        mode="after",
+    )
+    @classmethod
+    def production_database_urls_must_require_tls(
+        cls,
+        value: SecretStr | None,
+    ) -> SecretStr | None:
+        return _validate_production_database_url(value)
 
     @field_validator("cors_allowed_origins")
     @classmethod
@@ -123,12 +161,19 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def database_targets_must_be_distinct(self) -> Self:
-        if self.database_url is not None and self.test_database_url is not None:
-            development = _database_target_identity(self.database_url)
-            test = _database_target_identity(self.test_database_url)
-            if development == test:
-                msg = "development and test database targets must differ"
-                raise ValueError(msg)
+        targets = tuple(
+            value
+            for value in (
+                self.database_url,
+                self.test_database_url,
+                self.production_database_url,
+            )
+            if value is not None
+        )
+        identities = tuple(_database_target_identity(value) for value in targets)
+        if len(identities) != len(set(identities)):
+            msg = "runtime database targets must differ"
+            raise ValueError(msg)
         return self
 
     def database_url_for(self, target: DatabaseTarget) -> str:
@@ -136,11 +181,33 @@ class Settings(BaseSettings):
 
         # Keep target selection explicit so tests can never fall back to the
         # development database.
-        configured = self.test_database_url if target == "test" else self.database_url
+        configured = {
+            "development": self.database_url,
+            "test": self.test_database_url,
+            "production": self.production_database_url,
+        }[target]
         if configured is None:
             msg = f"{target} database URL is not configured"
             raise DatabaseConfigurationError(msg)
         return configured.get_secret_value()
+
+    def production_migration_url(self) -> str:
+        """Return the separately configured privileged migration URL."""
+
+        if self.production_migration_database_url is None:
+            msg = "production migration database URL is not configured"
+            raise DatabaseConfigurationError(msg)
+        return self.production_migration_database_url.get_secret_value()
+
+    def client_ip_from_trusted_header(self, values: list[str]) -> str | None:
+        """Return one canonical address only when a trusted header is configured."""
+
+        if self.trusted_client_ip_header is None or len(values) != 1:
+            return None
+        try:
+            return ip_address(values[0]).compressed
+        except ValueError:
+            return None
 
 
 @lru_cache

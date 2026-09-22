@@ -134,6 +134,20 @@ production database or active model. No hosted database, deployment,
 automation, provider, production artifact import or registry mutation was
 added.
 
+Steps 10.3 and 10.4 target Neon Free PostgreSQL and one manually deployed
+Render Free Docker service in Singapore. Production database reads use a
+TLS-required pooled URL and a dedicated read-only login; the direct owner URL
+is accepted only by a manual local Alembic migration process and is never sent
+to Render. The tracked Render Blueprint disables auto-deploys, uses liveness as
+its platform health check and retains the intentional `no_active_model`
+readiness failure. See the
+[Neon and Render backend release runbook](docs/operations/neon-render-backend-release.md).
+The Neon Free project is provisioned in Singapore and verified at migration
+head `f0009_step_7_9`; its `pl_api` role is read-only across all 111 migrated
+tables. Render is authenticated but no service exists because this uncommitted
+repository still needs review, a commit and publication through a repository
+or immutable image.
+
 The development environment uses 64-bit Python 3.14.7.
 
 ## Local setup
@@ -421,6 +435,8 @@ implementation. Start with:
 - [Milestone J to K handoff](docs/handoffs/milestone-j-to-k.md)
 - [Step 10.1 to 10.2 handoff](docs/handoffs/step-10-1-to-10-2.md)
 - [Step 10.2 to 10.3 handoff](docs/handoffs/step-10-2-to-10-3.md)
+- [Steps 10.3 and 10.4 external handoff](docs/handoffs/steps-10-3-and-10-4-external-handoff.md)
+- [Neon and Render backend release](docs/operations/neon-render-backend-release.md)
 - [Production container runtime](docs/architecture/production-container-runtime.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)

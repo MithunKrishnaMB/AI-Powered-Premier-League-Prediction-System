@@ -114,10 +114,17 @@ class PostgreSQLReadinessProbe:
     name: DependencyName = DependencyName.POSTGRESQL
 
     def check(self) -> DependencyHealth:
-        if self.settings.environment == "production":
+        if (
+            self.settings.environment == "production"
+            and self.settings.production_database_url is None
+        ):
             return _not_ready(self.name, "production_database_not_configured")
         target: DatabaseTarget = (
-            "test" if self.settings.environment == "test" else "development"
+            "production"
+            if self.settings.environment == "production"
+            else "test"
+            if self.settings.environment == "test"
+            else "development"
         )
         engine = None
         try:

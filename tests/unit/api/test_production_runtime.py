@@ -33,6 +33,7 @@ def test_production_runtime_executes_the_pinned_single_worker_command(
         raise RuntimeReplaced
 
     monkeypatch.setenv("PLP_ENVIRONMENT", "production")
+    monkeypatch.delenv("PORT", raising=False)
     monkeypatch.setattr(os, "execvp", replace_process)
 
     with pytest.raises(RuntimeReplaced):
@@ -58,3 +59,22 @@ def test_production_runtime_executes_the_pinned_single_worker_command(
             ),
         )
     ]
+
+
+def test_production_runtime_uses_valid_platform_port(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PORT", "10000")
+
+    assert production_runtime._uvicorn_command()[6] == "10000"
+
+
+@pytest.mark.parametrize("port", ("invalid", "0", "65536"))
+def test_production_runtime_rejects_invalid_platform_port(
+    monkeypatch: pytest.MonkeyPatch,
+    port: str,
+) -> None:
+    monkeypatch.setenv("PORT", port)
+
+    with pytest.raises(SystemExit, match="PORT must be an integer"):
+        production_runtime._uvicorn_command()

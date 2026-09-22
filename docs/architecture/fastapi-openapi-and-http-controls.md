@@ -67,6 +67,15 @@ bounded to a configured maximum with least-recently-used eviction. This is a
 single-process abuse guard, not a distributed quota service; deployment-scale
 rate enforcement remains a future operational concern.
 
+Step 10.4 keeps direct-peer identity as the default and adds one explicit
+deployment exception. When `PLP_TRUSTED_CLIENT_IP_HEADER=CF-Connecting-IP`, a
+single syntactically valid IPv4 or IPv6 value becomes the limiter key. Render's
+edge overwrites this header, while caller-controlled `X-Forwarded-For` remains
+untrusted and Uvicorn proxy-header handling remains disabled. Missing,
+duplicate or malformed trusted-header values fall back to the direct peer. The
+Render setting prevents all public users from sharing the load balancer's one
+rate bucket without broadening trust in generic forwarding headers.
+
 ## Construction and preserved boundaries
 
 Settings, limiter state and HTTP controls are constructed only by

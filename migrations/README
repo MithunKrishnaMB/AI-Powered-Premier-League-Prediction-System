@@ -5,6 +5,8 @@ database object. Schema revisions begin in Step 5.4. Database URLs are never
 stored in alembic.ini or revision files; env.py reads the selected target from
 the typed PLP_* settings at runtime.
 
-Set PLP_ENVIRONMENT=development to use PLP_DATABASE_URL or
-PLP_ENVIRONMENT=test to use PLP_TEST_DATABASE_URL. Production migration access
-fails closed until a production-specific policy is approved.
+Set `PLP_ENVIRONMENT=development` to use `PLP_DATABASE_URL` or
+`PLP_ENVIRONMENT=test` to use `PLP_TEST_DATABASE_URL`. Production migration
+access requires both `PLP_ENVIRONMENT=production` and the separate TLS-required
+`PLP_PRODUCTION_MIGRATION_DATABASE_URL`. The hosted API uses
+`PLP_PRODUCTION_DATABASE_URL` instead and never receives the migration URL.

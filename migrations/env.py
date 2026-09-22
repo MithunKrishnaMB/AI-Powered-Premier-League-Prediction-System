@@ -28,12 +28,13 @@ def _database_target(settings: Settings) -> DatabaseTarget:
         return "development"
     if settings.environment == "test":
         return "test"
-    msg = "Alembic is configured only for development and test targets"
-    raise DatabaseConfigurationError(msg)
+    return "production"
 
 
 def _database_url(settings: Settings) -> str:
     target = _database_target(settings)
+    if target == "production":
+        return settings.production_migration_url()
     return settings.database_url_for(target)
 
 

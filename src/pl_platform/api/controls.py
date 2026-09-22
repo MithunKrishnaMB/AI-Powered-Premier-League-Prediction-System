@@ -48,7 +48,7 @@ class RateLimitDecision:
 
 
 class SlidingWindowRateLimiter:
-    """Bounded, process-local rate limiter keyed only by the direct peer."""
+    """Bounded, process-local rate limiter keyed by a validated client identity."""
 
     def __init__(
         self,
@@ -126,6 +126,16 @@ class HttpTransportControls:
     settings: Settings
     rate_limiter: SlidingWindowRateLimiter
 
+    def _client_key(self, request: Request) -> str:
+        header = self.settings.trusted_client_ip_header
+        if header is not None:
+            trusted = self.settings.client_ip_from_trusted_header(
+                request.headers.getlist(header)
+            )
+            if trusted is not None:
+                return trusted
+        return request.client.host if request.client is not None else "unknown"
+
     def before_request(self, request: Request, request_id: str) -> Response | None:
         """Reject invalid CORS or rate state before route execution."""
 
@@ -150,7 +160,7 @@ class HttpTransportControls:
         if not self.settings.rate_limit_enabled or request.url.path == "/health/live":
             return None
 
-        client_key = request.client.host if request.client is not None else "unknown"
+        client_key = self._client_key(request)
         decision = self.rate_limiter.evaluate(client_key)
         request.state.rate_limit_decision = decision
         if decision.allowed:

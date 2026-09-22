@@ -253,12 +253,17 @@ class PostgresResourceQueryService:
     settings: Settings
 
     def _target(self) -> DatabaseTarget:
-        if self.settings.environment == "production":
+        if (
+            self.settings.environment == "production"
+            and self.settings.production_database_url is None
+        ):
             raise ApiError(
                 status_code=503,
                 code="database_not_configured",
                 message="The production database is not configured.",
             )
+        if self.settings.environment == "production":
+            return "production"
         return "test" if self.settings.environment == "test" else "development"
 
     @contextmanager

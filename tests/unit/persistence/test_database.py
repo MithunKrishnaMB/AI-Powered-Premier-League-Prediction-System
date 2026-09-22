@@ -54,6 +54,25 @@ def test_create_database_engine_is_lazy_and_target_specific() -> None:
         engine.dispose()
 
 
+def test_create_database_engine_accepts_explicit_tls_production_target() -> None:
+    settings = _settings().model_copy(
+        update={
+            "production_database_url": SecretStr(
+                "postgresql+psycopg://pl_api:production@db.example:5432/pl_prod"
+                "?sslmode=require"
+            )
+        }
+    )
+    engine = create_database_engine(settings, target="production")
+
+    try:
+        assert engine.url.database == "pl_prod"
+        assert engine.url.username == "pl_api"
+        assert engine.url.query["sslmode"] == "require"
+    finally:
+        engine.dispose()
+
+
 def test_check_database_connection_returns_only_non_secret_facts() -> None:
     engine = _mock_engine(
         (
