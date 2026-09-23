@@ -8,10 +8,10 @@
 System; C — Point-in-Time Features and Elo; D — Probabilistic Models; E —
 Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
 Integration; H — Prediction Lifecycle; I — FastAPI Application and Read-Only
-API; J — Live Data, Operational Workflows and Retraining
+API; J — Live Data, Operational Workflows and Retraining; K — Backend Release
 
-**Current milestone:** K — Backend Release — in progress; Steps 10.1 through
-10.6 complete; Step 10.7 is the next unstarted item.
+**Current milestone:** L — Frontend, Last — planned; Step 11.1 is the next
+unstarted item.
 
 **Completed Milestone K steps:** 10.1 — explicit local release evidence,
 dependency and runtime integrity, package-wide import safety, exact migration-
@@ -26,7 +26,8 @@ dynamic port, liveness health check, bounded pool, trusted-edge rate-limit
 identity and public contract acceptance; 10.5 — rollback-only real 2024–25
 historical-to-PostgreSQL-to-FastAPI validation and the forward-only canonical
 validator repair; 10.6 — exact secret/configuration boundary, quota, recovery
-and deterministic replay verification.
+and deterministic replay verification; 10.7 — coordinated Neon migration,
+exact-commit Render deployment and repeated public backend/ML acceptance.
 
 **Completed Milestone J steps:** 9.1 — cache-aware live fixture reads over the
 provider-neutral capability and immutable exact-response cache boundaries; 9.2
@@ -85,12 +86,9 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** Step 10.7 — declare the backend/ML
-acceptance gate passed after a user-reviewed commit is published, the new
-forward migration is applied to Neon, that same commit is manually deployed to
-Render and public acceptance is repeated. Do not add automation or CI/CD,
-select a provider, import production artifacts, generate predictions or
-simulations, mutate the registry or inspect sealed targets.
+**Exact next implementation step:** Step 11.1 — reassess and document the
+frontend architecture. Do not initialize Next.js, generate an API client or
+begin another frontend step until that architecture boundary is approved.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -110,6 +108,10 @@ retraining lineage through Step 9.5.
 
 **Milestone J implementation commit:** `059c226` — records deterministic
 candidate comparison and passive retraining observability through Step 9.7.
+
+**Milestone K implementation commit:** `569504f` — validates historical API
+delivery and operational recovery and is the exact commit deployed after the
+production migration to `f0010_step_10_5`.
 
 ## Implemented capabilities
 
@@ -461,7 +463,7 @@ complete local release suite:
 - Branch coverage: 91.12%, above the required 90% threshold.
 - Ruff format and lint: passed.
 - Strict mypy: passed across all 232 source, test and migration Python files;
-  Ruff formatting checked 287 files.
+  Ruff formatting checked 288 files.
 - Dependency consistency: passed.
 - Docker Desktop 4.84.0 built the digest-pinned image. Its liveness healthcheck
   became healthy under UID/GID 10001, readiness returned HTTP 503 with
@@ -480,10 +482,11 @@ complete local release suite:
 - All 11 historical raw captures passed manifest verification with manifest
   SHA-256 `87b599ecb06e5f00e64323ef4b426b1b2d2f7db803e26038ae9fb4a76da96aa1`.
 - Neon Free now hosts the schema-only `pl_platform` database in Singapore on
-  PostgreSQL 18.6 at `f0009_step_7_9`. The pooled `pl_api` role can select all
-  111 tables, cannot write any table and has no elevated flags. Render Free now
-  hosts the manually deployed Docker service in Singapore from commit
-  `461f31f`. Public liveness is HTTP 200; readiness is intentionally HTTP 503
+  PostgreSQL 18.6 at `f0010_step_10_5`. The pooled `pl_api` role can select all
+  111 application relations, cannot write any relation and has no elevated
+  flags. Render Free now hosts the manually deployed Docker service in
+  Singapore from commit `569504f`. Public liveness is HTTP 200; readiness is
+  intentionally HTTP 503
   with PostgreSQL `ready` and active model `no_active_model`. The public
   OpenAPI document contains exactly sixteen GET operations. Request-ID echo,
   error envelopes, pagination, production security headers, rate-limit headers
@@ -496,9 +499,10 @@ complete local release suite:
   operational labels and comparison tests used only synthetic later holdouts.
   They wrote no artifact or registry event. The actual filesystem registry
   remains `development_accepted` with no active model. The hosted Neon and
-  Render release deliberately remains at `f0009_step_7_9` / commit `461f31f`
-  until the local changes are reviewed and published for a coordinated
-  migration then deployment. No changes were staged or committed.
+  Render release now matches `f0010_step_10_5` / commit `569504f`; deployment
+  `dep-dapl3f3bc2fs73b49lu0` reached Live in 2m30s and repeated public
+  acceptance passed. The Step 10.7 closeout documentation remains unstaged and
+  uncommitted.
 
 The preserved Milestone F closeout result was:
 
@@ -665,6 +669,7 @@ transport controls and intentional fail-closed readiness state are verified.
 Steps 10.5 and 10.6 now add rollback-only real historical-to-API validation,
 repair the stale canonical validator through `f0010_step_10_5`, pin the exact
 secret/quota boundary and prove transient dependency recovery and deterministic
-replay. Step 10.7 is the exact next item, but it has not started. The hosted
-database and service remain on the prior compatible published revision until a
-user-controlled commit and coordinated migration/deployment are available.
+replay. Step 10.7 completed the exact migration/deployment pair and repeated
+public acceptance, closing Milestone K. Step 11.1 is the exact next item: a
+frontend architecture reassessment before any frontend initialization or
+implementation.

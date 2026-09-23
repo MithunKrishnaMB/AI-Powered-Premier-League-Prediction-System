@@ -29,10 +29,10 @@ The release-only integration test performs this complete path:
 This path exposed a stale `is_complete` column reference in the original
 canonical-dataset validator. Revision `f0010_step_10_5` repairs only that
 function to use the final `completed` season column. It adds no table, data or
-privilege. The local development and test databases are upgraded to this head;
-the hosted database remains at the last published `f0009_step_7_9` release
-until a reviewed commit is published and the production migration and Render
-deploy can be coordinated.
+privilege. Local development, test and hosted production databases are now at
+this head. The production migration preceded the matching Render deployment,
+and the read-only runtime surface was reverified before the new instance went
+live.
 
 ## Secret handling
 

@@ -143,9 +143,9 @@ its platform health check and retains the intentional `no_active_model`
 readiness failure. See the
 [Neon and Render backend release runbook](docs/operations/neon-render-backend-release.md).
 The Neon Free project is provisioned in Singapore and verified at migration
-head `f0009_step_7_9`; its `pl_api` role is read-only across all 111 migrated
+head `f0010_step_10_5`; its `pl_api` role is read-only across all 111 application
 tables. The [Render Free service](https://premier-league-prediction-api.onrender.com)
-is live from the reviewed commit,
+is live from reviewed commit `569504f`,
 with automatic deploys disabled. Public liveness returns HTTP 200; readiness
 intentionally returns HTTP 503 because PostgreSQL is ready but the actual
 registry has no active model. The sixteen-operation GET-only API and its
@@ -160,8 +160,10 @@ canonical validator's obsolete season-column reference. Secret exclusions,
 the exact seven-variable Render boundary, bounded free-tier pooling, quotas and
 transient database recovery are executable contracts. See
 [backend release acceptance](docs/operations/backend-release-acceptance.md).
-The hosted service remains on the last published `f0009_step_7_9` release until
-the new migration and matching source commit can be deployed together.
+Step 10.7 completed the coordinated release: Neon was migrated first, the exact
+matching commit was manually deployed to Render and the public acceptance gate
+was repeated successfully. See the
+[Milestone K to L handoff](docs/handoffs/milestone-k-to-l.md).
 
 The development environment uses 64-bit Python 3.14.7.
 
@@ -453,6 +455,7 @@ implementation. Start with:
 - [Steps 10.3 and 10.4 external handoff](docs/handoffs/steps-10-3-and-10-4-external-handoff.md)
 - [Step 10.4 to 10.5 handoff](docs/handoffs/step-10-4-to-10-5.md)
 - [Step 10.6 to 10.7 handoff](docs/handoffs/step-10-6-to-10-7.md)
+- [Milestone K to L handoff](docs/handoffs/milestone-k-to-l.md)
 - [Neon and Render backend release](docs/operations/neon-render-backend-release.md)
 - [Backend release acceptance](docs/operations/backend-release-acceptance.md)
 - [Production container runtime](docs/architecture/production-container-runtime.md)

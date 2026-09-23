@@ -414,7 +414,7 @@ checks. It required separate approval and did not add CI/CD, GitHub Actions,
 scheduling, deployment, containers, hosted infrastructure or another DevOps
 substitute.
 
-## Milestone K — Backend Release — in progress
+## Milestone K — Backend Release — complete
 
 - **Step 10.1 — complete:** Hardened the explicit local release test mode,
   dependency-pin and environment integrity checks, package-wide import safety,
@@ -448,7 +448,11 @@ substitute.
   secret exclusions and bounded free-tier pool; verified HTTP/provider quotas,
   transient database recovery, existing workflow recovery and deterministic
   replay; and documented manual credential and deployment recovery.
-- **Step 10.7:** Declare the backend/ML acceptance gate passed.
+- **Step 10.7 — complete:** Published commit `569504f`, applied
+  `f0010_step_10_5` to Neon with the direct owner credential, reverified the
+  unprivileged read-only `pl_api` surface, manually deployed that exact commit
+  to Render and repeated the public backend contract acceptance. The gate
+  passed without importing a corpus or creating an active model.
 
 **Steps 10.1 and 10.2 boundary:** The release-only pytest mode requires both
 restricted, isolated local PostgreSQL targets at exact head, all eleven
@@ -505,12 +509,30 @@ change. Static deployment checks preserve the exact seven-variable Render
 boundary and transient database failure produces a sanitized 503 before a
 fresh engine succeeds on the next request.
 
-**Exact next action:** Step 10.7 is the backend/ML acceptance gate. It has not
-started. The unstaged implementation must first be reviewed, committed and
-published. Then apply `f0010_step_10_5` to Neon with the direct owner credential
-before manually deploying that exact commit to Render and repeating public
-acceptance. Do not migrate Neon ahead of deployed commit `461f31f`, which
-correctly expects `f0009_step_7_9`.
+**Step 10.7 verification:** Commit
+`569504f2775c2e6092a956248266a9052e584a66` is published on `main`. Neon
+PostgreSQL 18.6 is at exact head `f0010_step_10_5`; all 111 application
+relations remain selectable by `pl_api`, none is writable and every elevated
+role capability remains disabled. Render deployment
+`dep-dapl3f3bc2fs73b49lu0` built that exact commit and reached Live in 2m30s.
+Public acceptance returned HTTP 200 liveness and the intentional HTTP 503
+readiness with PostgreSQL `ready` and `no_active_model`; it preserved exactly
+sixteen GET operations, empty pagination, request-ID echo, uniform 404/422
+envelopes, HSTS and other security headers, the 120-request rate-limit contract
+and HTTP 403 denial of an untrusted CORS origin.
+
+**Milestone K closeout:** Steps 10.1 through 10.7 are complete. The complete
+Python 3.14.7 release suite for the deployed commit passes 669 tests with no
+skips and 91.12% branch coverage; Ruff, strict mypy and dependency consistency
+pass. The production database and service now match the reviewed release while
+remaining deliberately empty and fail-closed without an active model. No
+automation, CI/CD, paid resource, provider, production artifact corpus,
+prediction, simulation, registry mutation or sealed-target access was added.
+
+**Exact next action:** Milestone L Step 11.1 is the frontend architecture
+reassessment. It has not started. Reassess and document the frontend boundary
+before initializing Next.js, generating a client or implementing any frontend
+feature.
 
 ## Milestone L — Frontend, Last — planned
 

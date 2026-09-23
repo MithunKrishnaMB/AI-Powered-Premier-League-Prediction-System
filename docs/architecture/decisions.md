@@ -1724,12 +1724,49 @@ sanitized while a later request recovers through a fresh lazy engine. Continue
 to rely on the existing bounded HTTP/provider quota and post-match recovery
 tests.
 
-**Consequences:** The local migration head becomes `f0010_step_10_5` and the
-release gate now contains genuine historical-to-API evidence without a durable
-test write. The hosted Neon database and Render service remain at published
-head `f0009_step_7_9` and commit `461f31f` until the user reviews, commits and
-publishes the change. Production rollout must apply the forward migration
-before deploying that same new commit; Neon must not be migrated while the old
-service is still the intended release. No active model, production corpus,
-provider selection, sealed target access, prediction, simulation, automation
-or paid resource is introduced.
+**Consequences:** The migration head becomes `f0010_step_10_5` and the release
+gate now contains genuine historical-to-API evidence without a durable test
+write. Production rollout must apply the forward migration before deploying
+the same reviewed commit; Neon must not be migrated while incompatible code is
+still the intended release. No active model, production corpus, provider
+selection, sealed target access, prediction, simulation, automation or paid
+resource is introduced.
+
+**Operational evidence (2026-09-23):** Commit `569504f` was published, Neon was
+migrated from `f0009_step_7_9` to `f0010_step_10_5`, the read-only `pl_api`
+surface was reverified and the same commit was deployed successfully to Render.
+
+## ADR-064: Close the backend release on an exact migration/deployment pair
+
+**Status:** Accepted
+
+**Context:** The backend/ML acceptance gate could pass only after the reviewed
+historical-delivery commit, Neon schema and Render runtime identified the same
+release. Readiness must remain fail-closed because the actual registry has no
+active model; a synthetic activation or imported corpus cannot be used to make
+the deployment appear ready.
+
+**Decision:** Accept the backend release only after commit
+`569504f2775c2e6092a956248266a9052e584a66` is published, the forward migration
+reaches `f0010_step_10_5`, all 111 application relations remain selectable and
+none writable by `pl_api`, and Render manually deploys that exact commit. Then
+repeat public liveness, readiness, OpenAPI, pagination, request-ID, error,
+CORS, security-header and rate-limit acceptance.
+
+Treat HTTP 503 aggregate readiness with PostgreSQL `ready` and active model
+`no_active_model` as the correct release state. Keep automatic deployment off
+and do not add traffic intended to defeat free-tier scale-to-zero behavior.
+
+**Consequences:** Milestone K is complete and the backend is publicly reachable
+on the approved zero-cost services, but it deliberately exposes no production
+predictions or simulations. Milestone L Step 11.1 is the next unstarted item.
+No provider, corpus, registry state, sealed target, automation or infrastructure
+resource was added or changed by acceptance.
+
+**Operational evidence (2026-09-23):** Neon PostgreSQL 18.6 reports exact head
+`f0010_step_10_5`; `pl_api` retains zero write privileges and no elevated role
+capability. Render deployment `dep-dapl3f3bc2fs73b49lu0` reached Live in 2m30s
+from the exact accepted commit. The public service returned HTTP 200 liveness,
+intentional HTTP 503 readiness, exactly sixteen GET operations, empty resource
+pagination, correct 404/422 envelopes, request-ID echo, rate-limit and security
+headers and HTTP 403 for an untrusted CORS origin.

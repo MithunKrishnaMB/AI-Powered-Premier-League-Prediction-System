@@ -53,7 +53,7 @@ PgBouncer boundary while migrations retain stable session behavior.
    alembic current
    ```
 
-   The only accepted head is `f0009_step_7_9`. Do not downgrade the hosted
+   The only accepted head is `f0010_step_10_5`. Do not downgrade the hosted
    database after provisioning.
 4. In Neon's authenticated SQL editor, replace the password placeholder with a
    newly generated value and create the runtime login. The real password must
@@ -121,7 +121,7 @@ PgBouncer boundary while migrations retain stable session behavior.
    The sanitized result must report the intended database and `pl_api`, UTC,
    PostgreSQL 16 or newer and no superuser, database-creation, role-creation,
    replication or row-security-bypass capability. Confirm separately that
-   `alembic_version` contains only `f0009_step_7_9`.
+   `alembic_version` contains only the reviewed release head.
 7. Remove both URLs from the local process after verification. Retain the
    owner URL only in Neon's credential controls, a user-managed password
    manager or the Git-ignored local `.env`; do not provide it to Render. The
@@ -129,12 +129,12 @@ PgBouncer boundary while migrations retain stable session behavior.
    local `.env` for manual verification. Never copy either value into tracked
    content.
 
-### Verified Neon result (2026-09-22)
+### Verified Neon result (2026-09-23)
 
 The Free project is provisioned in AWS Asia Pacific 1 (Singapore) with
 PostgreSQL 18.6, branch `production` and database `pl_platform`. Alembic reached
-`f0009_step_7_9`. The pooled `pl_api` login reports UTC, can select all 111
-migrated tables, has zero table write privileges and has no elevated role
+`f0010_step_10_5`. The pooled `pl_api` login reports UTC, can select all 111
+application relations, has zero relation write privileges and has no elevated role
 capability. No corpus, registry state, artifact, provider data, prediction,
 simulation or sealed target was imported or inspected.
 
@@ -175,13 +175,14 @@ After the manual deployment completes, verify the public HTTPS endpoint:
 6. No secret appears in Render build logs, runtime logs or the checked-in
    Blueprint.
 
-### Verified Render result (2026-09-22)
+### Verified Render result (2026-09-23)
 
 One Render Free Docker web service is live in Singapore at
 `https://premier-league-prediction-api.onrender.com`. Service
 `srv-dap79enf3r2c73a0npfg` has automatic deploys off and `/health/live` as the
-platform health check. Final manual deployment `dep-dapb3qnf3r2c73c30ojg`
-built commit `461f31f` successfully in 59.7 seconds. Exactly these seven
+platform health check. Final manual deployment `dep-dapl3f3bc2fs73b49lu0`
+built commit `569504f2775c2e6092a956248266a9052e584a66` successfully and
+reached Live in 2m30s. Exactly these seven
 runtime settings remain:
 
 - `PLP_DATABASE_CONNECT_TIMEOUT_SECONDS`;
@@ -208,15 +209,12 @@ HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` and
 rate-limit headers were present and an untrusted Origin was rejected with
 HTTP 403 and no allow-origin header.
 
-### Pending coordinated migration after Step 10.6
+### Completed coordinated release
 
-Local revision `f0010_step_10_5` repairs a historical canonical-validator
-function and is not yet published or applied to Neon. Keep Neon and Render on
-their compatible published `f0009_step_7_9`/`461f31f` pair until the user has
-reviewed, committed and pushed the implementation. Then apply the forward
-migration with the direct owner URL, verify `pl_api` at the new head and
-manually deploy that exact same commit. Never migrate Neon ahead of the code
-that currently serves it and never send the owner URL to Render.
+Revision `f0010_step_10_5` was applied with the direct owner URL before Render
+deployed the matching published commit. The pooled `pl_api` role was reverified
+at the new head before deployment, and the owner URL was never sent to Render.
+The public acceptance checks above were then repeated against the new instance.
 
 Do not use `/health/ready` as Render's deployment health check until an active
 model is separately authorized and available. Do not add a fake registry,
