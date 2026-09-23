@@ -521,22 +521,36 @@ sixteen GET operations, empty pagination, request-ID echo, uniform 404/422
 envelopes, HSTS and other security headers, the 120-request rate-limit contract
 and HTTP 403 denial of an untrusted CORS origin.
 
-**Milestone K closeout:** Steps 10.1 through 10.7 are complete. The complete
-Python 3.14.7 release suite for the deployed commit passes 669 tests with no
+**Milestone K closeout:** Commit `1669b6a` records the completed release and
+handoff documentation for Steps 10.1 through 10.7. The complete Python 3.14.7
+release suite for the deployed commit passes 669 tests with no
 skips and 91.12% branch coverage; Ruff, strict mypy and dependency consistency
 pass. The production database and service now match the reviewed release while
 remaining deliberately empty and fail-closed without an active model. No
 automation, CI/CD, paid resource, provider, production artifact corpus,
 prediction, simulation, registry mutation or sealed-target access was added.
 
-**Exact next action:** Milestone L Step 11.1 is the frontend architecture
-reassessment. It has not started. Reassess and document the frontend boundary
-before initializing Next.js, generating a client or implementing any frontend
-feature.
+**Milestone L architecture boundary:** Step 11.1 confirms one isolated Next.js
+16 App Router package below `frontend/`, Node.js 24.21.0 LTS with npm 11.19.0,
+strict TypeScript, deterministic local OpenAPI generation, server-owned no-store
+reads, URL-owned navigation state, explicit empty/unavailable/cold-start
+experiences, WCAG 2.2 AA and one later manually deployed zero-cost frontend
+service. No frontend code, package, dependency, client or infrastructure was
+created.
 
-## Milestone L — Frontend, Last — planned
+**Exact next action:** Milestone L Step 11.2 is the frontend foundation. It has
+not started. Initialize only the Next.js/TypeScript package and deterministic
+generated API-client boundary; do not begin the dashboard or another feature.
 
-- **Step 11.1:** Reassess and document the frontend architecture.
+## Milestone L — Frontend, Last — in progress
+
+- **Step 11.1 — complete:** Reassessed the framework, strict TypeScript and npm
+  boundary, deterministic locally exported OpenAPI client, Server/Client
+  Component ownership, routing, no-store data access, URL state, pagination,
+  request IDs, error mapping, user experience states, accessibility, responsive
+  styling, testing, browser support, environment/CORS assumptions, manual
+  zero-cost deployment and the ordered feature map. Documentation only; no
+  frontend was initialized.
 - **Step 11.2:** Initialize Next.js/TypeScript and a generated API client.
 - **Step 11.3:** Build the dashboard and navigation.
 - **Step 11.4:** Build fixtures and match-prediction views.
@@ -548,6 +562,23 @@ feature.
 - **Step 11.10:** Add accessibility, component and end-to-end tests.
 - **Step 11.11:** Deploy the frontend.
 - **Step 11.12:** Run full production integration tests.
+
+**Step 11.1 page and contract boundary:** Later pages are ordered as dashboard;
+fixtures and predictions; teams with truthful squad unavailability; actual and
+predicted standings; simulations; history and development-only model evidence;
+and a manually refreshed persisted-state match centre. The current API has no
+player/squad operation or live-provider route, so later frontend work must not
+invent either capability or expand the fixed sixteen-operation GET-only
+contract implicitly. See the
+[frontend application architecture](architecture/frontend-application.md) and
+[Step 11.1 to 11.2 handoff](handoffs/step-11-1-to-11-2.md).
+
+**Step 11.1 verification:** Python 3.14.7 Ruff lint and formatting pass across
+290 files, strict mypy passes across 232 source/test/migration files and
+dependency consistency passes. Twenty-two focused application, OpenAPI,
+request-ID/error, pagination and HTTP-control tests pass. Documentation links
+and diff whitespace pass. No frontend, dependency, generated artifact,
+automation or infrastructure file exists.
 
 ## Milestone completion rule
 

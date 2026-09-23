@@ -213,7 +213,7 @@ HTTP 403 and no allow-origin header.
 
 Revision `f0010_step_10_5` was applied with the direct owner URL before Render
 deployed the matching published commit. The pooled `pl_api` role was reverified
-at the new head before deployment, and the owner URL was never sent to Render.
+at the new head before deployment and the owner URL was never sent to Render.
 The public acceptance checks above were then repeated against the new instance.
 
 Do not use `/health/ready` as Render's deployment health check until an active

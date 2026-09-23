@@ -4,7 +4,7 @@
 
 Milestone K Steps 10.1 through 10.7 are complete. The accepted backend release
 is commit `569504f2775c2e6092a956248266a9052e584a66`. Neon PostgreSQL 18.6 is at
-exact migration head `f0010_step_10_5`, and the pooled `pl_api` role can select
+exact migration head `f0010_step_10_5` and the pooled `pl_api` role can select
 all 111 application relations while writing none and retaining no elevated
 role capability.
 
@@ -37,12 +37,14 @@ manifest captures passed.
   created.
 - No automation, scheduling, recurring monitor, CI/CD, GitHub Action, paid
   resource, keep-alive traffic or additional infrastructure was added.
-- The Step 10.7 closeout documentation remains unstaged and uncommitted.
+- Commit `1669b6a20f4a918d52a14a155ab716d8c8149510` records the Milestone K
+  closeout documentation and this handoff.
 
-## Exact next item
+## Handoff continuation
 
-Milestone L Step 11.1 is the frontend architecture reassessment. It has not
-started. Reassess and document the frontend framework, API-client generation,
-state ownership, accessibility, testing and deployment boundaries before
-initializing Next.js or implementing any frontend feature. Step 11.1 requires
-explicit approval.
+Milestone L Step 11.1 has now consumed this handoff and completed the
+documentation-only frontend architecture reassessment. No frontend package or
+feature was initialized. The exact next unstarted item is Step 11.2: initialize
+only the isolated Next.js/TypeScript package and deterministic generated API
+client under the approved architecture. See the
+[Step 11.1 to 11.2 handoff](step-11-1-to-11-2.md).

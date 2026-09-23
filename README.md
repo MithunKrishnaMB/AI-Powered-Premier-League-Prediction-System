@@ -165,6 +165,15 @@ matching commit was manually deployed to Render and the public acceptance gate
 was repeated successfully. See the
 [Milestone K to L handoff](docs/handoffs/milestone-k-to-l.md).
 
+Milestone L Step 11.1 now fixes the frontend architecture without initializing
+it. The accepted boundary uses one isolated Next.js 16 App Router package,
+strict TypeScript, exact npm locking, a deterministic locally exported OpenAPI
+client, server-owned backend reads, explicit unavailable and cold-start states,
+WCAG 2.2 AA and a manual zero-cost deployment boundary. The repository still
+contains no frontend source, package manifest, dependency or generated client.
+See the [frontend application architecture](docs/architecture/frontend-application.md)
+and [Step 11.1 to 11.2 handoff](docs/handoffs/step-11-1-to-11-2.md).
+
 The development environment uses 64-bit Python 3.14.7.
 
 ## Local setup
@@ -456,9 +465,11 @@ implementation. Start with:
 - [Step 10.4 to 10.5 handoff](docs/handoffs/step-10-4-to-10-5.md)
 - [Step 10.6 to 10.7 handoff](docs/handoffs/step-10-6-to-10-7.md)
 - [Milestone K to L handoff](docs/handoffs/milestone-k-to-l.md)
+- [Step 11.1 to 11.2 handoff](docs/handoffs/step-11-1-to-11-2.md)
 - [Neon and Render backend release](docs/operations/neon-render-backend-release.md)
 - [Backend release acceptance](docs/operations/backend-release-acceptance.md)
 - [Production container runtime](docs/architecture/production-container-runtime.md)
+- [Frontend application architecture](docs/architecture/frontend-application.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)
 
@@ -508,3 +519,7 @@ retraining while leaving the result unassessed, unserialized and outside the
 registry.
 The test season remains sealed and has not
 contributed a fit, tuning decision, acceptance decision or metric.
+Milestone K is released and Step 11.1 has completed the documentation-only
+frontend reassessment. Step 11.2 is the exact next unstarted item: initialize
+the isolated Next.js/TypeScript package and deterministic generated API client,
+without beginning the dashboard or another feature page.

@@ -10,8 +10,15 @@ Registry and Simulation; F — PostgreSQL Persistence; G — Current-Season
 Integration; H — Prediction Lifecycle; I — FastAPI Application and Read-Only
 API; J — Live Data, Operational Workflows and Retraining; K — Backend Release
 
-**Current milestone:** L — Frontend, Last — planned; Step 11.1 is the next
-unstarted item.
+**Current milestone:** L — Frontend, Last — in progress; Step 11.1 is complete
+and Step 11.2 is the next unstarted item.
+
+**Completed Milestone L steps:** 11.1 — documentation-only frontend
+reassessment covering the Next.js App Router boundary, strict TypeScript and npm
+ownership, deterministic local OpenAPI client generation, component and state
+ownership, no-store data access, pagination, request IDs, error and availability
+states, accessibility, responsive styling, testing, environment/CORS policy,
+manual zero-cost deployment and the ordered page map
 
 **Completed Milestone K steps:** 10.1 — explicit local release evidence,
 dependency and runtime integrity, package-wide import safety, exact migration-
@@ -86,9 +93,9 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** Step 11.1 — reassess and document the
-frontend architecture. Do not initialize Next.js, generate an API client or
-begin another frontend step until that architecture boundary is approved.
+**Exact next implementation step:** Step 11.2 — initialize only the isolated
+Next.js/TypeScript package and deterministic generated API-client boundary. Do
+not begin the dashboard or another feature step.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -112,6 +119,9 @@ candidate comparison and passive retraining observability through Step 9.7.
 **Milestone K implementation commit:** `569504f` — validates historical API
 delivery and operational recovery and is the exact commit deployed after the
 production migration to `f0010_step_10_5`.
+
+**Milestone K closeout commit:** `1669b6a` — records backend release acceptance,
+ADR-064 and the Milestone K-to-L handoff after the exact production deployment.
 
 ## Implemented capabilities
 
@@ -241,6 +251,11 @@ production migration to `f0010_step_10_5`.
   identity, compatibility, retrieval time, pagination and quota metadata.
 - Structured JSON logging with recursive key-based secret redaction.
 - Local Ruff, strict mypy, pytest, branch coverage and dependency checks.
+- A documented frontend architecture using one future isolated Next.js 16 App
+  Router package, strict TypeScript, exact npm locking, a deterministic local
+  OpenAPI snapshot/client, server-owned no-store reads, URL-owned view state,
+  WCAG 2.2 AA and a later manual zero-cost deployment. No frontend package or
+  code exists yet.
 - An explicit local-release pytest mode that fails rather than skips when
   isolated PostgreSQL, raw-manifest or actual registry evidence is missing.
 - A rollback-only test-database migration cycle covering every revision from
@@ -442,6 +457,18 @@ production migration to `f0010_step_10_5`.
 
 ## Last verified quality result
 
+The documentation-only Step 11.1 boundary passes its focused verification:
+
+- Ruff lint and formatting: passed across 290 files.
+- Strict mypy: passed across 232 source, test and migration Python files.
+- Dependency consistency: passed.
+- Focused FastAPI application, OpenAPI, request-ID/error, pagination and
+  HTTP-control tests: 22 passed with the one existing Starlette `TestClient`
+  deprecation warning.
+- Documentation links and diff whitespace: passed.
+- No frontend directory, package manifest, lockfile, TypeScript configuration,
+  generated client, workflow, automation or infrastructure file was added.
+
 The implementation through the local Steps 10.5 and 10.6 boundary passes the
 complete local release suite:
 
@@ -501,8 +528,7 @@ complete local release suite:
   remains `development_accepted` with no active model. The hosted Neon and
   Render release now matches `f0010_step_10_5` / commit `569504f`; deployment
   `dep-dapl3f3bc2fs73b49lu0` reached Live in 2m30s and repeated public
-  acceptance passed. The Step 10.7 closeout documentation remains unstaged and
-  uncommitted.
+  acceptance passed. Commit `1669b6a` records the Milestone K closeout.
 
 The preserved Milestone F closeout result was:
 
@@ -625,7 +651,8 @@ The preserved Milestone F closeout result was:
 - A selected production current-data provider and its vendor-specific parsers.
 - Scheduling, automation, CI/CD, GitHub Actions and DevOps configuration are
   removed from the roadmap rather than pending implementation.
-- Frontend code.
+- Frontend package, generated API client and feature code; Step 11.1 added
+  architecture documentation only.
 
 ## Development evaluation snapshot
 
@@ -670,6 +697,8 @@ Steps 10.5 and 10.6 now add rollback-only real historical-to-API validation,
 repair the stale canonical validator through `f0010_step_10_5`, pin the exact
 secret/quota boundary and prove transient dependency recovery and deterministic
 replay. Step 10.7 completed the exact migration/deployment pair and repeated
-public acceptance, closing Milestone K. Step 11.1 is the exact next item: a
-frontend architecture reassessment before any frontend initialization or
-implementation.
+  public acceptance, closing Milestone K. Step 11.1 now completes the
+  documentation-only frontend reassessment while preserving the exact backend
+  contract and empty production forecast state. Step 11.2 is the exact next
+  item: initialize only the isolated Next.js/TypeScript package and deterministic
+  generated API-client boundary before any feature page.

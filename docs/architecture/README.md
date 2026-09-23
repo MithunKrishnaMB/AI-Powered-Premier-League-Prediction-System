@@ -14,7 +14,7 @@ Planned topics include:
 - provider adapters, caching and explicitly invoked ingestion workflows
 - FastAPI contracts and scheduled jobs
 - operational boundaries and separately authorized deployment decisions
-- frontend architecture, after backend acceptance
+- frontend architecture over the accepted backend contract
 
 Major decisions will record the decision, alternatives, rationale and
 trade-offs. Documentation should describe implemented behavior rather than
@@ -37,6 +37,7 @@ speculative future complexity.
 - [FastAPI read projections](fastapi-read-projections.md)
 - [FastAPI OpenAPI and HTTP controls](fastapi-openapi-and-http-controls.md)
 - [Production container runtime](production-container-runtime.md)
+- [Frontend application architecture](frontend-application.md)
 - [Point-in-time feature processing](../features/point-in-time.md)
 - [Probabilistic development evaluation](../models/probabilistic-evaluation.md)
 - [Candidate retraining](../models/candidate-retraining.md)
@@ -63,3 +64,5 @@ speculative future complexity.
 - [Milestone J to K handoff](../handoffs/milestone-j-to-k.md)
 - [Step 10.1 to 10.2 handoff](../handoffs/step-10-1-to-10-2.md)
 - [Step 10.2 to 10.3 handoff](../handoffs/step-10-2-to-10-3.md)
+- [Milestone K to L handoff](../handoffs/milestone-k-to-l.md)
+- [Step 11.1 to 11.2 handoff](../handoffs/step-11-1-to-11-2.md)

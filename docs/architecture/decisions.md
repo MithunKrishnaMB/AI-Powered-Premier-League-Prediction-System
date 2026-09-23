@@ -1,6 +1,7 @@
 # Architectural Decision Register
 
-These decisions describe implemented behavior through Step 9.7.
+These decisions describe implemented behavior and approved architecture through
+Step 11.1.
 A later decision may supersede an accepted decision only by recording the
 replacement and its migration impact.
 
@@ -1749,7 +1750,7 @@ the deployment appear ready.
 **Decision:** Accept the backend release only after commit
 `569504f2775c2e6092a956248266a9052e584a66` is published, the forward migration
 reaches `f0010_step_10_5`, all 111 application relations remain selectable and
-none writable by `pl_api`, and Render manually deploys that exact commit. Then
+none writable by `pl_api` and Render manually deploys that exact commit. Then
 repeat public liveness, readiness, OpenAPI, pagination, request-ID, error,
 CORS, security-header and rate-limit acceptance.
 
@@ -1759,7 +1760,8 @@ and do not add traffic intended to defeat free-tier scale-to-zero behavior.
 
 **Consequences:** Milestone K is complete and the backend is publicly reachable
 on the approved zero-cost services, but it deliberately exposes no production
-predictions or simulations. Milestone L Step 11.1 is the next unstarted item.
+predictions or simulations. Milestone L Step 11.1 was the next item at this
+closeout and is now completed under ADR-065 through ADR-067.
 No provider, corpus, registry state, sealed target, automation or infrastructure
 resource was added or changed by acceptance.
 
@@ -1769,4 +1771,111 @@ capability. Render deployment `dep-dapl3f3bc2fs73b49lu0` reached Live in 2m30s
 from the exact accepted commit. The public service returned HTTP 200 liveness,
 intentional HTTP 503 readiness, exactly sixteen GET operations, empty resource
 pagination, correct 404/422 envelopes, request-ID echo, rate-limit and security
-headers and HTTP 403 for an untrusted CORS origin.
+headers and HTTP 403 for an untrusted CORS origin. Commit `1669b6a` records the
+accepted closeout and Milestone K-to-L handoff.
+
+## ADR-065: Use an isolated server-first Next.js frontend
+
+**Status:** Accepted
+
+**Context:** Milestone L begins only after the backend release. The public API
+is a separate, GET-only FastAPI service with dynamic resource identities,
+strict no-store responses, exact-origin CORS and a free-tier cold-start
+boundary. No frontend package exists. A client-only application would move the
+complete transport into the browser and require an immediate CORS change, while
+a static Next.js export cannot represent unknown dynamic resource routes without
+enumerating them at build time.
+
+**Decision:** Use one Next.js 16 App Router application below `frontend/` and
+leave the repository root as the Python package. Default pages, layouts, data
+loading, error classification and initial rendering to Server Components. Use
+narrow Client Components only for browser interaction. Keep filters,
+pagination and selected persisted identities in route paths and search
+parameters; use local state only for ephemeral interaction and add no global
+client store.
+
+Fix the initialization boundary at Node.js 24.21.0 LTS and npm 11.19.0. Commit
+one exact npm lockfile, use `npm ci` and exact direct dependency versions and
+enable strict TypeScript plus unchecked-index, exact-optional-property,
+override, switch-fallthrough and index-signature checks. Use CSS Modules,
+global foundations and CSS custom-property tokens. Do not introduce Tailwind,
+CSS-in-JS, a UI kit or a charting library at the architecture boundary.
+
+**Consequences:** The frontend can retain dynamic routes and server-owned reads
+without exposing the backend transport to browser CORS or turning the root into
+a mixed-language workspace. Client JavaScript remains bounded. Step 11.1 adds
+documentation only; Step 11.2 must initialize the package before any dashboard
+or feature page is implemented.
+
+## ADR-066: Generate the client deterministically from local OpenAPI
+
+**Status:** Accepted
+
+**Context:** The backend already publishes a tested OpenAPI 3.1 contract with
+exactly sixteen GET operations, stable operation IDs, strict response schemas,
+offset pagination, request IDs and a uniform error envelope. Generating from the
+deployed Render URL would add network and deployment timing to the build, while
+handwritten frontend types could drift from the accepted Python contract.
+
+**Decision:** Export `app.openapi()` from the local, side-effect-free FastAPI
+factory under explicit deterministic settings and store canonical key-sorted
+JSON below `frontend/openapi/`. Generate immutable, alphabetized TypeScript
+types with an exactly pinned `openapi-typescript` release and use an exactly
+pinned `openapi-fetch` runtime behind one server-only adapter. Commit the input
+snapshot and generated output and provide separate generation and drift-check
+commands. Do not use an unpinned `npx` download, the public service or manual
+endpoint/resource type copies.
+
+Every call sends a valid `X-Request-ID`. The adapter requires the response
+header and any error-envelope ID to agree, preserves safe details and maps
+transport failure plus 400, 403, 404, 422, 429, 500 and 503 responses into one
+typed frontend boundary. Readiness 503 remains a distinct health body. Preserve
+backend snake-case fields. Use `cache: "no-store"`, no ISR or persistent client
+cache and no speculative data-route prefetch. Keep pagination in URL `limit`
+and `offset`, use returned navigation offsets and never replace backend order
+with a client sort.
+
+**Consequences:** Frontend compilation and drift checks fail when the API
+changes, without duplicating its contract or requiring a running service.
+Request IDs remain usable support correlation. The current no-store and
+process-local rate-limit behavior is not hidden by frontend caching, background
+polling or automatic retry traffic.
+
+## ADR-067: Treat absence and free-tier unavailability as product states
+
+**Status:** Accepted
+
+**Context:** The production database is deliberately schema-only, the actual
+registry is `development_accepted` with no active model, prediction and
+simulation collections are empty and aggregate readiness correctly returns
+HTTP 503. Render can sleep on its free tier. The current API also exposes no
+player/squad route or production live-provider route. A frontend that treats
+these facts as generic failures or fills them with sample output would
+misrepresent the released system.
+
+**Decision:** Require loading, empty, not-found, error, unavailable,
+rate-limited, forecast-unavailable and cold-start states for every applicable
+page. Show a free-tier wake-up explanation after five seconds and use only a
+user-triggered retry after failure. Never generate placeholder predictions,
+scoreline distributions or simulations, reinterpret development acceptance as
+activation or present development metrics as final-test results.
+
+Target WCAG 2.2 AA, semantic responsive tables, visible focus, keyboard
+operation, reduced motion and non-colour-only probability meaning. Support the
+Next.js baseline of Chrome 111+, Edge 111+, Firefox 111+ and Safari 16.4+, with
+later Chromium, Firefox and WebKit end-to-end coverage.
+
+Configure the publicly reachable backend origin only through the server-side,
+non-secret `PLP_API_BASE_URL`; require HTTPS in production and no credential,
+path, query or fragment. Keep browser calls off the backend, so the backend CORS
+allowlist and Render's seven settings remain unchanged. Step 11.11 may later
+create one manually deployed Next.js-compatible Node service on a zero-cost
+tier, with no automatic deploy, preview service, storage, database, analytics,
+scheduler or keep-alive traffic.
+
+**Consequences:** The released empty and no-active-model states remain honest
+and usable, cold starts are visible rather than defeated and Step 11.1 creates
+no hosted resource. Teams can be implemented from the current contract, while
+squads must remain explicitly unavailable unless separately authorized backend
+work adds a read operation. The near-live match centre is limited to manual
+refresh of persisted fixture state and cannot claim a connected live provider.
