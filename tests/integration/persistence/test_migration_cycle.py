@@ -25,6 +25,7 @@ MIGRATION_REVISIONS = (
     "f0007_step_7_4",
     "f0008_step_7_7",
     "f0009_step_7_9",
+    "f0010_step_10_5",
 )
 APPLICATION_SCHEMAS = (
     "feature",

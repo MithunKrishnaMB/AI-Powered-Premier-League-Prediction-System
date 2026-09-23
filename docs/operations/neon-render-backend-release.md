@@ -12,7 +12,7 @@ traffic intended to defeat scale-to-zero behavior.
 This release remains deliberately dark. It creates an empty reviewed schema and
 deploys the existing read-only API, but it does not import the production
 artifact or historical corpus, select a current-data provider, inspect sealed
-2025–26 targets, create final-test evidence, activate a model, or generate a
+2025–26 targets, create final-test evidence, activate a model  or generate a
 prediction or simulation. PostgreSQL can become ready while the aggregate
 readiness endpoint correctly remains HTTP 503 with `no_active_model`.
 
@@ -112,7 +112,7 @@ PgBouncer boundary while migrations retain stable session behavior.
    ```
 
 6. Build a pooled Neon URL for `pl_api`, configure it temporarily as
-   `PLP_PRODUCTION_DATABASE_URL`, and run:
+   `PLP_PRODUCTION_DATABASE_URL` and run:
 
    ```powershell
    plp-check-database --target production
@@ -125,8 +125,9 @@ PgBouncer boundary while migrations retain stable session behavior.
 7. Remove both URLs from the local process after verification. Retain the
    owner URL only in Neon's credential controls, a user-managed password
    manager or the Git-ignored local `.env`; do not provide it to Render. The
-   pooled URL may remain in that ignored file only until the Render secret is
-   configured. Never copy either value into tracked content.
+   pooled URL may remain in a user-managed password manager or Git-ignored
+   local `.env` for manual verification. Never copy either value into tracked
+   content.
 
 ### Verified Neon result (2026-09-22)
 
@@ -153,7 +154,7 @@ Blueprint can be created. Because repository staging, commits and pushes are
 user-controlled, create or update that remote only after reviewing the local
 diff. In Render, create a Blueprint from that exact commit, verify that the
 service plan says Free and the region says Singapore, enter only the pooled
-`pl_api` URL when prompted, and leave auto-deploy disabled.
+`pl_api` URL when prompted and leave auto-deploy disabled.
 
 Render terminates TLS at its edge and overwrites `CF-Connecting-IP` with the
 client address. The deployment explicitly trusts only that single validated
@@ -170,9 +171,52 @@ After the manual deployment completes, verify the public HTTPS endpoint:
 4. A supplied valid `X-Request-ID` is echoed and every response retains the
    security headers, including production HSTS.
 5. Resource reads operate against the empty migrated database without any
-   corpus import, and the sealed season remains inaccessible.
+   corpus import and the sealed season remains inaccessible.
 6. No secret appears in Render build logs, runtime logs or the checked-in
    Blueprint.
+
+### Verified Render result (2026-09-22)
+
+One Render Free Docker web service is live in Singapore at
+`https://premier-league-prediction-api.onrender.com`. Service
+`srv-dap79enf3r2c73a0npfg` has automatic deploys off and `/health/live` as the
+platform health check. Final manual deployment `dep-dapb3qnf3r2c73c30ojg`
+built commit `461f31f` successfully in 59.7 seconds. Exactly these seven
+runtime settings remain:
+
+- `PLP_DATABASE_CONNECT_TIMEOUT_SECONDS`;
+- `PLP_DATABASE_MAX_OVERFLOW`;
+- `PLP_DATABASE_POOL_SIZE`;
+- `PLP_ENVIRONMENT`;
+- `PLP_LOG_LEVEL`;
+- `PLP_PRODUCTION_DATABASE_URL`; and
+- `PLP_TRUSTED_CLIENT_IP_HEADER`.
+
+Duplicate obsolete production-database entries were removed. Only the pooled
+read-only `pl_api` URL is stored in Render; the owner migration URL was never
+sent. Any credential that became visible during setup was immediately revoked,
+and the final value was rotated after that exposure and fingerprint-verified
+without printing it or placing it in tracked content.
+
+Public verification returned HTTP 200 from `/health/live`. `/health/ready`
+returned the intentional HTTP 503 with PostgreSQL `ready` and active model
+`no_active_model`. An empty team collection preserved offset pagination; a
+missing team returned the uniform HTTP 404 envelope and an invalid limit
+returned the uniform HTTP 422 validation envelope. `/openapi.json` exposed
+exactly sixteen GET operations and no mutating operation. Request-ID echo,
+HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` and
+rate-limit headers were present and an untrusted Origin was rejected with
+HTTP 403 and no allow-origin header.
+
+### Pending coordinated migration after Step 10.6
+
+Local revision `f0010_step_10_5` repairs a historical canonical-validator
+function and is not yet published or applied to Neon. Keep Neon and Render on
+their compatible published `f0009_step_7_9`/`461f31f` pair until the user has
+reviewed, committed and pushed the implementation. Then apply the forward
+migration with the direct owner URL, verify `pl_api` at the new head and
+manually deploy that exact same commit. Never migrate Neon ahead of the code
+that currently serves it and never send the owner URL to Render.
 
 Do not use `/health/ready` as Render's deployment health check until an active
 model is separately authorized and available. Do not add a fake registry,

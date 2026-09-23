@@ -36,7 +36,7 @@ def migrated_test_engine() -> Iterator[Engine]:
         revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one_or_none()
-    if revision != "f0009_step_7_9":
+    if revision != "f0010_step_10_5":
         engine.dispose()
         pytest.skip("test PostgreSQL database is not at the current migration head")
     try:

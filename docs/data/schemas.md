@@ -466,6 +466,11 @@ state-advancement, prediction-regeneration and simulation-regeneration child
 identities. Its six immutable events form a predecessor-checksummed prefix;
 derived progress replaces any mutable workflow status or current pointer.
 
+Revision `f0010_step_10_5` changes no schema shape. It replaces the historical
+canonical-dataset validator so its completed-season check reads the final
+`completed` column name while preserving the existing completeness,
+round-robin and chronology constraints.
+
 Immediate constraints reject invalid ranges, states, dtypes, identities,
 foreign keys and local inconsistencies. Deferred constraints reject incomplete
 season membership, gaps or reordered records, predictor populations,

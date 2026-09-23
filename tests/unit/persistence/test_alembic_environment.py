@@ -15,7 +15,7 @@ def test_alembic_configuration_has_no_embedded_database_url() -> None:
     assert config.get_main_option("sqlalchemy.url") is None
 
 
-def test_steps_5_4_through_7_9_form_one_linear_revision_chain() -> None:
+def test_steps_5_4_through_10_5_form_one_linear_revision_chain() -> None:
     version_files = {
         path.name
         for path in Path("migrations/versions").iterdir()
@@ -32,12 +32,14 @@ def test_steps_5_4_through_7_9_form_one_linear_revision_chain() -> None:
         "f0007_step_7_4_prediction_lifecycle.py",
         "f0008_step_7_7_post_match_regeneration.py",
         "f0009_step_7_9_post_match_workflow.py",
+        "f0010_step_10_5_canonical_validation.py",
     }
 
     script = ScriptDirectory.from_config(Config("alembic.ini"))
-    assert script.get_heads() == ["f0009_step_7_9"]
+    assert script.get_heads() == ["f0010_step_10_5"]
     revisions = list(script.walk_revisions())
     assert [revision.revision for revision in revisions] == [
+        "f0010_step_10_5",
         "f0009_step_7_9",
         "f0008_step_7_7",
         "f0007_step_7_4",
@@ -49,6 +51,7 @@ def test_steps_5_4_through_7_9_form_one_linear_revision_chain() -> None:
         "f0001_step_5_4",
     ]
     assert [revision.down_revision for revision in revisions] == [
+        "f0009_step_7_9",
         "f0008_step_7_7",
         "f0007_step_7_4",
         "f0006_step_6_8",

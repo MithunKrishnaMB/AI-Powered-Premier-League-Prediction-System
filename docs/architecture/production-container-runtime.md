@@ -35,7 +35,7 @@ That side-effect-free module validates that `PLP_ENVIRONMENT` is exactly
 `production` before replacing itself with the pinned Uvicorn command. The ASGI
 target remains the explicit `pl_platform.api:create_app` factory. It binds the
 validated platform `PORT` when supplied and defaults to 8000 locally, runs
-exactly one worker, disables generic proxy-header trust and access logging, and
+exactly one worker, disables generic proxy-header trust and access logging and
 allows 30 seconds for graceful shutdown.
 
 One worker is deliberate. The existing bounded rate limiter is process-local;

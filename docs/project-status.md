@@ -1,6 +1,6 @@
 # Project Status
 
-**Status date:** 2026-09-22
+**Status date:** 2026-09-23
 
 **Runtime:** 64-bit Python 3.14.7
 
@@ -11,8 +11,7 @@ Integration; H — Prediction Lifecycle; I — FastAPI Application and Read-Only
 API; J — Live Data, Operational Workflows and Retraining
 
 **Current milestone:** K — Backend Release — in progress; Steps 10.1 through
-10.3 complete; Step 10.4 locally implemented and awaiting a committed,
-published source for manual Render deployment.
+10.6 complete; Step 10.7 is the next unstarted item.
 
 **Completed Milestone K steps:** 10.1 — explicit local release evidence,
 dependency and runtime integrity, package-wide import safety, exact migration-
@@ -21,12 +20,13 @@ isolated test database; 10.2 — digest-pinned Python 3.14.7 container, pinned
 Uvicorn process, production-only entry point, non-root single-worker runtime,
 allowlisted build context and local image/runtime verification; 10.3 — Neon
 Free PostgreSQL 18 provisioning in Singapore, exact schema-only migration to
-`f0009_step_7_9` and verified least-privilege pooled `pl_api` access
-
-**In-progress Milestone K step:** 10.4 — manual Render Free Singapore Blueprint,
-dynamic port, liveness health check, bounded pool and trusted-edge rate-limit
-identity. Render is authenticated and waiting at source selection, but the
-repository has no committed remote source available to build.
+`f0009_step_7_9` and verified least-privilege pooled `pl_api` access; 10.4 —
+manual Render Free Singapore deployment of the reviewed Docker image,
+dynamic port, liveness health check, bounded pool, trusted-edge rate-limit
+identity and public contract acceptance; 10.5 — rollback-only real 2024–25
+historical-to-PostgreSQL-to-FastAPI validation and the forward-only canonical
+validator repair; 10.6 — exact secret/configuration boundary, quota, recovery
+and deterministic replay verification.
 
 **Completed Milestone J steps:** 9.1 — cache-aware live fixture reads over the
 provider-neutral capability and immutable exact-response cache boundaries; 9.2
@@ -85,11 +85,12 @@ chronological calibration assessment; 3.7 — independent-Poisson score baseline
 3.8 — Dixon–Coles adjustment; 3.9 — frozen development acceptance gates; 3.10
 — deterministic model-appropriate global explanations
 
-**Exact next implementation step:** Continue 10.4 by reviewing, committing and
-publishing the approved source, then create and verify the single manual Render
-Free service from that exact revision. Do not begin Step 10.5, add automation
-or CI/CD, select a provider, import production artifacts or inspect sealed
-targets.
+**Exact next implementation step:** Step 10.7 — declare the backend/ML
+acceptance gate passed after a user-reviewed commit is published, the new
+forward migration is applied to Neon, that same commit is manually deployed to
+Render and public acceptance is repeated. Do not add automation or CI/CD,
+select a provider, import production artifacts, generate predictions or
+simulations, mutate the registry or inspect sealed targets.
 
 **Milestone D closeout commit:** `3ac10a2` — complete milestone D model
 acceptance and explanations
@@ -136,8 +137,8 @@ candidate comparison and passive retraining observability through Step 9.7.
 - Typed, immutable environment configuration.
 - Secret-backed, explicitly isolated PostgreSQL development/test connection
   settings and a read-only compatibility and privilege checker.
-- URL-free Alembic environment with nine linear transactional revisions and
-  head `f0009_step_7_9`.
+- URL-free Alembic environment with ten linear transactional revisions and
+  local head `f0010_step_10_5`.
 - PostgreSQL checked domains, exact-byte SHA-256 verification, application
   UUIDv5 checks, restrictive provenance foreign keys, deferred aggregate
   validation and immutable update/delete guards.
@@ -241,7 +242,7 @@ candidate comparison and passive retraining observability through Step 9.7.
 - An explicit local-release pytest mode that fails rather than skips when
   isolated PostgreSQL, raw-manifest or actual registry evidence is missing.
 - A rollback-only test-database migration cycle covering every revision from
-  base through `f0009_step_7_9` while leaving development untouched.
+  base through `f0010_step_10_5` while leaving development untouched.
 - Exact direct dependency-pin/runtime checks and a package-wide isolated import
   sweep with external constructors blocked.
 - Versioned Football-Data manifest with HTTPS host allowlisting.
@@ -439,11 +440,11 @@ candidate comparison and passive retraining observability through Step 9.7.
 
 ## Last verified quality result
 
-The implementation through the local Steps 10.3 and 10.4 boundary passes the
+The implementation through the local Steps 10.5 and 10.6 boundary passes the
 complete local release suite:
 
 - Runtime: 64-bit Python 3.14.7.
-- pytest: 666 passed with no skips, including every kickoff/date-only polling
+- pytest: 669 passed with no skips, including every kickoff/date-only polling
   band, safe CLI
   inputs and fail-closed runtime behavior, fresh/stale/missing result cache
   behavior, unavailable and incompatible capabilities, complete pagination,
@@ -454,27 +455,39 @@ complete local release suite:
   contract, exact dependency pins, package-wide import safety, required local
   release evidence, the complete migration cycle, production entry-point and
   loopback Uvicorn runtime contracts, explicit production database isolation,
-  Render deployment contracts and the complete prior suite.
-- Branch coverage: 91.10%, above the required 90% threshold.
+  Render deployment contracts, rollback-only real historical-to-API delivery,
+  exact deployment configuration and transient database recovery, plus the
+  complete prior suite.
+- Branch coverage: 91.12%, above the required 90% threshold.
 - Ruff format and lint: passed.
-- Strict mypy: passed across all 230 source, test and migration Python files;
-  Ruff formatting checked 281 files.
+- Strict mypy: passed across all 232 source, test and migration Python files;
+  Ruff formatting checked 287 files.
 - Dependency consistency: passed.
 - Docker Desktop 4.84.0 built the digest-pinned image. Its liveness healthcheck
   became healthy under UID/GID 10001, readiness returned HTTP 503 with
   `production_database_not_configured` and `no_active_model` and the exact
   sixteen-operation GET-only OpenAPI surface, production HSTS and request ID
   were preserved. A non-production environment override exited before serving.
-- Development and test databases are at exact head `f0009_step_7_9`; the test
-  database completed the full head-to-base and incremental nine-revision
+- Development and test databases are at exact head `f0010_step_10_5`; the test
+  database completed the full head-to-base and incremental ten-revision
   base-to-head cycle inside a rolled-back outer transaction while the
   development target remained unchanged.
+- The release-only historical acceptance projected the reviewed 2024–25 corpus
+  through PostgreSQL and FastAPI inside a rolled-back outer transaction. It
+  verified all 20 members and 380 finished fixtures, exact pagination and
+  2024–25 filters, empty prediction and simulation collections, byte-identical
+  repeated responses and no persistent database or artifact mutation.
 - All 11 historical raw captures passed manifest verification with manifest
   SHA-256 `87b599ecb06e5f00e64323ef4b426b1b2d2f7db803e26038ae9fb4a76da96aa1`.
 - Neon Free now hosts the schema-only `pl_platform` database in Singapore on
   PostgreSQL 18.6 at `f0009_step_7_9`. The pooled `pl_api` role can select all
-  111 tables, cannot write any table and has no elevated flags. Render is
-  authenticated but has no service because no committed remote source exists.
+  111 tables, cannot write any table and has no elevated flags. Render Free now
+  hosts the manually deployed Docker service in Singapore from commit
+  `461f31f`. Public liveness is HTTP 200; readiness is intentionally HTTP 503
+  with PostgreSQL `ready` and active model `no_active_model`. The public
+  OpenAPI document contains exactly sixteen GET operations. Request-ID echo,
+  error envelopes, pagination, production security headers, rate-limit headers
+  and denial of an untrusted CORS origin were verified.
   No production current-data provider was selected or contacted. Only
   synthetic exact bytes
   and normalized current-season integration evidence were exercised against
@@ -482,8 +495,10 @@ complete local release suite:
   or model activation occurred. Candidate retraining tests used only synthetic
   operational labels and comparison tests used only synthetic later holdouts.
   They wrote no artifact or registry event. The actual filesystem registry
-  remains `development_accepted` with no active model. No changes were staged
-  or committed.
+  remains `development_accepted` with no active model. The hosted Neon and
+  Render release deliberately remains at `f0009_step_7_9` / commit `461f31f`
+  until the local changes are reviewed and published for a coordinated
+  migration then deployment. No changes were staged or committed.
 
 The preserved Milestone F closeout result was:
 
@@ -607,8 +622,6 @@ The preserved Milestone F closeout result was:
 - Scheduling, automation, CI/CD, GitHub Actions and DevOps configuration are
   removed from the roadmap rather than pending implementation.
 - Frontend code.
-- Render deployment remains blocked on a user-reviewed, committed source
-  available through a repository or image registry.
 
 ## Development evaluation snapshot
 
@@ -646,7 +659,12 @@ and rollback-only full migration-cycle verification. Step 10.2 now packages
 that backend as a digest-pinned, production-only, non-root, single-worker image
 and verifies it locally without secrets or artifacts. Step 10.3 is complete:
 the Neon Free database is migrated through the exact nine-revision chain and
-the pooled runtime role is read-only and unprivileged. Step 10.4 has a verified
-local Render design but still requires a user-reviewed commit and published
-source before the manual Free Singapore service can be created. Step 10.5 must
-not begin until the public Render result is complete and recorded.
+the pooled runtime role is read-only and unprivileged. Step 10.4 is complete:
+the manual Render Free Singapore service is live and its public API contract,
+transport controls and intentional fail-closed readiness state are verified.
+Steps 10.5 and 10.6 now add rollback-only real historical-to-API validation,
+repair the stale canonical validator through `f0010_step_10_5`, pin the exact
+secret/quota boundary and prove transient dependency recovery and deterministic
+replay. Step 10.7 is the exact next item, but it has not started. The hosted
+database and service remain on the prior compatible published revision until a
+user-controlled commit and coordinated migration/deployment are available.

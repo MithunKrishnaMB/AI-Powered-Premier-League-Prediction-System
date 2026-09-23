@@ -58,7 +58,7 @@ The PostgreSQL probe explicitly maps development to the development target and
 test to the test target. Production fails closed because no production target
 is configured; it never falls back to development. A successful probe requires
 the existing PostgreSQL version, UTC, restricted-role and connection-identity
-checks plus exact Alembic head `f0009_step_7_9`. Its lazy engine is disposed
+checks plus exact Alembic head `f0010_step_10_5`. Its lazy engine is disposed
 after every result.
 
 The active-model probe delegates to the complete Step 7.1 resolver. It requires

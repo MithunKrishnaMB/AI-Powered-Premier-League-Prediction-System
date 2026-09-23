@@ -1,9 +1,9 @@
 # PostgreSQL Entity-Relationship Model
 
 **Implementation status:** The baseline model is implemented by Steps 5.4–5.7,
-and revisions through `f0009_step_7_9` extend its linear chain with current-
-season synchronization, prediction-lifecycle records and the immutable
-post-match workflow journal. Steps 5.8–5.9 provide
+and revisions through `f0010_step_10_5` extend its linear chain with current-
+season synchronization, prediction-lifecycle records, the immutable post-match
+workflow journal and the canonical-validator repair. Steps 5.8–5.9 provide
 the typed transaction boundary. No production artifact corpus has been imported
 by migrations or repository tests.
 

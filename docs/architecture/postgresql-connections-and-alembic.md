@@ -35,7 +35,7 @@ Milestone K Step 10.3 adds a separate, fail-closed Neon production boundary:
 | Alembic | `PLP_PRODUCTION_MIGRATION_DATABASE_URL` | Direct TLS URL, Neon owner, local process only |
 
 Production URLs must use `postgresql+psycopg`, provide complete credentials and
-database identity, and include `sslmode=require` or a stronger verification
+database identity and include `sslmode=require` or a stronger verification
 mode. The runtime URL remains distinct from development and test targets. A
 missing runtime or migration URL fails closed rather than falling back to a
 local target.
@@ -107,8 +107,9 @@ transactional migration tests.
 Step 5.3 itself introduced no revision or database object. Steps 5.4 through
 5.7 subsequently added the baseline schema; Steps 6.7–6.8 and 7.2–7.4 extend
 the same linear transactional chain with current-season, squad and prediction-
-lifecycle and post-match workflow structures. The current head is
-`f0009_step_7_9`; the allocation and
+lifecycle and post-match workflow structures. Step 10.5 adds a function-only
+repair for historical canonical validation. The current local head is
+`f0010_step_10_5`; the allocation and
 reviewed commands are
 documented in the [migration chain](postgresql-migrations.md).
 
@@ -118,7 +119,7 @@ Step 10.1 adds an explicit `pytest --cov --require-local-release` mode. Before
 the release-only checks run, it requires both configured URLs, verifies that
 they resolve to distinct `pl_platform_dev` and `pl_platform_test` databases,
 reuses the restricted-role and UTC checks and requires exact head
-`f0009_step_7_9` on both targets. Missing or incompatible local evidence is a
+`f0010_step_10_5` on both targets. Missing or incompatible local evidence is a
 failure in this mode rather than a PostgreSQL test skip.
 
 The executable migration cycle validates the target identity before changing

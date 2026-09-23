@@ -20,7 +20,7 @@ request-identity match known by the lookup instant as `fresh`, `stale` or
 `miss`. It reloads the request and response objects and revalidates their bytes,
 checksums, deterministic cache key, media metadata and pinned compatibility
 before returning an entry. Lookup transactions are read-only and require exact
-Alembic head `f0009_step_7_9`.
+Alembic head `f0010_step_10_5`.
 
 - A fresh compatible entry is decoded from its exact stored response bytes.
   The provider and its capability manifest are not consulted.

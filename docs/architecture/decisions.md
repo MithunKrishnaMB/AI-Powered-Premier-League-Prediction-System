@@ -1675,7 +1675,61 @@ keep-alive scheduler. The initial deployment remains alive but not ready because
 the actual registry still has no active model. Deployment does not authorize
 corpus import, model promotion, provider selection, frontend work or CI/CD.
 
-**Operational evidence (2026-09-22):** Render authentication is complete and
-the dashboard is at web-service source selection. No service was created
-because the approved changes are intentionally unstaged and uncommitted and
-the repository has no remote. No Neon credential has been sent to Render.
+**Operational evidence (2026-09-22):** Commit `461f31f` is deployed as one
+Render Free Docker web service in Singapore with automatic deployment off and
+`/health/live` as the platform health check. The final manual deployment is
+live. Exactly seven reviewed runtime settings remain; duplicate obsolete
+database settings were removed, only the pooled `pl_api` URL is stored as the
+runtime secret and the direct owner URL was never sent to Render. Any runtime
+credential that became visible during setup was revoked before the final
+credential was installed.
+
+Public acceptance returned HTTP 200 liveness and intentional HTTP 503
+readiness with PostgreSQL `ready` and active model `no_active_model`. It also
+confirmed the sixteen-operation GET-only OpenAPI contract, request-ID echo,
+uniform 404 and 422 envelopes, pagination, HSTS and other security headers,
+rate-limit headers and rejection of an untrusted CORS origin. No corpus,
+provider, registry state, prediction, simulation or sealed target was changed
+or accessed.
+
+## ADR-063: Validate historical API delivery in a rollback-only transaction
+
+**Status:** Accepted
+
+**Context:** Unit and route-contract tests covered each API projection, but the
+existing PostgreSQL integration test accepted an empty database. It therefore
+did not prove that the real historical artifacts could satisfy the complete
+deferred schema and travel through SQL projections and FastAPI. The first such
+transaction exposed an original validator query for the superseded
+`season_registry_entry.is_complete` column.
+
+**Decision:** Add revision `f0010_step_10_5` after the existing linear chain.
+It replaces only `football.validate_canonical_dataset()` and uses the final
+`completed` column while preserving all fixture-count, round-robin, membership,
+chronology and simultaneous-batch checks. Do not rewrite the historical
+migration or import any hosted data.
+
+Add a release-only integration test that verifies the real 2024–25 raw and
+canonical checksums, writes all 380 fixtures and their exact lineage inside a
+caller-owned outer transaction, forces deferred validation and injects that
+connection into the production PostgreSQL query service. Exercise the FastAPI
+teams, season and fixture projections, pagination and filtering; require empty
+prediction and simulation collections; repeat every read byte-for-byte; then
+roll back and compare the database and artifact tree with their prior state.
+
+For operational acceptance, pin the Render environment to exactly seven
+reviewed variables, keep the runtime pool at two plus one overflow, retain the
+deny-by-default image context and prove that a transient database failure is
+sanitized while a later request recovers through a fresh lazy engine. Continue
+to rely on the existing bounded HTTP/provider quota and post-match recovery
+tests.
+
+**Consequences:** The local migration head becomes `f0010_step_10_5` and the
+release gate now contains genuine historical-to-API evidence without a durable
+test write. The hosted Neon database and Render service remain at published
+head `f0009_step_7_9` and commit `461f31f` until the user reviews, commits and
+publishes the change. Production rollout must apply the forward migration
+before deploying that same new commit; Neon must not be migrated while the old
+service is still the intended release. No active model, production corpus,
+provider selection, sealed target access, prediction, simulation, automation
+or paid resource is introduced.

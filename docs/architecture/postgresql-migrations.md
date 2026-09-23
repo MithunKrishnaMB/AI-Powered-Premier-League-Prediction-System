@@ -1,6 +1,6 @@
 # PostgreSQL Migration Chain
 
-Steps 5.4 through 7.9 implement the reviewed entity-relationship model as one
+Steps 5.4 through 10.5 implement the reviewed entity-relationship model as one
 linear, transactional Alembic chain. The revisions contain schema only: they do
 not import existing files, persist simulation matrices, evaluate the sealed
 2025–26 target or promote a model.
@@ -16,6 +16,7 @@ not import existing files, persist simulation matrices, evaluate the sealed
 | `f0007_step_7_4` | 7.2–7.4 | Current-evidence upcoming features and ordered predictor values; active-head/model-bound immutable predictions; official-result-bound per-fixture probabilistic evaluations |
 | `f0008_step_7_7` | 7.5–7.7 | Append-only operational result/Elo states; exactly-once batch advancement; immutable prediction and deterministic season-simulation regeneration lineage |
 | `f0009_step_7_9` | 7.8–7.9 | Canonical post-match workflow manifests; hash-linked append-only stage checkpoints; deterministic retry and recovery state |
+| `f0010_step_10_5` | 10.5 | Function-only repair of canonical-dataset validation to use the final `completed` season column; no table, data or privilege change |
 
 Step 6.1 adds provider-neutral executable contracts only and introduces no
 Alembic revision or database write. Its five operations map onto the existing
@@ -67,6 +68,13 @@ six-stage hash-linked event journal. Database constraints enforce the canonical
 stage order, predecessor chain, manifest-selected lineage checksum and one
 event per sequence/stage. No mutable completion flag or active pointer exists.
 
+Revision `f0010_step_10_5` repairs the historical canonical-dataset validator
+found by the first complete historical-to-API release transaction. The
+original function referenced the superseded `is_complete` name even though the
+final season schema uses `completed`. The replacement retains every fixture-
+count, membership, round-robin, chronology and batch invariant and changes no
+stored data, table or privilege.
+
 The chain preserves application-supplied UUIDv5 and SHA-256 identities. Exact
 canonical bytes remain authoritative in `lineage.stored_object`; relational
 projections have explicit ordinals, restrictive foreign keys and immutable-row
@@ -93,14 +101,14 @@ Do not run `downgrade base` against a database containing retained artifacts.
 Step 5.8 now supplies typed aggregate repositories that verify raw manifests
 before opening writes and compare exact bytes and normalized relationships
 before commit. Step 5.9 verifies transaction rollback, idempotency, conflicts,
-checksums and immutable guards. Current-season repository integration tests run
-against exact head `f0009_step_7_9`.
+checksums and immutable guards. Current-season and release integration tests
+run against exact head `f0010_step_10_5`.
 
 Step 10.1 converts the complete local cycle into an opt-in executable release
 contract. `pytest --cov --require-local-release` first proves that the selected
 connection is the restricted `pl_app` login on `pl_platform_test`, then uses an
 externally supplied connection and caller-owned outer transaction to downgrade
-head to base and upgrade each of the nine revisions in order. It checks the
+head to base and upgrade each of the ten revisions in order. It checks the
 version after every upgrade, requires all twelve bounded schemas at head and
 rolls the outer transaction back so pre-existing test state is restored. The
 development database is never supplied to Alembic and its head is compared
@@ -109,5 +117,4 @@ before and after the cycle.
 The static migration test separately pins the exact file set, single head,
 parent edge for every revision and absence of branch labels or dependency
 edges. Together these checks reject an accidental branch, extra revision,
-missing downgrade or silently skipped local database cycle without adding a
-new migration.
+missing downgrade or silently skipped local database cycle.

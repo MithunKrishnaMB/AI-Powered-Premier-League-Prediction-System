@@ -408,10 +408,11 @@ checks pass. The actual registry remains `development_accepted` with no active
 model, no final-test evidence was created and the sealed 2025–26 targets remain
 uninspected.
 
-**Exact next step:** Milestone K Step 10.1, a local-only hardening audit of
-tests, migration verification and dependency checks. It requires separate
-approval and must not add CI/CD, GitHub Actions, scheduling, deployment,
-containers, hosted infrastructure or another DevOps substitute.
+**Milestone J closeout boundary (historical):** Milestone K Step 10.1 was the
+next local-only hardening audit of tests, migration verification and dependency
+checks. It required separate approval and did not add CI/CD, GitHub Actions,
+scheduling, deployment, containers, hosted infrastructure or another DevOps
+substitute.
 
 ## Milestone K — Backend Release — in progress
 
@@ -429,15 +430,24 @@ containers, hosted infrastructure or another DevOps substitute.
   Singapore, migrated the schema-only database through `f0009_step_7_9` and
   verified the dedicated pooled `pl_api` role. It can select all 111 migrated
   tables, has no table write privilege and has no elevated PostgreSQL role
-  capability. Both connection URLs remain only in the Git-ignored local secret
-  configuration pending the Render handoff.
-- **Step 10.4 — in progress:** Render Free Singapore is selected. The manual
-  one-service Docker Blueprint, dynamic port, liveness health check, bounded
-  database pool and explicit trusted-edge client identity are implemented and
-  tested. Actual deployment requires provider sign-in and a user-reviewed,
-  committed source available to Render; no service is currently deployed.
-- **Step 10.5:** Run historical-to-API end-to-end validation.
-- **Step 10.6:** Verify secret handling, quotas, recovery and reproducibility.
+  capability. The direct owner URL was never transmitted to Render.
+- **Step 10.4 — complete:** Deployed the exact reviewed commit as one manually
+  released Render Free Docker service in Singapore. Auto-deploy remains off,
+  `/health/live` is the platform health check and the runtime has only the
+  pooled read-only database credential. Public acceptance preserved the
+  sixteen-operation GET-only API, request IDs, error envelopes, pagination,
+  OpenAPI, CORS, security headers and rate limiting. Readiness intentionally
+  remains HTTP 503 because PostgreSQL is ready but no active model exists.
+- **Step 10.5 — complete:** Added rollback-only historical-to-API validation
+  over the real 2024–25 raw/canonical lineage, 20 season members and all 380
+  fixtures. It exercises the PostgreSQL projections and FastAPI transport,
+  repeats byte-identical reads and persists no database or artifact change.
+  Revision `f0010_step_10_5` repairs the canonical validator's obsolete
+  `is_complete` reference without changing data, tables or privileges.
+- **Step 10.6 — complete:** Pinned the exact seven-variable Render boundary,
+  secret exclusions and bounded free-tier pool; verified HTTP/provider quotas,
+  transient database recovery, existing workflow recovery and deterministic
+  replay; and documented manual credential and deployment recovery.
 - **Step 10.7:** Declare the backend/ML acceptance gate passed.
 
 **Steps 10.1 and 10.2 boundary:** The release-only pytest mode requires both
@@ -477,14 +487,30 @@ Render's dynamic port, manual free Singapore Blueprint, liveness health check,
 secret prompting and validated trusted-edge rate-limit identity. Hosted Neon
 verification additionally confirms PostgreSQL 18.6 in UTC, exact migration
 head `f0009_step_7_9`, 111 of 111 tables selectable by `pl_api`, zero tables
-with write privilege and every elevated role flag disabled.
+with write privilege and every elevated role flag disabled. The public Render
+service returns HTTP 200 liveness, reports PostgreSQL `ready` plus
+`no_active_model` in its intentional HTTP 503 readiness response, exposes
+exactly sixteen GET operations and rejects an untrusted CORS origin. The final
+manual deployment of commit `461f31f` completed successfully.
 
-**Exact next action:** Continue Step 10.4 after the user-owned review, commit
-and publication of this exact source. Render is authenticated and waiting at
-web-service source selection, but the repository has no remote and the approved
-changes remain intentionally unstaged and uncommitted. Do not create a stale
-service and do not begin Step 10.5 until the public Render result is verified
-and documented.
+**Steps 10.5 and 10.6 verification:** Python 3.14.7 completes 669 tests with no
+skips and 91.12% branch coverage. Ruff lint and formatting pass across 287
+files, strict mypy passes across 232 source/test/migration files and dependency
+consistency passes. The ten-revision migration cycle reaches
+`f0010_step_10_5`; local development and test databases are at that exact head.
+The rollback-only historical acceptance proves 20 members, 380 finished
+fixtures, exact pagination and filters, empty prediction and simulation
+collections, byte-identical replay and no persistent database or artifact
+change. Static deployment checks preserve the exact seven-variable Render
+boundary and transient database failure produces a sanitized 503 before a
+fresh engine succeeds on the next request.
+
+**Exact next action:** Step 10.7 is the backend/ML acceptance gate. It has not
+started. The unstaged implementation must first be reviewed, committed and
+published. Then apply `f0010_step_10_5` to Neon with the direct owner credential
+before manually deploying that exact commit to Render and repeating public
+acceptance. Do not migrate Neon ahead of deployed commit `461f31f`, which
+correctly expects `f0009_step_7_9`.
 
 ## Milestone L — Frontend, Last — planned
 

@@ -20,7 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from pl_platform.ingestion.download import DownloadError, verify_existing_file
 from pl_platform.ingestion.manifest import load_manifest
 
-MIGRATION_HEAD: Final = "f0009_step_7_9"
+MIGRATION_HEAD: Final = "f0010_step_10_5"
 _IDENTIFIER: Final = re.compile(r"^[a-z][a-z0-9_]*$")
 _FORMAT_ID: Final = re.compile(r"^[a-z0-9][a-z0-9._+-]*$")
 _SHA256: Final = re.compile(r"^[0-9a-f]{64}$")

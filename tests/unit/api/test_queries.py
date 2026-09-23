@@ -12,6 +12,7 @@ from uuid import UUID
 import pytest
 from pydantic import SecretStr
 from pytest import MonkeyPatch
+from sqlalchemy.exc import SQLAlchemyError
 
 from pl_platform.api.errors import ApiError
 from pl_platform.api.pagination import PaginationParams
@@ -190,6 +191,19 @@ class ScriptedEngine:
 
     def connect(self) -> ScriptedConnection:
         return self.connection
+
+    def dispose(self) -> None:
+        self.disposed = True
+
+
+class FailingEngine:
+    """Engine double for one transient connection failure."""
+
+    def __init__(self) -> None:
+        self.disposed = False
+
+    def connect(self) -> None:
+        raise SQLAlchemyError("temporarily unavailable")
 
     def dispose(self) -> None:
         self.disposed = True
@@ -455,3 +469,35 @@ def test_query_boundary_fails_closed_for_environment_schema_and_rows(
     assert isinstance(
         default_resource_query_service(_settings()), PostgresResourceQueryService
     )
+
+
+def test_query_boundary_recovers_after_transient_database_failure(
+    monkeypatch: MonkeyPatch,
+) -> None:
+    unavailable = FailingEngine()
+    recovered = ScriptedEngine(
+        (ScriptedResult(scalar=0), ScriptedResult(rows=())),
+        MIGRATION_HEAD,
+    )
+    engines = iter((unavailable, recovered))
+
+    def create_engine(
+        settings: Settings,
+        *,
+        target: str,
+    ) -> FailingEngine | ScriptedEngine:
+        assert settings.environment == "test"
+        assert target == "test"
+        return next(engines)
+
+    monkeypatch.setattr("pl_platform.api.queries.create_database_engine", create_engine)
+    service = PostgresResourceQueryService(_settings())
+
+    with pytest.raises(ApiError, match="database_unavailable") as failure:
+        service.list_seasons(pagination=PaginationParams())
+    page = service.list_seasons(pagination=PaginationParams())
+
+    assert failure.value.status_code == 503
+    assert page.items == ()
+    assert unavailable.disposed
+    assert recovered.disposed

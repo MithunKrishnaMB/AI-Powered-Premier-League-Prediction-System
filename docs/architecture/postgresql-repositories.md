@@ -1,7 +1,7 @@
 # PostgreSQL Repositories and Transactions
 
 Steps 5.8 and 5.9 implement and verify the write boundary, now extended through
-Alembic head `f0009_step_7_9`. They do not bulk-import the produced artifact
+Alembic head `f0010_step_10_5`. They do not bulk-import the produced artifact
 corpus, evaluate the sealed 2025–26 target, promote a model or configure a
 current provider.
 
@@ -41,7 +41,7 @@ unknown or conflicting lineage fails closed.
 
 One repository write uses one serializable PostgreSQL transaction:
 
-1. require exact Alembic head `f0009_step_7_9`;
+1. require exact Alembic head `f0010_step_10_5`;
 2. insert authoritative exact objects;
 3. insert normalized rows in dependency order;
 4. force all deferred constraints to run;

@@ -144,9 +144,24 @@ readiness failure. See the
 [Neon and Render backend release runbook](docs/operations/neon-render-backend-release.md).
 The Neon Free project is provisioned in Singapore and verified at migration
 head `f0009_step_7_9`; its `pl_api` role is read-only across all 111 migrated
-tables. Render is authenticated but no service exists because this uncommitted
-repository still needs review, a commit and publication through a repository
-or immutable image.
+tables. The [Render Free service](https://premier-league-prediction-api.onrender.com)
+is live from the reviewed commit,
+with automatic deploys disabled. Public liveness returns HTTP 200; readiness
+intentionally returns HTTP 503 because PostgreSQL is ready but the actual
+registry has no active model. The sixteen-operation GET-only API and its
+transport controls were verified publicly.
+
+Steps 10.5 and 10.6 add rollback-only historical release evidence and
+operational acceptance. The real 2024–25 lineage, 20 season members and all 380
+fixtures now pass through the exact PostgreSQL constraints and FastAPI
+projections twice with byte-identical responses, then roll back without a
+database or artifact change. Migration `f0010_step_10_5` repairs the original
+canonical validator's obsolete season-column reference. Secret exclusions,
+the exact seven-variable Render boundary, bounded free-tier pooling, quotas and
+transient database recovery are executable contracts. See
+[backend release acceptance](docs/operations/backend-release-acceptance.md).
+The hosted service remains on the last published `f0009_step_7_9` release until
+the new migration and matching source commit can be deployed together.
 
 The development environment uses 64-bit Python 3.14.7.
 
@@ -436,7 +451,10 @@ implementation. Start with:
 - [Step 10.1 to 10.2 handoff](docs/handoffs/step-10-1-to-10-2.md)
 - [Step 10.2 to 10.3 handoff](docs/handoffs/step-10-2-to-10-3.md)
 - [Steps 10.3 and 10.4 external handoff](docs/handoffs/steps-10-3-and-10-4-external-handoff.md)
+- [Step 10.4 to 10.5 handoff](docs/handoffs/step-10-4-to-10-5.md)
+- [Step 10.6 to 10.7 handoff](docs/handoffs/step-10-6-to-10-7.md)
 - [Neon and Render backend release](docs/operations/neon-render-backend-release.md)
+- [Backend release acceptance](docs/operations/backend-release-acceptance.md)
 - [Production container runtime](docs/architecture/production-container-runtime.md)
 - [model artifacts and registry](docs/models/model-artifacts.md)
 - [simulation domain and table rules](docs/simulation/domain-and-table.md)

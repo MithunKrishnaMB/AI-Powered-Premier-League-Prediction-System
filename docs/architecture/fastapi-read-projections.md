@@ -28,9 +28,9 @@ operation.
 The application factory constructs only a typed query-service object. It does
 not create an engine or open a connection. Each request explicitly selects the
 test database in the test environment and the development database otherwise;
-production fails closed because no production target exists. A request opens a
+production fails closed when no production target exists. A request opens a
 short transaction, marks it read-only before any resource query, verifies exact
-Alembic head `f0009_step_7_9`, executes deterministic selects and disposes the
+Alembic head `f0010_step_10_5`, executes deterministic selects and disposes the
 lazy engine.
 
 Every collection uses the shared offset page and a complete count. Ordering is

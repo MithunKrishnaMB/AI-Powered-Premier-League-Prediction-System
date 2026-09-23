@@ -16,7 +16,7 @@ from pl_platform.persistence.database import (
 from pl_platform.persistence.repositories import FilesystemRawManifestVerifier
 from pl_platform.registry.active_model import FilesystemRegistryHistorySource
 
-MIGRATION_HEAD = "f0009_step_7_9"
+MIGRATION_HEAD = "f0010_step_10_5"
 
 
 def _revision(engine: Engine) -> str | None:

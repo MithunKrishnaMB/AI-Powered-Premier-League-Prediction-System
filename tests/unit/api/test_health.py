@@ -146,7 +146,7 @@ def test_production_database_probe_fails_without_fallback() -> None:
 def test_database_probe_selects_test_and_disposes_engine(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    engine = _engine_at("f0009_step_7_9")
+    engine = _engine_at("f0010_step_10_5")
     selected: list[str] = []
 
     def create_engine(settings: Settings, *, target: str) -> Engine:
@@ -173,7 +173,7 @@ def test_database_probe_selects_test_and_disposes_engine(
 def test_database_probe_selects_configured_production_target(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    engine = _engine_at("f0009_step_7_9")
+    engine = _engine_at("f0010_step_10_5")
     selected: list[str] = []
 
     def create_engine(settings: Settings, *, target: str) -> Engine:
